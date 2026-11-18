@@ -8,7 +8,7 @@ import random
 import sys
 import time
 import tkinter as tk
-from sistemas import PERFIS, migrar_estado, novo_estado_investigacao, gerar_caso, registrar_evidencia, avaliar_hipotese, eventos_disparados
+from sistemas import PERFIS, migrar_estado, novo_estado_investigacao, gerar_caso, registrar_evidencia, avaliar_hipotese, eventos_disparados, backup_jsons
 from datetime import datetime
 from pathlib import Path
 
@@ -37,6 +37,7 @@ def estado_novo(nome, segundos, dificuldade='investigador'):
     return dict(schema_version=2, jogador=nome, status='jogando', sala=0, inventario=[], vistos=[],
                 resolvidos=[], tentativas={}, dicas=0, tempo_restante=segundos,
                 conquistas=[], alerta=0, tensao=0, dificuldade=dificuldade,
+                config_dificuldade_snapshot=dict(PERFIS[dificuldade]), mecanismos={},
                 campanha={}, investigacao=novo_estado_investigacao(), eventos=[],
                 inicio=datetime.now().isoformat(timespec='seconds'))
 
@@ -47,6 +48,8 @@ class Motor:
         if len(self.dados['salas']) < 5:
             raise ValueError('enigmas.json deve conter ao menos cinco salas.')
         self.estado = ler('progresso.json', estado_novo('', 1500))
+        if self.estado.get('schema_version', 1) < 2:
+            backup_jsons(DATA)
         self.estado = migrar_estado(self.estado)
         self.historico = ler('historico.json', {'partidas': []})
         if self.estado.get('status') == 'jogando' and self.estado.get('campanha'):
@@ -193,7 +196,8 @@ class Motor:
         self.salvar()
         registro = dict(jogador=self.estado['jogador'], resultado=resultado,
                         salas_visitadas=self.estado['sala'] + 1,
-                        itens=len(self.estado['inventario']), dicas=self.estado['dicas'],
+                        itens=len(self.estado['inventario']), dicas=self.estado['dicas'], dificuldade=self.estado.get('dificuldade', 'investigador'),
+                        seed=self.estado.get('campanha', {}).get('seed'),
                         alerta=self.estado.get('alerta', 0),
                         tempo_restante=self.estado['tempo_restante'],
                         conquistas=list(self.estado['conquistas']),
@@ -717,8 +721,10 @@ class Interface:
         self.tela = 'mecanismo'
         self.mecanismo_objeto = objeto
         codigo = str(objeto.get('codigo', ''))
-        self.mecanismo_valores = [0 if ch.isdigit() else 'A' for ch in codigo]
         self.mecanismo_tamanho = len(codigo)
+        salvo = self.jogo.estado.setdefault('mecanismos', {}).get(self.jogo.sala['id'] + ':' + objeto['id'], {})
+        self.mecanismo_valores = salvo.get('valores', [0 if ch.isdigit() else 'A' for ch in codigo])
+        self.mecanismo_sequencia = salvo.get('sequencia', '')
         sala_id = self.jogo.sala['id']
         indice = {'biblioteca': 0, 'escritorio': 1, 'porao': 2}.get(sala_id, 0)
         self.mecanismo_tipo = self.jogo.estado.get('campanha', {}).get('tipos', ['discos']*3)[indice]
@@ -762,10 +768,12 @@ class Interface:
     def adicionar_caractere(self, char):
         if len(self.mecanismo_sequencia) < self.mecanismo_tamanho:
             self.mecanismo_sequencia += char
+            self.salvar_estado_mecanismo()
             self.desenhar_mecanismo()
 
     def apagar_sequencia(self):
         self.mecanismo_sequencia = self.mecanismo_sequencia[:-1]
+        self.salvar_estado_mecanismo()
         self.desenhar_mecanismo()
 
     def girar_disco(self, indice, sentido):
@@ -777,7 +785,15 @@ class Interface:
             pos = (alfabeto.index(valor) + sentido) % len(alfabeto)
             self.mecanismo_valores[indice] = alfabeto[pos]
         self.som('acerto')
+        self.salvar_estado_mecanismo()
         self.desenhar_mecanismo()
+
+    def salvar_estado_mecanismo(self):
+        chave = self.jogo.sala['id'] + ':' + self.mecanismo_objeto['id']
+        self.jogo.estado.setdefault('mecanismos', {})[chave] = {
+            'valores': list(self.mecanismo_valores), 'sequencia': self.mecanismo_sequencia
+        }
+        self.jogo.salvar()
 
     def testar_mecanismo(self):
         resposta = self.mecanismo_sequencia if self.mecanismo_tipo in ('teclado', 'sequencia') else ''.join(str(v) for v in self.mecanismo_valores)
