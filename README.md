@@ -139,3 +139,13 @@ A campanha fica registrada em `dados/progresso.json`. Ao escolher **Continuar**,
 - Os mecanismos podem apresentar discos ou teclado de caracteres; a combinação é gerada para a campanha atual.
 
 A geração é procedural e combina variações narrativas e de enigmas dentro da estrutura atual de cinco cômodos. Ela não cria infinitas salas ou modelos 3D.
+
+## Sistemas de inovação (v2)
+
+A evolução técnica está documentada em `docs/PLANO_TECNICO_INOVACAO.md`.
+O módulo `sistemas.py` acrescenta perfis de dificuldade, migração compatível de saves,
+geração determinística de casos, registro de evidências e avaliação de hipóteses.
+Os dados legados continuam sendo lidos; a migração em memória não apaga nem reinicializa
+o histórico. Execute os testes com `python -m unittest discover -s tests`.
+
+Perfis disponíveis no motor: `historia`, `investigador` e `pesadelo`.
