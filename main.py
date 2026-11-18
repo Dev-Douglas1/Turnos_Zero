@@ -73,7 +73,7 @@ class Motor:
             ('Cecília Valença', 'o médico da família', 'o desaparecimento do herdeiro'),
             ('Tomás Valença', 'o advogado', 'a falsificação do testamento')
         ]
-        desaparecida, suspeito, crime = random.choice(casos)
+        desaparecida, suspeito, crime = caso['vitima'], caso['culpado'], caso['motivo']
         return {
             'ano': ano, 'codigo_cofre': codigo_cofre,
             'codigo_armario': codigo_armario, 'codigo_painel': codigo_painel,
@@ -128,8 +128,13 @@ class Motor:
             s['vistos'].append(chave)
             self.conquista('primeira_pista')
         texto = objeto['texto']
+        primeira_visita = chave not in s['vistos']
         registrar_evidencia(self.estado, self.estado.get('campanha', {}).get('caso', {}), chave)
-        self.estado['tensao'] = min(100, self.estado.get('tensao', 0) + (2 if chave not in s.get('vistos', []) else 0))
+        if primeira_visita:
+            self.estado['tensao'] = min(100, self.estado.get('tensao', 0) + 2)
+        eventos = eventos_disparados(self.estado)
+        if eventos:
+            texto += '\\n\\n' + '\\n'.join(eventos)
         if objeto.get('codigo'):
             if chave in s['resolvidos']:
                 return ('Este mecanismo já foi desbloqueado.', 'ok')
@@ -220,7 +225,9 @@ def modo_terminal():
             if not nome:
                 print('Digite um nome válido.')
                 continue
-            jogo.novo(nome)
+            print('Dificuldade: 1-História  2-Investigador  3-Pesadelo')
+            nivel = {'1':'historia','2':'investigador','3':'pesadelo'}.get(input('Escolha: ').strip(), 'investigador')
+            jogo.novo(nome, nivel)
         elif opcao == '2':
             if jogo.estado.get('status') != 'jogando':
                 print('Nenhuma partida em andamento.')
@@ -239,7 +246,7 @@ def modo_terminal():
             print('\n', sala['nome'], '\n', sala['descricao'])
             for numero, objeto in enumerate(sala['objetos'], 1):
                 print(numero, '-', objeto['nome'])
-            print('D - Dica | I - Inventário | S - Salvar e sair')
+            print('D - Dica | I - Inventário | E - Evidências | H - Hipótese | S - Salvar e sair')
             acao = input('Sua ação: ').strip().lower()
             if acao == 's':
                 jogo.salvar()
@@ -249,6 +256,17 @@ def modo_terminal():
                 continue
             elif acao == 'd':
                 print(jogo.dica())
+                continue
+            elif acao == 'e':
+                for ev in jogo.estado.get('investigacao', {}).get('evidencias', []):
+                    print('-', ev.get('titulo'), ':', ev.get('fato'))
+                continue
+            elif acao == 'h':
+                suspeito = input('Quem você acusa? ').strip()
+                resultado = avaliar_hipotese(jogo.estado, suspeito)
+                print('Hipótese:', resultado['resultado'])
+                if resultado['correta'] and resultado['fundamentada']:
+                    jogo.finalizar('Verdade revelada')
                 continue
             elif acao.isdigit() and 1 <= int(acao) <= len(sala['objetos']):
                 obj = sala['objetos'][int(acao) - 1]
