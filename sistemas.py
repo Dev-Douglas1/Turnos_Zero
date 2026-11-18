@@ -33,7 +33,8 @@ def migrar_estado(estado):
     novo.setdefault("investigacao", novo_estado_investigacao())
     novo.setdefault("eventos", [])
     novo.setdefault("mecanismos", {})
-    novo.setdefault("config_dificuldade_snapshot", copy.deepcopy(PERFIS[novo["dificuldade"]]))
+    if not isinstance(novo.get("config_dificuldade_snapshot"), dict):
+        novo["config_dificuldade_snapshot"] = copy.deepcopy(PERFIS[novo["dificuldade"]])
     novo.setdefault("campanha", {})
     novo["schema_version"] = 2
     for campo, padrao in (("inventario", []), ("vistos", []), ("resolvidos", []),
