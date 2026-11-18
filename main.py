@@ -59,6 +59,10 @@ class Motor:
     def sala(self):
         return self.dados['salas'][self.estado['sala']]
 
+    @property
+    def perfil(self):
+        return self.estado.get('config_dificuldade_snapshot') or PERFIS.get(self.estado.get('dificuldade', 'investigador'), PERFIS['investigador'])
+
     def salvar(self):
         gravar('progresso.json', self.estado)
 
@@ -146,9 +150,9 @@ class Motor:
             if str(resposta).strip().upper() != objeto['codigo'].upper():
                 s['tentativas'][chave] = s['tentativas'].get(chave, 0) + 1
                 s['alerta'] = s.get('alerta', 0) + 1
-                s['tempo_restante'] = max(0, s.get('tempo_restante', 0) - PERFIS.get(s.get('dificuldade', 'investigador'), PERFIS['investigador'])['penalidade_erro'])
+                s['tempo_restante'] = max(0, s.get('tempo_restante', 0) - s.get('config_dificuldade_snapshot', PERFIS['investigador'])['penalidade_erro'])
                 s['tensao'] = min(100, s.get('tensao', 0) + 12)
-                restantes = PERFIS.get(s.get('dificuldade', 'investigador'), PERFIS['investigador'])['tentativas'] - s['tentativas'][chave]
+                restantes = s.get('config_dificuldade_snapshot', PERFIS['investigador'])['tentativas'] - s['tentativas'][chave]
                 self.salvar()
                 if s['tentativas'][chave] >= PERFIS.get(s.get('dificuldade', 'investigador'), PERFIS['investigador'])['tentativas']:
                     self.finalizar('Capturado pela mansão')
@@ -177,7 +181,7 @@ class Motor:
 
     def dica(self):
         self.estado['dicas'] += 1
-        custo = PERFIS.get(self.estado.get('dificuldade', 'investigador'), PERFIS['investigador'])['custo_dica']
+        custo = self.perfil['custo_dica']
         self.estado['tempo_restante'] = max(0, self.estado.get('tempo_restante', 0) - custo)
         self.salvar()
         return f'Você força a memória a se concentrar. O relógio avança {custo // 60} minuto(s).\\n\\n' + self.sala['pista']
@@ -907,7 +911,7 @@ class Interface:
             'porao': f"Na cera, a lente mostra marcas de raspagem. As letras {campanha.get('codigo_painel', 'LUZ')} devem ser lidas na direção indicada pela chama.",
             'camara': f"A lente revela o selo {campanha.get('selo', 'corvo')} repetido atrás do altar. A mesma marca aparece no primeiro documento."
         }
-        self.jogo.estado['tempo_restante'] = max(0, self.jogo.estado.get('tempo_restante', 0) - max(1, PERFIS.get(self.jogo.estado.get('dificuldade', 'investigador'), PERFIS['investigador'])['custo_dica'] // 3))
+        self.jogo.estado['tempo_restante'] = max(0, self.jogo.estado.get('tempo_restante', 0) - max(1, self.jogo.perfil['custo_dica'] // 3))
         self.jogo.estado['lente_usos'] = self.jogo.estado.get('lente_usos', 0) + 1
         self.jogo.salvar()
         self.som('acerto')
