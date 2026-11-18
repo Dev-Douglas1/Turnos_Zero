@@ -174,9 +174,10 @@ class Motor:
 
     def dica(self):
         self.estado['dicas'] += 1
-        self.estado['tempo_restante'] = max(0, self.estado.get('tempo_restante', 0) - 90)
+        custo = PERFIS.get(self.estado.get('dificuldade', 'investigador'), PERFIS['investigador'])['custo_dica']
+        self.estado['tempo_restante'] = max(0, self.estado.get('tempo_restante', 0) - custo)
         self.salvar()
-        return 'Você força a memória a se concentrar. O relógio avança 1 minuto e 30 segundos.\n\n' + self.sala['pista']
+        return f'Você força a memória a se concentrar. O relógio avança {custo // 60} minuto(s).\\n\\n' + self.sala['pista']
 
     def finalizar(self, resultado):
         if self.estado['status'] != 'jogando':
@@ -555,7 +556,7 @@ class Interface:
     def nova(self):
         if self.jogo.estado.get('status') == 'jogando':
             self.notificacao('Substituir investigação?', 'Uma nova investigação substituirá o progresso atual desta partida. Deseja continuar?', 'aviso',
-                botoes=[('CANCELAR', self.menu), ('NOVA PARTIDA', self.pedir_nome)])
+                botoes=[('CANCELAR', self.menu), ('NOVA PARTIDA', self.selecionar_dificuldade)])
             return
         self.selecionar_dificuldade()
 
