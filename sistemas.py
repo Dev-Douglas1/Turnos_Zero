@@ -27,7 +27,8 @@ def migrar_estado(estado):
         estado = {}
     novo = copy.deepcopy(estado)
     novo.setdefault("schema_version", 1)
-    novo.setdefault("dificuldade", "investigador")
+    if novo.get("dificuldade") not in PERFIS:
+        novo["dificuldade"] = "investigador"
     novo.setdefault("tensao", 0)
     novo.setdefault("investigacao", novo_estado_investigacao())
     novo.setdefault("eventos", [])
@@ -35,7 +36,6 @@ def migrar_estado(estado):
     novo.setdefault("config_dificuldade_snapshot", copy.deepcopy(PERFIS[novo["dificuldade"]]))
     novo.setdefault("campanha", {})
     novo["schema_version"] = 2
-    novo["dificuldade"] = novo["dificuldade"] if novo["dificuldade"] in PERFIS else "investigador"
     for campo, padrao in (("inventario", []), ("vistos", []), ("resolvidos", []),
                           ("tentativas", {}), ("conquistas", []), ("dicas", 0),
                           ("alerta", 0), ("tempo_restante", 1200), ("sala", 0)):
