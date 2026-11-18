@@ -862,12 +862,40 @@ class Interface:
         self.painel_texto('INVENTÁRIO', ['• ' + item for item in itens] or ['Seu inventário está vazio.'])
 
     def quadro_evidencias(self):
-        investigacao = self.jogo.estado.get('investigacao', {})
-        evidencias = investigacao.get('evidencias', [])
-        linhas = [f"[{e.get('tipo','pista').upper()}] {e.get('titulo','Evidência')} — {e.get('fato','')}" for e in evidencias]
-        linhas += [f"SUSPEITO: {n}" for n in self.jogo.estado.get('campanha', {}).get('caso', {}).get('suspeitos', [])[:4]]
-        linhas.append('Use o modo terminal para testar hipóteses; painel visual mostra evidências coletadas.')
-        self.painel_texto('QUADRO DE EVIDÊNCIAS', linhas or ['Nenhuma evidência registrada. Examine documentos e objetos.'])
+        self.tela = 'evidencias'
+        self.limpar()
+        self.imagem('capa', 0, 0)
+        self.retangulo(42, 34, 982, 666, '#101522', self.ouro)
+        self.texto_canvas(512, 72, 'QUADRO DE INVESTIGAÇÃO', 22, self.ouro)
+        evidencias = self.jogo.estado.get('investigacao', {}).get('evidencias', [])
+        if not evidencias:
+            self.texto_canvas(512, 155, 'Nenhuma evidência catalogada. Examine os objetos da mansão.', 12)
+        for i, ev in enumerate(evidencias[:7]):
+            y = 120 + i * 55
+            self.texto_canvas(78, y, f"[{ev.get('tipo','pista').upper()}] {ev.get('titulo','Evidência')}", 10, self.ouro, 860, 'nw')
+            self.texto_canvas(78, y+20, ev.get('fato',''), 9, self.texto, 860, 'nw')
+        self.texto_canvas(512, 525, 'FORMULAR ACUSAÇÃO', 13, self.ouro)
+        suspeitos = self.jogo.estado.get('campanha', {}).get('caso', {}).get('suspeitos', [])
+        for i, suspeito in enumerate(suspeitos[:4]):
+            x = 62 + i * 232
+            self.botao(x, 555, 214, suspeito.upper()[:24], lambda nome=suspeito: self.acusar(nome))
+        self.botao(400, 620, 224, 'VOLTAR', self.jogar)
+        self.registrar_cliques()
+
+    def acusar(self, suspeito):
+        resultado = avaliar_hipotese(self.jogo.estado, suspeito)
+        self.jogo.estado.setdefault('investigacao', {})['hipotese'] = suspeito
+        self.jogo.estado['investigacao']['conclusao'] = resultado['resultado']
+        self.jogo.salvar()
+        if resultado['correta'] and resultado['fundamentada']:
+            self.jogo.finalizar('Verdade revelada')
+            self.resultado()
+        elif not resultado['correta']:
+            self.jogo.finalizar('Acusação precipitada')
+            self.resultado()
+        else:
+            self.notificacao('Evidências insuficientes', 'Sua hipótese pode estar correta, mas ainda faltam provas para sustentá-la.', 'aviso',
+                             ao_fechar=self.quadro_evidencias)
 
     def usar_lente(self):
         campanha = self.jogo.estado.get('campanha', {})
