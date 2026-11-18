@@ -461,7 +461,7 @@ class Interface:
             perfil = PERFIS[chave]
             self.retangulo(210, y-18, 814, y+78, '#151b29', '#9b7044')
             self.texto_canvas(512, y, rotulo, 17, self.ouro)
-            self.texto_canvas(512, y+28, f\"{perfil['tempo']//60} min  •  {perfil['tentativas']} tentativas  •  dica: {perfil['custo_dica']//60} min\", 10, self.texto)
+            self.texto_canvas(512, y+28, f"{perfil['tempo']//60} min  •  {perfil['tentativas']} tentativas  •  dica: {perfil['custo_dica']//60} min", 10, self.texto)
             self.texto_canvas(512, y+52, perfil['descricao'], 9, '#b8c0ce')
             self.alvos.append(((210, y-18, 814, y+78), lambda d=chave: self.definir_dificuldade(d)))
         self.botao(400, 610, 224, 'VOLTAR', self.menu)
@@ -849,8 +849,8 @@ class Interface:
     def quadro_evidencias(self):
         investigacao = self.jogo.estado.get('investigacao', {})
         evidencias = investigacao.get('evidencias', [])
-        linhas = [f\"[{e.get('tipo','pista').upper()}] {e.get('titulo','Evidência')} — {e.get('fato','')}\" for e in evidencias]
-        linhas += [f\"SUSPEITO: {n}\" for n in self.jogo.estado.get('campanha', {}).get('caso', {}).get('suspeitos', [])[:4]]
+        linhas = [f"[{e.get('tipo','pista').upper()}] {e.get('titulo','Evidência')} — {e.get('fato','')}" for e in evidencias]
+        linhas += [f"SUSPEITO: {n}" for n in self.jogo.estado.get('campanha', {}).get('caso', {}).get('suspeitos', [])[:4]]
         linhas.append('Use o modo terminal para testar hipóteses; painel visual mostra evidências coletadas.')
         self.painel_texto('QUADRO DE EVIDÊNCIAS', linhas or ['Nenhuma evidência registrada. Examine documentos e objetos.'])
 
