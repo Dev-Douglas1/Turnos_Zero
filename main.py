@@ -302,6 +302,7 @@ class Interface:
         self.raiz.bind('<F1>', lambda e: self.mostrar_dica() if self.tela == 'jogo' else None)
         self.raiz.bind('<F2>', lambda e: self.usar_lente() if self.tela == 'jogo' else None)
         self.raiz.bind('<i>', lambda e: self.inventario() if self.tela == 'jogo' else None)
+        self.raiz.bind('<b>', lambda e: self.quadro_evidencias() if self.tela == 'jogo' else None)
         self.raiz.protocol('WM_DELETE_WINDOW', self.sair)
         self.menu()
         self.raiz.after(1000, self.tick)
@@ -430,6 +431,27 @@ class Interface:
     def fechar_notificacao(self):
         self.jogar()
 
+    def selecionar_dificuldade(self):
+        self.tela = 'dificuldade'
+        self.limpar()
+        self.retangulo(0, 0, self.W, self.H, '#090d19')
+        self.texto_canvas(512, 145, 'ESCOLHA O NÍVEL DA INVESTIGAÇÃO', 23, self.ouro)
+        opcoes = [('HISTÓRIA', 'historia'), ('INVESTIGADOR', 'investigador'), ('PESADELO', 'pesadelo')]
+        for i, (rotulo, chave) in enumerate(opcoes):
+            y = 235 + i * 112
+            perfil = PERFIS[chave]
+            self.retangulo(210, y-18, 814, y+78, '#151b29', '#9b7044')
+            self.texto_canvas(512, y, rotulo, 17, self.ouro)
+            self.texto_canvas(512, y+28, f\"{perfil['tempo']//60} min  •  {perfil['tentativas']} tentativas  •  dica: {perfil['custo_dica']//60} min\", 10, self.texto)
+            self.texto_canvas(512, y+52, perfil['descricao'], 9, '#b8c0ce')
+            self.alvos.append(((210, y-18, 814, y+78), lambda d=chave: self.definir_dificuldade(d)))
+        self.botao(400, 610, 224, 'VOLTAR', self.menu)
+        self.registrar_cliques()
+
+    def definir_dificuldade(self, dificuldade):
+        self.dificuldade_escolhida = dificuldade
+        self.pedir_nome()
+
     def pedir_nome(self):
         self.tela = 'nome'
         self.alvos = []
@@ -461,7 +483,7 @@ class Interface:
                              ao_fechar=self.pedir_nome)
             return
         self.nome_entry.destroy()
-        self.jogo.novo(nome[:25])
+        self.jogo.novo(nome[:25], getattr(self, 'dificuldade_escolhida', 'investigador'))
         self.intro_pagina = 0
         self.mostrar_intro()
 
@@ -517,7 +539,7 @@ class Interface:
             self.notificacao('Substituir investigação?', 'Uma nova investigação substituirá o progresso atual desta partida. Deseja continuar?', 'aviso',
                 botoes=[('CANCELAR', self.menu), ('NOVA PARTIDA', self.pedir_nome)])
             return
-        self.pedir_nome()
+        self.selecionar_dificuldade()
 
     def mostrar_intro(self):
         """Briefing visual da missão, com ações clicáveis sobre a arte."""
@@ -640,11 +662,11 @@ class Interface:
         self.retangulo(0, 528, 1024, 532, '#d3a15d')
         self.texto_canvas(28, 550, 'DIÁRIO DE CAMPO  /  OBJETIVO ATUAL', 9, '#cda36d', ancora='nw')
         self.texto_canvas(28, 570, sala['descricao'], 12, '#eee1cb', 920, 'nw')
-        self.texto_canvas(28, 610, 'E  EXAMINAR     I  INVENTÁRIO     F1  PISTA     F2  LENTE', 9, '#a8b4c7', ancora='nw')
+        self.texto_canvas(28, 610, 'E  EXAMINAR   I  INVENTÁRIO   B  EVIDÊNCIAS   F1  PISTA   F2  LENTE', 9, '#a8b4c7', ancora='nw')
         self.botao(28, 645, 174, 'INVENTÁRIO [I]', self.inventario)
         self.botao(220, 645, 174, 'PISTA [F1]', self.mostrar_dica)
         self.botao(412, 645, 174, 'SALVAR', self.salvar)
-        self.botao(604, 645, 174, 'ARQUIVO', self.conquistas)
+        self.botao(604, 645, 174, 'EVIDÊNCIAS [B]', self.quadro_evidencias)
         self.botao(796, 645, 198, 'MENU [ESC]', self.menu)
         for objeto in sala['objetos']:
             x1,y1,x2,y2 = objeto['pos']
@@ -805,6 +827,14 @@ class Interface:
         itens = self.jogo.estado.get('inventario', [])
         self.painel_texto('INVENTÁRIO', ['• ' + item for item in itens] or ['Seu inventário está vazio.'])
 
+    def quadro_evidencias(self):
+        investigacao = self.jogo.estado.get('investigacao', {})
+        evidencias = investigacao.get('evidencias', [])
+        linhas = [f\"[{e.get('tipo','pista').upper()}] {e.get('titulo','Evidência')} — {e.get('fato','')}\" for e in evidencias]
+        linhas += [f\"SUSPEITO: {n}\" for n in self.jogo.estado.get('campanha', {}).get('caso', {}).get('suspeitos', [])[:4]]
+        linhas.append('Use o modo terminal para testar hipóteses; painel visual mostra evidências coletadas.')
+        self.painel_texto('QUADRO DE EVIDÊNCIAS', linhas or ['Nenhuma evidência registrada. Examine documentos e objetos.'])
+
     def usar_lente(self):
         campanha = self.jogo.estado.get('campanha', {})
         sala = self.jogo.sala['id']
@@ -815,7 +845,7 @@ class Interface:
             'porao': f"Na cera, a lente mostra marcas de raspagem. As letras {campanha.get('codigo_painel', 'LUZ')} devem ser lidas na direção indicada pela chama.",
             'camara': f"A lente revela o selo {campanha.get('selo', 'corvo')} repetido atrás do altar. A mesma marca aparece no primeiro documento."
         }
-        self.jogo.estado['tempo_restante'] = max(0, self.jogo.estado.get('tempo_restante', 0) - 30)
+        self.jogo.estado['tempo_restante'] = max(0, self.jogo.estado.get('tempo_restante', 0) - max(1, PERFIS.get(self.jogo.estado.get('dificuldade', 'investigador'), PERFIS['investigador'])['custo_dica'] // 3))
         self.jogo.estado['lente_usos'] = self.jogo.estado.get('lente_usos', 0) + 1
         self.jogo.salvar()
         self.som('acerto')
@@ -849,9 +879,9 @@ class Interface:
             'Investigue os objetos destacados com o mouse.',
             'Colete itens para abrir portas e mecanismos.',
             'Observe cartas, retratos e inscrições para descobrir senhas.',
-            'F1: pedir pista   |   I: inventário   |   ESC: menu',
-            'Você tem 20 minutos e apenas três tentativas por código.',
-            'Erros custam 1 minuto; pedir uma dica custa 1 minuto e 30 segundos.',
+            'F1: pista   |   F2: lente   |   I: inventário   |   B: evidências   |   ESC: menu',
+            'Escolha História, Investigador ou Pesadelo antes de iniciar uma nova campanha.',
+            'O nível altera tempo, custo de dicas, penalidade de erro e tentativas.',
             'O progresso é salvo em JSON e pode ser recuperado depois.',
             'Na última sala, escolha fugir ou revelar a verdade.',
             'Modo didático no terminal: python main.py --terminal'
