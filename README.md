@@ -144,8 +144,19 @@ A geração é procedural e combina variações narrativas e de enigmas dentro d
 
 A evolução técnica está documentada em `docs/PLANO_TECNICO_INOVACAO.md`.
 O módulo `sistemas.py` acrescenta perfis de dificuldade, migração compatível de saves,
-geração determinística de casos, registro de evidências e avaliação de hipóteses.
-Os dados legados continuam sendo lidos; a migração em memória não apaga nem reinicializa
-o histórico. Execute os testes com `python -m unittest discover -s tests`.
+geração determinística de casos, registro de evidências, eventos de atmosfera e avaliação de hipóteses.
+Os dados legados continuam sendo lidos; antes da primeira gravação de um save antigo, o jogo cria
+uma cópia de segurança em `dados/backups/`. A migração não apaga nem reinicializa o histórico.
 
-Perfis disponíveis no motor: `historia`, `investigador` e `pesadelo`.
+### Novos recursos
+- Ao iniciar uma nova campanha, escolha **História**, **Investigador** ou **Pesadelo**.
+- A dificuldade define tempo, custo das dicas, penalidade por erro e tentativas; os parâmetros usados ficam salvos com a partida.
+- A tecla **B** ou o botão **EVIDÊNCIAS** abre o quadro de investigação.
+- O quadro permite formular uma acusação; uma conclusão correta exige evidências suficientes.
+- A campanha recebe uma semente e um caso procedural reproduzível, com suspeitos, motivo e evidências.
+- O estado parcial dos mecanismos é salvo durante a manipulação.
+- Eventos de tensão aparecem conforme marcos da investigação.
+
+### Testes
+Execute `python -m unittest discover -s tests -v` para testar migração, perfis, geração de caso e avaliação de hipótese.
+O GitHub Actions também compila os módulos, executa os testes e valida os três JSONs em cada push.
