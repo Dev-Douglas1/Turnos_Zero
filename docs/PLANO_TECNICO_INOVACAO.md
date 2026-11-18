@@ -375,3 +375,26 @@ Começar pela **Fase 0 + Fase 1**. É a fundação de segurança para todas as f
 ---
 
 **Decisão de produto consolidada:** O Último Segredo da Mansão será um Escape Room point-and-click 2D de investigação, com campanhas procedurais reproduzíveis, puzzles mecânicos, dedução por evidências, dificuldade selecionável e uma mansão que reage às decisões. A atmosfera combina conspiração familiar, tensão psicológica e fenômenos sobrenaturais, mantendo sempre pistas lógicas para o jogador resolver o caso.
+
+
+## 15. Estado da implementação — 18/11/2026
+
+### Implementado no repositório
+- Perfis História, Investigador e Pesadelo com parâmetros por campanha.
+- Migração compatível para schema 2 e backup automático de saves legados antes da primeira gravação.
+- Geração determinística de um caso com seed, suspeitos, motivo, evidências e linha do tempo.
+- Registro de evidências ao examinar objetos compatíveis.
+- Quadro visual de evidências e fluxo de acusação.
+- Finais adicionais para acusação precipitada e conclusão comprovada.
+- Eventos de tensão acionados por marcos da investigação.
+- Salvamento do estado parcial dos mecanismos.
+- Testes automatizados e workflow do GitHub Actions.
+
+### Ainda exige expansão e validação em jogo
+- Implementar novos controladores visuais para engrenagens, placas deslizantes e puzzles sonoros; os mecanismos atuais continuam sendo discos/teclado/sequência.
+- Aumentar a quantidade de modelos de casos e tornar todas as pistas e cronologias específicas de cada modelo.
+- Conectar os eventos de tensão a efeitos visuais e sonoros próprios, além das mensagens atuais.
+- Criar e testar finais adicionais (pacto, desaparecimento e final secreto).
+- Executar teste manual da interface gráfica no Windows, com mouse, teclado, áudio e retomada de partida.
+
+A validação automatizada do commit `9859064` concluiu com sucesso: compilação Python, testes unitários e validação dos JSONs. Isso não substitui o teste visual/manual no computador do jogador.
