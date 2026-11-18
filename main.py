@@ -728,7 +728,6 @@ class Interface:
         sala_id = self.jogo.sala['id']
         indice = {'biblioteca': 0, 'escritorio': 1, 'porao': 2}.get(sala_id, 0)
         self.mecanismo_tipo = self.jogo.estado.get('campanha', {}).get('tipos', ['discos']*3)[indice]
-        self.mecanismo_sequencia = ''
         self.desenhar_mecanismo()
 
     def desenhar_mecanismo(self):
