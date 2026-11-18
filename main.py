@@ -8,6 +8,7 @@ import random
 import sys
 import time
 import tkinter as tk
+from sistemas import PERFIS, migrar_estado, novo_estado_investigacao, gerar_caso, registrar_evidencia, avaliar_hipotese, eventos_disparados
 from datetime import datetime
 from pathlib import Path
 
@@ -32,10 +33,12 @@ def gravar(nome, dados):
     os.replace(temporario, destino)
 
 
-def estado_novo(nome, segundos):
-    return dict(jogador=nome, status='jogando', sala=0, inventario=[], vistos=[],
+def estado_novo(nome, segundos, dificuldade='investigador'):
+    return dict(schema_version=2, jogador=nome, status='jogando', sala=0, inventario=[], vistos=[],
                 resolvidos=[], tentativas={}, dicas=0, tempo_restante=segundos,
-                conquistas=[], alerta=0, campanha={}, inicio=datetime.now().isoformat(timespec='seconds'))
+                conquistas=[], alerta=0, tensao=0, dificuldade=dificuldade,
+                campanha={}, investigacao=novo_estado_investigacao(), eventos=[],
+                inicio=datetime.now().isoformat(timespec='seconds'))
 
 
 class Motor:
@@ -44,6 +47,7 @@ class Motor:
         if len(self.dados['salas']) < 5:
             raise ValueError('enigmas.json deve conter ao menos cinco salas.')
         self.estado = ler('progresso.json', estado_novo('', 1500))
+        self.estado = migrar_estado(self.estado)
         self.historico = ler('historico.json', {'partidas': []})
         if self.estado.get('status') == 'jogando' and self.estado.get('campanha'):
             self.aplicar_campanha_salva()
@@ -56,6 +60,8 @@ class Motor:
         gravar('progresso.json', self.estado)
 
     def gerar_campanha(self):
+        seed = random.randrange(1, 2**31)
+        caso = gerar_caso(seed)
         ano = random.choice([1903, 1911, 1924, 1936, 1948, 1957, 1969, 1978, 1987, 1996])
         codigo_cofre = ''.join(str(n) for n in random.sample(range(1, 10), 4))
         codigo_armario = ''.join(str(n) for n in random.sample(range(1, 10), 3))
@@ -79,7 +85,8 @@ class Motor:
                 'A casa guarda melhor seus segredos atrás do que parece comum.',
                 'Três testemunhas mentiram. A quarta deixou uma marca.',
                 'A ordem dos acontecimentos vale mais que a ordem dos números.'
-            ])
+            ]),
+            'seed': seed, 'caso': caso
         }
 
     def aplicar_campanha_salva(self):
@@ -102,8 +109,9 @@ class Motor:
                 elif obj['id'] == 'altar':
                     obj['texto'] = f"O selo {campanha['selo']} está entalhado no altar. A frase: '{campanha['frase']}'"
 
-    def novo(self, nome):
-        self.estado = estado_novo(nome, self.dados['duracao_segundos'])
+    def novo(self, nome, dificuldade='investigador'):
+        perfil = PERFIS.get(dificuldade, PERFIS['investigador'])
+        self.estado = estado_novo(nome, perfil['tempo'], dificuldade)
         self.estado['campanha'] = self.gerar_campanha()
         self.aplicar_campanha_salva()
         self.salvar()
@@ -120,6 +128,8 @@ class Motor:
             s['vistos'].append(chave)
             self.conquista('primeira_pista')
         texto = objeto['texto']
+        registrar_evidencia(self.estado, self.estado.get('campanha', {}).get('caso', {}), chave)
+        self.estado['tensao'] = min(100, self.estado.get('tensao', 0) + (2 if chave not in s.get('vistos', []) else 0))
         if objeto.get('codigo'):
             if chave in s['resolvidos']:
                 return ('Este mecanismo já foi desbloqueado.', 'ok')
@@ -128,10 +138,11 @@ class Motor:
             if str(resposta).strip().upper() != objeto['codigo'].upper():
                 s['tentativas'][chave] = s['tentativas'].get(chave, 0) + 1
                 s['alerta'] = s.get('alerta', 0) + 1
-                s['tempo_restante'] = max(0, s.get('tempo_restante', 0) - 60)
-                restantes = 3 - s['tentativas'][chave]
+                s['tempo_restante'] = max(0, s.get('tempo_restante', 0) - PERFIS.get(s.get('dificuldade', 'investigador'), PERFIS['investigador'])['penalidade_erro'])
+                s['tensao'] = min(100, s.get('tensao', 0) + 12)
+                restantes = PERFIS.get(s.get('dificuldade', 'investigador'), PERFIS['investigador'])['tentativas'] - s['tentativas'][chave]
                 self.salvar()
-                if s['tentativas'][chave] >= 3:
+                if s['tentativas'][chave] >= PERFIS.get(s.get('dificuldade', 'investigador'), PERFIS['investigador'])['tentativas']:
                     self.finalizar('Capturado pela mansão')
                     return ('O mecanismo dispara um alarme. Passos ecoam no andar de cima. A mansão percebeu sua presença: você foi capturado.', 'fim')
                 return (f"O código está errado. Um ruído percorre os canos. Você perdeu 1 minuto e restam {restantes} tentativa(s).", 'erro')
@@ -185,7 +196,10 @@ class Motor:
         gravar('historico.json', self.historico)
 
     def escolha_final(self, revelar):
+        caso = self.estado.get('campanha', {}).get('caso', {})
         if revelar and {'Diário completo', 'Prova da conspiração'}.issubset(self.estado['inventario']):
+            self.estado.setdefault('investigacao', {})['hipotese'] = caso.get('culpado', 'desconhecido')
+            self.estado['investigacao']['conclusao'] = 'verdade_comprovada'
             self.finalizar('Verdade revelada')
         elif revelar:
             return 'Para revelar a verdade, você precisa do diário completo e da prova do porão.'
