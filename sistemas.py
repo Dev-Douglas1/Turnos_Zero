@@ -31,6 +31,8 @@ def migrar_estado(estado):
     novo.setdefault("tensao", 0)
     novo.setdefault("investigacao", novo_estado_investigacao())
     novo.setdefault("eventos", [])
+    novo.setdefault("mecanismos", {})
+    novo.setdefault("config_dificuldade_snapshot", copy.deepcopy(PERFIS[novo["dificuldade"]]))
     novo.setdefault("campanha", {})
     novo["schema_version"] = 2
     novo["dificuldade"] = novo["dificuldade"] if novo["dificuldade"] in PERFIS else "investigador"
