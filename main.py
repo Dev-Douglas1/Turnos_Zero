@@ -569,7 +569,7 @@ class Interface:
         self.selecionar_dificuldade()
 
     def mostrar_intro(self):
-        """Briefing visual da missão, com ações clicáveis sobre a arte."""
+        """Briefing narrativo sempre visível, mesmo quando a arte de fundo existe."""
         self.tela = 'intro'
         self.limpar()
         caminho = ASSETS / 'intro.png'
@@ -577,19 +577,32 @@ class Interface:
             self.imagem('intro', 0, 0)
         else:
             self.retangulo(0, 0, 1024, 700, '#0b101b')
-            self.retangulo(30, 30, 994, 670, '#17101a', '#bd8742')
-            self.texto_canvas(512, 100, 'O ÚLTIMO SEGREDO DA MANSÃO', 25, '#f3c77b')
-            self.texto_canvas(512, 210, '23 DE OUTUBRO DE 1987  •  23:47', 16, '#e7b96c')
-            self.texto_canvas(512, 290, 'A chuva cobre a estrada quando você encontra uma carta presa ao portão.', 13, self.texto)
-            self.texto_canvas(512, 330, 'O envelope traz apenas seu nome e o selo da família Valença.', 13, self.texto)
-            self.texto_canvas(512, 420, 'OBJETIVO: Invadir a mansão e recuperar o diário dos Valença.', 14, '#f3c77b')
-            self.botao(585, 550, 275, 'CONTINUAR', self.proxima_intro)
-            self.botao(862, 20, 145, 'PULAR [ESC]', self.proxima_intro)
-        # A arte possui botões desenhados; estas áreas invisíveis dão ação real a eles.
-        if caminho.exists():
-            self.alvos.append(((585, 548, 865, 648), self.proxima_intro))
-            self.alvos.append(((858, 14, 1015, 78), self.proxima_intro))
-            self.registrar_cliques()
+
+        # Vinheta e painel de leitura: a imagem é cenário, nunca substitui a interface.
+        self.canvas.create_rectangle(0, 0, 1024, 700, fill='#070b16',
+                                     stipple='gray50', outline='')
+        self.retangulo(70, 72, 954, 626, '#101522', '#bd8742')
+        self.retangulo(82, 84, 942, 614, '#111827', '#6d513b')
+        self.texto_canvas(512, 132, 'ARQUIVO DE INVESTIGAÇÃO  /  CASO 001', 11, '#83c9c6')
+        self.texto_canvas(512, 184, 'O ÚLTIMO SEGREDO DA MANSÃO', 25, '#f3c77b')
+        self.retangulo(290, 218, 734, 221, '#bd8742', '#bd8742')
+        self.texto_canvas(512, 266, '23 DE OUTUBRO DE 1987  •  23:47', 13, '#e7b96c')
+        self.texto_canvas(512, 326,
+            'A chuva cobre a estrada quando uma carta aparece presa ao portão.\\n'
+            'O envelope traz seu nome e o selo da família Valença.\\n'
+            'Há luzes acesas no andar superior. Alguém ainda está lá dentro.',
+            13, '#eee4d2', 760)
+        self.texto_canvas(512, 426,
+            'OBJETIVO: encontrar o diário, reunir provas e descobrir quem está mentindo.',
+            12, '#f3c77b', 780)
+        dificuldade = self.jogo.estado.get('dificuldade', 'investigador').upper()
+        self.texto_canvas(512, 474, f'DIFICULDADE SELECIONADA: {dificuldade}', 11, '#e58c83')
+        self.botao(350, 526, 324, 'ENTRAR NA MANSÃO  [ENTER]', self.proxima_intro)
+        self.texto_canvas(512, 588, 'ESC ou clique no botão para iniciar a investigação', 9, '#b8c0ce')
+        self.alvos.append(((0, 0, 1024, 700), self.proxima_intro))
+        self.registrar_cliques()
+        self.raiz.bind('<Return>', lambda e: self.proxima_intro())
+        self.raiz.bind('<Escape>', lambda e: self.proxima_intro())
 
     def proxima_intro(self):
         """Confirma o briefing e entra na mansão."""
