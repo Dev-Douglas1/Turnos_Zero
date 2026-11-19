@@ -599,7 +599,7 @@ class Interface:
         self.texto_canvas(512, 474, f'DIFICULDADE SELECIONADA: {dificuldade}', 11, '#e58c83')
         self.botao(350, 526, 324, 'ENTRAR NA MANSÃO  [ENTER]', self.proxima_intro)
         self.texto_canvas(512, 588, 'ESC ou clique no botão para iniciar a investigação', 9, '#b8c0ce')
-        self.alvos.append(((0, 0, 1024, 700), self.proxima_intro))
+        self.alvos.append(((350, 526, 674, 568), self.proxima_intro))
         self.registrar_cliques()
         self.raiz.bind('<Return>', lambda e: self.proxima_intro())
         self.raiz.bind('<Escape>', lambda e: self.proxima_intro())
