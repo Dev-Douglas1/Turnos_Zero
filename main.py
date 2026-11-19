@@ -518,9 +518,9 @@ class Interface:
         self.tela = 'menu'
         self.musica()
         self.limpar()
-        caminho = ASSETS / 'menu_principal.png'
+        caminho = ASSETS / 'capa.png'
         if caminho.exists():
-            self.imagem('menu_principal', 0, 0)
+            self.imagem('capa', 0, 0)
         else:
             self.retangulo(0, 0, 1024, 700, '#101522')
             self.texto_canvas(512, 250, 'ARTE DO MENU NÃO ENCONTRADA', 18, self.ouro)
@@ -572,9 +572,9 @@ class Interface:
         """Briefing visual da missão, com ações clicáveis sobre a arte."""
         self.tela = 'intro'
         self.limpar()
-        caminho = ASSETS / 'intro_missao.png'
+        caminho = ASSETS / 'intro.png'
         if caminho.exists():
-            self.imagem('intro_missao', 0, 0)
+            self.imagem('intro', 0, 0)
         else:
             self.retangulo(0, 0, 1024, 700, '#0b101b')
             self.retangulo(30, 30, 994, 670, '#17101a', '#bd8742')
