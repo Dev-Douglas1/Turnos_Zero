@@ -54,7 +54,7 @@ class TurnosZeroTests(unittest.TestCase):
     def test_dificuldades_configuradas(self):
         self.assertEqual(set(DIFFICULTIES), {"estagiario", "efetivo", "terceirizado"})
         self.assertGreater(DIFFICULTIES["terceirizado"]["salary"], DIFFICULTIES["estagiario"]["salary"])
-        self.assertEqual(len(MISSIONS), 3)
+        self.assertEqual(len(MISSIONS), 4)
 
     def test_campanha_termina_apos_terceiro_local(self):
         for index, expected in enumerate(MISSIONS):
