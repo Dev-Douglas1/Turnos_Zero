@@ -89,4 +89,5 @@ MISSION_SCENES = {
 
 def scene_for_mission(mission_id: str) -> str | None:
     """Retorna o ID da cena correspondente a um contrato conhecido."""
-    return MISSION_SCENES.get(mission_id)
+    base_id = mission_id.split("#", 1)[0]
+    return MISSION_SCENES.get(base_id)
