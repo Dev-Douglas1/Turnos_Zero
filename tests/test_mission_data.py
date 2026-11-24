@@ -28,6 +28,7 @@ class MissionDataTests(unittest.TestCase):
                     self.assertTrue(task.get("prompt"))
                     self.assertTrue(task.get("success"))
                     self.assertTrue(task.get("failure"))
+                    self.assertTrue(task.get("radio_hint"), "Cada ocorrência precisa de uma transmissão contextualizada.")
 
     def test_evidencias_referenciam_hotspots_reais(self):
         for mission in MISSIONS:
