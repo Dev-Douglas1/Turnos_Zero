@@ -254,6 +254,9 @@ def terminal():
     game=ShiftGame()
     print("=== TURNOS ZERO | AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS ===")
     while True:
+        if game.state and game.state["status"] == "campaign_completed":
+            print("\\nCAMPANHA CONCLUÍDA — todos os contratos foram encerrados.")
+            return
         if not game.state or game.state["status"]=="ended":
             player=input("Nome no crachá (ou SAIR): ").strip()
             if player.lower()=="sair": return
@@ -278,6 +281,7 @@ def terminal():
                 print("FIM DO TURNO:",result["ending"])
                 if result["ending"]=="missing": return
                 input("ENTER para o próximo contrato...")
+                game.next_shift()
 
 if __name__=="__main__":
     if "--terminal" in sys.argv:
