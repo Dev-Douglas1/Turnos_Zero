@@ -10,6 +10,7 @@ from pathlib import Path
 
 class TurnosZeroApp:
     W, H = 1024, 700
+    SCENE_VIEWPORT = (40, 195, 690, 561)  # Proporção 16:9, sem achatar o cenário.
     BG = "#090d16"
     PANEL = "#141d2b"
     GOLD = "#e5b96d"
@@ -142,7 +143,7 @@ class TurnosZeroApp:
             scene = self.scene_manager.get(scene_id)
             self.active_scene = scene_id
             layered = self.object_scene_data.get(scene_id)
-            viewport = (95, 220, 929, 535)
+            viewport = self.SCENE_VIEWPORT
             left, top, right, bottom = viewport
             view_w, view_h = right - left, bottom - top
 
@@ -543,92 +544,126 @@ class TurnosZeroApp:
             self.show_ending()
 
     def show_contract(self):
-        self.screen="briefing"
-        mission=self.game.mission
+        """Briefing em formato de dossiê, mantendo a arte do local visível em 16:9."""
+        self.screen = "briefing"
+        mission = self.game.mission
         self.clear()
-        self.rect(0,0,self.W,self.H,self.BG)
-        scene_id=scene_for_mission(mission["id"])
-        background={"loja_24h":"loja_24_horas.png","edificio_9":"edificio_residencial.png","cinema_vazio":"cinema_ultima_sessao.png","laboratorio":"laboratorio_experimental.png"}.get(scene_id)
+        self.rect(0, 0, self.W, self.H, self.BG)
+
+        scene_id = scene_for_mission(mission["id"])
+        background = {
+            "loja_24h": "loja_24_horas.png",
+            "edificio_9": "edificio_residencial.png",
+            "cinema_vazio": "cinema_ultima_sessao.png",
+            "laboratorio": "laboratorio_experimental.png",
+        }.get(scene_id)
+
+        # A imagem ocupa uma janela 16:9 própria; o dossiê fica na coluna lateral.
         if background:
-            self.draw_backdrop(background, 385)
-        self.header("ORDEM DE SERVIÇO / CONFIDENCIAL",mission["title"],mission["location"])
-        state=self.game.state
-        debt=max(0,-state["cash"])
-        reward=50*(2**state["shift_index"])
-        risk=2**state["shift_index"]
-        # Dossiê superior estreito e relatório inferior; a imagem de missão fica
-        # exposta no centro sem um cartão opaco cobrindo o ambiente.
-        self.rect(55,185,969,226,"#0d1521","#9a7848",1)
-        self.text(78,204,"OBJETIVO: QUITAR A DÍVIDA CONTRATUAL",10,self.GOLD,"nw")
-        self.text(78,222,f"DÍVIDA R$ {debt:,}  |  PAGAMENTO R$ {reward:,}  |  RISCO x{risk}".replace(",", "."),10,self.TEXT,"nw")
-        self.rect(55,550,969,680,"#0d1521","#9a7848",1)
-        self.text(78,566,"ORDEM DE SERVIÇO",9,self.GOLD,"nw")
-        self.text(78,586,mission["brief"],8,self.TEXT,"nw",570)
-        rules="   •   ".join(mission["rules"][:3])
-        self.text(78,615,"PROTOCOLOS: "+rules,7,self.MUTED,"nw",570)
-        self.text(78,651,"KIT REPOSTO: LANTERNA 100%  ·  RÁDIO 3  ·  CÂMERA 3 FOTOS",8,"#8bc9a0","nw")
-        self.button(690,625,250,"ACEITAR CONTRATO  [ENTER]",self.start_shift,42)
+            self.draw_backdrop(background, y=378, x=365, width=650, height=366)
+        self.rect(40, 195, 690, 561, "", "#a47c4b", 2)
+        self.rect(710, 195, 984, 561, "#0b141e", "#9a7848", 2)
+
+        self.header(
+            "ORDEM DE SERVIÇO / CONFIDENCIAL",
+            mission["title"],
+            mission["location"]
+        )
+
+        state = self.game.state
+        debt = max(0, -state["cash"])
+        reward = 50 * (2 ** state["shift_index"])
+        risk = 2 ** state["shift_index"]
+
+        self.text(730, 218, "DÍVIDA CONTRATUAL", 9, "#d6ad70", "nw")
+        self.text(730, 250, f"R$ {debt:,}".replace(",", "."), 22, "#e58d83", "nw")
+        self.rect(728, 270, 966, 271, "#4d3a35")
+        self.text(730, 290, f"PAGAMENTO: R$ {reward:,}".replace(",", "."), 10, "#e8c17e", "nw")
+        self.text(730, 312, f"NÍVEL DE RISCO: x{risk}", 9, "#db8875", "nw")
+
+        self.text(730, 348, "OBJETIVO DO SERVIÇO", 9, self.GOLD, "nw")
+        self.text(730, 372, mission["brief"], 9, self.TEXT, "nw", 230)
+
+        self.text(730, 438, "PROTOCOLOS DE SEGURANÇA", 9, self.GOLD, "nw")
+        for index, rule in enumerate(mission["rules"][:3]):
+            self.text(733, 462 + index * 29, f"{index + 1:02d}  {rule}", 8, self.MUTED, "nw", 225)
+
+        self.text(55, 595, "ARQUIVO VISUAL DO LOCAL  ·  EXAMINE O AMBIENTE APÓS ASSINAR", 8, self.MUTED, "nw")
+        self.text(55, 622, "A remuneração só é creditada se o agente concluir o expediente.", 8, "#c59a72", "nw")
+        self.button(710, 610, 274, "ASSINAR E INICIAR TURNO  [ENTER]", self.start_shift, 44)
         self.bind_clicks()
+
     def start_shift(self):
         if self.game.state["status"]=="between_shifts":
             self.game.start_shift()
         self.show_investigation()
 
     def show_investigation(self):
-        self.screen="investigation"
-        mission=self.game.mission
-        state=self.game.state
-        scene_id=scene_for_mission(mission["id"])
+        """Tela de campo com cenário 16:9 e painel de objetos realmente examináveis."""
+        self.screen = "investigation"
+        mission = self.game.mission
+        state = self.game.state
+        scene_id = scene_for_mission(mission["id"])
         self.clear()
-        self.rect(0,0,self.W,self.H,self.BG)
-        self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
-                    f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  DÍVIDA: R$ {max(0,-state['cash']):,}  |  RISCO x{state.get('risk_multiplier',2**state['shift_index'])}".replace(",", "."))
-        self.rect(55,190,969,575,"#101723","#786044",2)
-        self.rect(70,205,954,555,"#131e2b","#35485a",1)
-        self.text(512,207,"CLIQUE NOS MARCADORES SOBRE OS OBJETOS PARA INVESTIGAR",8,"#d6ad70")
+        self.rect(0, 0, self.W, self.H, self.BG)
+
+        self.header(
+            "INVESTIGAÇÃO DE CAMPO",
+            mission["title"],
+            f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  "
+            f"DÍVIDA: R$ {max(0, -state['cash']):,}  |  RISCO x{state.get('risk_multiplier', 2 ** state['shift_index'])}".replace(",", ".")
+        )
+
+        # Área visual com proporção 16:9. Sprites e alvos usam o mesmo viewport.
+        left, top, right, bottom = self.SCENE_VIEWPORT
+        self.rect(left - 5, top - 5, right + 5, bottom + 5, "#0b111a", "#8e704c", 2)
         if scene_id:
-            self.draw_scene(scene_id,512,377)
-        tool_states = state.setdefault("tool_states", {})
-        if tool_states.get("lanterna", True):
-            # Cone de lanterna em primeiro plano, leve e pontilhado para preservar a arte.
-            self.canvas.create_polygon(
-                512, 510, 428, 235, 596, 235,
-                fill="#dfc48c", outline="", stipple="gray75",
-                tags=("flashlight_overlay",)
+            self.draw_scene(scene_id, (left + right) / 2, (top + bottom) / 2)
+
+        # Painel lateral: instruções, estado das pistas e acesso por lista.
+        self.rect(710, 195, 984, 561, "#0b141e", "#9a7848", 2)
+        self.text(730, 218, "OBJETIVO DE CAMPO", 9, self.GOLD, "nw")
+        self.text(730, 244, "Investigue os objetos, registre evidências e siga os protocolos.", 9, self.TEXT, "nw", 230)
+
+        scene_data = self.object_scene_data.get(scene_id, {})
+        hotspots = scene_data.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", [])) if scene_id else []
+        evidence = [
+            item for item in state.get("evidence", [])
+            if item.get("mission") == mission["id"]
+        ]
+        found_ids = {item.get("id") for item in evidence}
+        self.rect(728, 293, 966, 294, "#354657")
+        found_count = sum(1 for hotspot in hotspots if hotspot["id"] in found_ids)
+        self.text(730, 315, f"PISTAS: {found_count}/{len(hotspots)}", 10, "#8bc9a0" if evidence else "#d6ad70", "nw")
+        self.text(730, 340, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
+
+        for index, hotspot in enumerate(hotspots[:4], 1):
+            y = 360 + (index - 1) * 45
+            collected = hotspot["id"] in found_ids
+            mark = "✓" if collected else f"{index:02d}"
+            label = hotspot.get("label", hotspot["id"])
+            self.button(
+                728, y, 238,
+                f"{mark}  {label[:24]}",
+                lambda h=hotspot: self.inspect_hotspot(h),
+                36
             )
-        if tool_states.get("camera", False):
-            # Modo de câmera: scanlines discretas, moldura e indicador REC.
-            for scan_y in range(238, 508, 7):
-                self.rect(96, scan_y, 928, scan_y + 1, "#06110d")
-            self.rect(108, 246, 280, 270, "#06140f", "#76c79b", 1)
-            self.canvas.create_oval(119, 253, 128, 262, fill="#e35d4d", outline="")
-            self.text(137, 258, "REC  /  CAM-01", 7, "#9ce2b5", "w")
-            self.rect(95, 235, 929, 510, "", "#70a98c", 1)
-        evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
-        scene_layers = self.object_scene_data.get(scene_id, {})
-        total_hotspots = len(scene_layers.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", []))) if scene_id else 0
-        self.text(512,548,f"RELATÓRIO DE CAMPO: {len(evidence)}/{total_hotspots} PISTAS ENCONTRADAS",10,"#82b9a7" if evidence else "#d6ad70")
-        if evidence:
-            labels = "  ·  ".join(item.get("description", item.get("id", "Pista"))[:48] for item in evidence[-2:])
-            self.text(512,570,labels,8,self.MUTED,width=850)
-        if tool_states.get("radio", False):
-            radio_lines = {
-                "loja_24h": "CENTRAL: Não responda à chamada. Mantenha-se longe do corredor.",
-                "edificio_9": "CENTRAL: Se o painel mostrar 0, permaneça dentro do elevador.",
-                "cinema_vazio": "CENTRAL: Quando ouvir aplausos, não olhe para a tela.",
-                "laboratorio": "CENTRAL: Isole a alimentação externa. Não forneça credenciais.",
-            }
-            self.text(512,590,radio_lines.get(scene_id, "CENTRAL: Mantenha o protocolo."),8,"#8bc9a0")
-        else:
-            self.text(512,590,"CINTO DE EQUIPAMENTOS",7,self.MUTED)
+
+        self.text(730, 548, "CLIQUE NO OBJETO OU NA SUA LINHA PARA EXAMINAR.", 7, self.MUTED, "nw", 235)
+
+        # Barra de equipamento fora do cenário: não obstrui os pontos clicáveis.
+        tool_states = state.setdefault("tool_states", {})
         lantern_charge = self.game.get_tool_resource("lanterna")
         radio_uses = self.game.get_tool_resource("radio")
         camera_film = self.game.get_tool_resource("camera")
-        self.button(70,610,155,f"LANTERNA {lantern_charge}%",lambda:self.toggle_field_tool("lanterna"),40)
-        self.button(235,610,155,f"RÁDIO {radio_uses}",lambda:self.toggle_field_tool("radio"),40)
-        self.button(400,610,155,f"CÂMERA {camera_film}",lambda:self.toggle_field_tool("camera"),40)
-        self.button(565,610,110,"DOSSIÊ",self.show_evidence_report,40)
-        self.button(690,610,260,"AVANÇAR PARA A OCORRÊNCIA",self.show_task,44)
+        lantern_label = f"LANTERNA {'ON' if tool_states.get('lanterna', True) else 'OFF'}  {lantern_charge}%"
+        radio_label = f"RÁDIO {'ON' if tool_states.get('radio', False) else 'OFF'}  {radio_uses}"
+        camera_label = f"CÂMERA {'ON' if tool_states.get('camera', False) else 'OFF'}  {camera_film}"
+        self.button(40, 610, 150, lantern_label, lambda: self.toggle_field_tool("lanterna"), 40)
+        self.button(200, 610, 150, radio_label, lambda: self.toggle_field_tool("radio"), 40)
+        self.button(360, 610, 150, camera_label, lambda: self.toggle_field_tool("camera"), 40)
+        self.button(520, 610, 150, "DOSSIÊ", self.show_evidence_report, 40)
+        self.button(710, 610, 274, "AVANÇAR PARA A OCORRÊNCIA", self.show_task, 40)
         self.bind_clicks()
 
     def show_evidence_report(self):
