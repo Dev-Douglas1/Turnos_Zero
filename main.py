@@ -82,7 +82,14 @@ class TurnosZeroApp:
 
     def draw_scene_fallback(self, scene_id):
         # Scene-specific geometry is intentionally native Canvas and editable.
-        if scene_id == "loja_24h":
+        if scene_id == "agencia":
+            self.rect(110,245,914,510,"#0c1420","#a47d4b",4)
+            self.rect(135,270,889,485,"#101b2a","#344354",2)
+            self.rect(180,310,310,445,"#26384a")
+            self.rect(650,310,780,445,"#26384a")
+            self.text(480,365,"TURNOS ZERO",35,self.GOLD)
+            self.text(480,410,"AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS",11,self.TEXT)
+        elif scene_id == "loja_24h":
             self.rect(110,255,300,520,"#111c27","#81909a",3)
             for y in (285,350,415,480): self.rect(125,y,285,y+35,"#344c5a")
             self.rect(390,260,555,520,"#081521","#9db0ba",4)
