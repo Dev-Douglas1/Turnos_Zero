@@ -178,6 +178,8 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
     return {
         "schema_version": 1, "player": player, "status": "between_shifts",
         "difficulty": difficulty, "cash": -1_000_000, "initial_debt": 1_000_000,
+        "contract_refused": False, "forced_contract_acceptance": False,
+        "advance_payment_due": 0, "loan_shark_accepted": False,
         "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
         "completed": [], "evidence": [], "object_states": {},
@@ -206,6 +208,10 @@ class ShiftGame:
                 self.state["cash"] -= self.state["initial_debt"]
                 migrated = True
             for key, default in (
+                ("contract_refused", False),
+                ("forced_contract_acceptance", False),
+                ("advance_payment_due", 0),
+                ("loan_shark_accepted", False),
                 ("threat_level", 0),
                 ("threat_active", False),
                 ("is_hidden", False),
