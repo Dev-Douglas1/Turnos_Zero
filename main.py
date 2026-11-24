@@ -915,14 +915,14 @@ class TurnosZeroApp:
         )
         self.rect(80, 215, 944, 555, "#101a28", "#9a7848", 2)
         self.text(125, 250, "AGIOTA", 10, "#e58d83", "nw")
-        self.wrapped_text(
+        self.text(
             125, 285,
             "A porta fecha atrás de você. Um homem de luvas claras coloca uma pasta sobre a mesa. "
             "Ele conhece seu nome, o valor exato da dívida e o endereço da sua família. "
             "“Dinheiro não é a única coisa que tem valor. Posso quitar uma parte se você aceitar "
             "entregar algo que não deveria estar à venda: uma parte do próprio corpo ou seus serviços. "
             "Você escolhe. Se não aceitar, amanhã quero uma parte da dívida em dinheiro.”",
-            12, self.TEXT, 760, 5
+            11, self.TEXT, "nw", 760
         )
         self.text(125, 430, "A oferta parece pior do que o trabalho. A ameaça parece pior do que a oferta.", 10, "#d7ad70", "nw", 760)
         self.text(125, 475, "Você sente o estômago apertar. Ainda assim, precisa do dinheiro.", 10, self.MUTED, "nw", 760)
@@ -944,7 +944,8 @@ class TurnosZeroApp:
 
     def promise_payment(self):
         state = self.game.state
-        state["advance_payment_due"] = max(500, int(max(0, -state["cash"]) * 0.01))
+        next_reward = 50 * (2 ** state["shift_index"])
+        state["advance_payment_due"] = max(25, min(500, next_reward // 2))
         state["forced_contract_acceptance"] = True
         state["contract_refused"] = False
         self.game.save()
