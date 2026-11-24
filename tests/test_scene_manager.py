@@ -1,0 +1,41 @@
+import json
+import tempfile
+import unittest
+from pathlib import Path
+from scene_manager import SceneManager, SceneError
+
+class SceneManagerTests(unittest.TestCase):
+    def write_config(self, root, scenes):
+        path = root / "scenes.json"
+        path.write_text(json.dumps({"scenes": scenes}), encoding="utf-8")
+        return path
+
+    def test_carrega_catalogo_e_encontra_hotspot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = self.write_config(root, [{"id":"room","background":"assets/room.png","hotspots":[{"id":"door","bounds":[0.1,0.1,0.5,0.5],"action":"open"}]}])
+            manager = SceneManager(path)
+            self.assertEqual(manager.get("room")["name"] if "name" in manager.get("room") else manager.get("room")["id"], "room")
+            self.assertEqual(manager.hit_test("room", 0.2, 0.2)["id"], "door")
+            self.assertIsNone(manager.hit_test("room", 0.8, 0.8))
+
+    def test_rejeita_caminho_fora_do_projeto(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_config(Path(tmp), [{"id":"bad","background":"../../secret.png","hotspots":[]}])
+            with self.assertRaises(SceneError):
+                SceneManager(path)
+
+    def test_rejeita_coordenadas_invalidas(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_config(Path(tmp), [{"id":"bad","hotspots":[{"id":"x","bounds":[0.8,0.1,0.2,0.9]}]}])
+            with self.assertRaises(SceneError):
+                SceneManager(path)
+
+    def test_rejeita_ids_duplicados(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_config(Path(tmp), [{"id":"same"},{"id":"same"}])
+            with self.assertRaises(SceneError):
+                SceneManager(path)
+
+if __name__ == "__main__":
+    unittest.main()
