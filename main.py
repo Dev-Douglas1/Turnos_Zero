@@ -296,21 +296,22 @@ class TurnosZeroApp:
             lantern_on = self.game.get_tool_state("lanterna") and self.game.get_tool_resource("lanterna") > 0
             if lantern_on:
                 battery = self.game.get_tool_resource("lanterna")
-                beam_width = 0.24 if battery <= 30 else 0.31
+                # O feixe deve iluminar o centro sem encobrir objetos ou pistas.
+                beam_width = 0.14 if battery <= 30 else 0.18
                 beam_x = left + view_w * 0.50
                 beam_y = bottom - 4
                 self.canvas.create_polygon(
                     beam_x, beam_y,
                     left + view_w * (0.50 - beam_width), top + 8,
                     left + view_w * (0.50 + beam_width), top + 8,
-                    fill="#e6d4a6", outline="", stipple="gray75",
+                    fill="#d9c79b", outline="", stipple="gray50",
                     tags=("flashlight_overlay",)
                 )
                 self.canvas.create_polygon(
                     beam_x, beam_y,
-                    left + view_w * (0.50 - beam_width * 0.42), top + 22,
-                    left + view_w * (0.50 + beam_width * 0.42), top + 22,
-                    fill="#f0e2bd", outline="", stipple="gray75",
+                    left + view_w * (0.50 - beam_width * 0.38), top + 22,
+                    left + view_w * (0.50 + beam_width * 0.38), top + 22,
+                    fill="#e5d6b4", outline="", stipple="gray75",
                     tags=("flashlight_overlay",)
                 )
                 if battery <= 30:
@@ -789,16 +790,17 @@ class TurnosZeroApp:
         self.text(82, 270, "Cada serviço concluído reduz sua dívida.", 8, self.TEXT, "nw", 365)
 
         descriptions = [
-            ("estagiario", "FÁCIL", "5 estabilidade · suporta 2 falhas", "DIÁRIA: R$ 50"),
-            ("efetivo", "MÉDIO", "4 estabilidade · 1 falha encerra o turno", "DIÁRIA: R$ 75"),
-            ("terceirizado", "DIFÍCIL", "3 estabilidade · 1 falha encerra o turno", "DIÁRIA: R$ 100"),
+            ("estagiario", "FÁCIL", "5 estabilidade · até 2 falhas", "DIÁRIA: R$ 50", "LOJA 24H"),
+            ("efetivo", "MÉDIO", "4 estabilidade · 1 falha encerra", "DIÁRIA: R$ 75", "EDIFÍCIO 9"),
+            ("terceirizado", "DIFÍCIL", "3 estabilidade · 1 falha encerra", "DIÁRIA: R$ 100", "ÚLTIMA SESSÃO"),
         ]
-        for i, (key, label, desc, daily) in enumerate(descriptions):
+        for i, (key, label, desc, daily, destination) in enumerate(descriptions):
             y = 300 + i * 112
             self.rect(58, y, 480, y + 92, "#101a28", "#8b6b45", 1)
-            self.text(82, y + 20, label, 13, self.GOLD, "nw")
-            self.text(82, y + 45, desc, 8, self.MUTED, "nw", 340)
+            self.text(82, y + 17, label, 13, self.GOLD, "nw")
+            self.text(82, y + 43, desc, 8, self.MUTED, "nw", 205)
             self.text(82, y + 66, daily, 8, "#8bc9a0", "nw")
+            self.text(82, y + 80, f"DESTINO: {destination}", 7, "#c6a36a", "nw")
             self.button(
                 300, y + 25, 155, "ESCOLHER",
                 lambda k=key, p=player: self.create_campaign(p, k), 40
@@ -1430,19 +1432,19 @@ class TurnosZeroApp:
                     "CONDUTA ACEITA" if result["correct"] else "VIOLAÇÃO DE PROTOCOLO")
         self.rect(80,205,944,520,"#101a28","#9a7848",2)
         color="#9bd1ad" if result["correct"] else "#e58d83"
-        self.text(120,255,"✓" if result["correct"] else "!",34,color,"nw")
-        content_y = self.wrapped_text(180, 265, result["message"], 13, self.TEXT, 720, 2) + 18
+        self.text(120,255,"✓" if result.get("correct") else "!",34,color,"nw")
+        # Texto do relatório em posição fixa: evita depender do bbox do Canvas
+        # imediatamente após limpar/redesenhar a tela (caso que exibia apenas "!").
+        message = str(result.get("message") or "A ocorrência foi registrada, mas a agência não forneceu uma descrição.")
+        self.text(180, 258, message, 12, self.TEXT, "nw", 720)
+        content_y = 345
         if result.get("evidence_used"):
             self.text(120, content_y, "PISTA APLICADA À DECISÃO", 10, self.GOLD, "nw")
-            content_y = self.wrapped_text(
-                120, content_y + 22, result.get("evidence_note", ""),
-                9, self.MUTED, 760, 2
-            ) + 16
+            self.text(120, content_y + 22, result.get("evidence_note") or "A evidência foi considerada nesta decisão.", 9, self.MUTED, "nw", 760)
+            content_y += 76
         if result.get("tool_warning"):
-            content_y = self.wrapped_text(
-                120, content_y, "AVISO DE EQUIPAMENTO: " + result["tool_warning"],
-                8, "#e58d83", 760, 2
-            ) + 14
+            self.text(120, content_y, "AVISO DE EQUIPAMENTO: " + str(result["tool_warning"]), 8, "#e58d83", "nw", 760)
+            content_y += 28
         ending = result.get("ending")
         if ending == "survived":
             self.text(120, content_y, "TURNO CONCLUÍDO", 16, self.GOLD, "nw")
