@@ -92,4 +92,9 @@ Execute `python tools/editor_cenas.py` para abrir o editor visual. Selecione a m
 - **Lanterna:** projeta o feixe no ambiente; a bateria diminui a cada decisão. Quando acaba ou é desligada, o cenário fica escuro.
 - **CFTV:** central de seis canais com recortes das áreas do cenário; o jogador seleciona um ponto e pode fotografá-lo usando filme limitado.
 - **Rádio:** três transmissões por contrato, com orientações específicas para cada ocorrência.
-- **Áudio:** ambiente em loop e efeitos curtos para interação, evidência e decisão, com fallback de som do sistema quando necessário.
+- **Áudio:** quatro paisagens sonoras originais específicas por missão (loja, edifício, cinema e laboratório), em loop; efeitos curtos para interação, evidência e decisão; fallback para o beep do sistema quando a reprodução WAV não estiver disponível.
+
+
+### Áudio por missão
+
+O gerador `tools/generate_audio.py` cria os loops em `assets/som/` usando apenas a biblioteca padrão do Python. O exportador geral também gera esses arquivos, valida 22.050 Hz / mono / 16-bit e os publica no repositório. Os loops são selecionados automaticamente pelo ID da missão; a agência e os relatórios permanecem sem paisagem sonora de campo.
