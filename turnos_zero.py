@@ -25,15 +25,15 @@ MISSIONS = [
         "tasks": [
             {"prompt": "02:13. A música para. Uma pessoa está parada diante da geladeira, imóvel. O que você faz?",
              "choices": ["Apagar as luzes por dez segundos", "Perguntar se precisa de ajuda", "Ligar para a polícia"],
-             "correct": 0, "success": "No escuro, a porta da geladeira abre e fecha sozinha. Quando a luz volta, o corredor está vazio.",
+             "correct": 0, "evidence_ids": ["geladeira"], "evidence_note": "A mensagem na geladeira confirma o protocolo: não interaja com o que aparece no corredor.", "success": "No escuro, a porta da geladeira abre e fecha sozinha. Quando a luz volta, o corredor está vazio.",
              "failure": "A pessoa vira o rosto devagar. O rádio chia com uma voz que repete seu nome."},
             {"prompt": "O telefone toca. Uma vez. Duas. Na terceira chamada, a tela mostra o seu próprio número.",
              "choices": ["Deixar tocar", "Atender e perguntar quem é", "Desligar a linha da parede"],
-             "correct": 0, "success": "A chamada termina. Do outro lado do vidro, alguém segura um telefone idêntico ao seu.",
+             "correct": 0, "evidence_ids": ["caixa"], "evidence_note": "O registro das 02:13 liga o telefone ao desaparecimento do gerente.", "success": "A chamada termina. Do outro lado do vidro, alguém segura um telefone idêntico ao seu.",
              "failure": "Uma voz sussurra do aparelho: 'Você não devia ter atendido.'"},
             {"prompt": "Um cliente sem reflexo pede um produto que não existe no estoque e aponta para a porta dos fundos.",
              "choices": ["Abrir a porta dos fundos", "Consultar o gerente pelo rádio", "Dizer que acabou e sair do caixa"],
-             "correct": 1, "success": "O gerente responde: 'Não existe cliente. Termine o turno. Não saia do balcão.'",
+             "correct": 1, "evidence_ids": ["caixa", "geladeira"], "evidence_note": "As pistas confirmam que o cliente não é uma ocorrência normal; consulte o rádio sem abandonar o balcão.", "success": "O gerente responde: 'Não existe cliente. Termine o turno. Não saia do balcão.'",
              "failure": "O rádio responde com sua própria voz, pedindo para abrir a porta."}
         ],
         "reveal": "O gerente da Unidade 07 está desaparecido há onze anos. Mesmo assim, seu rádio continua respondendo."
@@ -50,15 +50,15 @@ MISSIONS = [
         "tasks": [
             {"prompt": "O elevador para. O painel mostra 0. As portas se abrem para um corredor que não aparece na planta.",
              "choices": ["Permanecer no elevador", "Sair e procurar a escada", "Apertar todos os andares"],
-             "correct": 0, "success": "As portas fecham. Algo arranha o metal do lado de fora até o elevador voltar.",
+             "correct": 0, "evidence_ids": ["elevador"], "evidence_note": "O botão 0 oculto confirma que o painel pode abrir acesso a um andar inexistente.", "success": "As portas fecham. Algo arranha o metal do lado de fora até o elevador voltar.",
              "failure": "O corredor não tem fim. O painel do elevador desaparece atrás de você."},
             {"prompt": "Um homem com guarda-chuva bloqueia a passagem. Há água escorrendo do teto, mas o guarda-chuva está seco.",
              "choices": ["Passar por baixo do guarda-chuva", "Esperar sem ultrapassá-lo", "Perguntar em qual apartamento mora"],
-             "correct": 1, "success": "Ele se afasta quando o relógio muda de minuto. Você não ouviu passos.",
+             "correct": 1, "evidence_ids": ["elevador"], "evidence_note": "A planta adulterada reforça que o prédio contém espaços que não devem ser atravessados.", "success": "Ele se afasta quando o relógio muda de minuto. Você não ouviu passos.",
              "failure": "O homem abre o guarda-chuva. Dentro dele há um céu noturno sem estrelas."},
             {"prompt": "Uma moradora pede o envelope do 504. Atrás dela, a placa da porta diz 503.",
              "choices": ["Entregar o envelope", "Conferir o registro e recusar", "Pedir que ela assine"],
-             "correct": 1, "success": "O envelope fica gelado. O nome escrito nele é o seu.",
+             "correct": 1, "evidence_ids": ["elevador"], "evidence_note": "A existência do andar 0 torna o endereço 504 suspeito; confira o registro e recuse a entrega.", "success": "O envelope fica gelado. O nome escrito nele é o seu.",
              "failure": "A porta 504 aparece na parede. Alguém gira a maçaneta por dentro."}
         ],
         "reveal": "O condomínio foi construído sobre a fundação de um prédio demolido. O 504 continua ocupado."
@@ -75,15 +75,15 @@ MISSIONS = [
         "tasks": [
             {"prompt": "A sessão termina, mas a plateia permanece imóvel. A tela está completamente branca.",
              "choices": ["Ficar de costas para a tela", "Virar-se para conferir a projeção", "Acender todas as luzes"],
-             "correct": 0, "success": "Os aplausos vêm de trás de você. Quando cessam, todas as poltronas estão vazias.",
+             "correct": 0, "evidence_ids": ["tela"], "evidence_note": "As marcas pelo lado interno provam que a tela não é apenas uma superfície de projeção.", "success": "Os aplausos vêm de trás de você. Quando cessam, todas as poltronas estão vazias.",
              "failure": "A tela mostra a sala vista de trás. Na imagem, alguém está olhando diretamente para você."},
             {"prompt": "O projetor liga sozinho. Uma sombra atravessa a cabine, embora você esteja do lado de fora.",
              "choices": ["Entrar na cabine", "Esperar a sessão terminar", "Desligar o disjuntor principal"],
-             "correct": 1, "success": "O filme termina sem imagem. Uma voz anuncia: 'Obrigado por permanecer até o fim.'",
+             "correct": 1, "evidence_ids": ["tela"], "evidence_note": "As marcas na tela indicam que a cabine não é uma área segura para investigar.", "success": "O filme termina sem imagem. Uma voz anuncia: 'Obrigado por permanecer até o fim.'",
              "failure": "A cabine está vazia, mas uma mão surge na janela e acena para você."},
             {"prompt": "Há bilhetes espalhados. Um deles está quente e tem seu nome, com a data de amanhã.",
              "choices": ["Guardar o bilhete", "Não tocar no bilhete quente", "Rasgar todos os bilhetes"],
-             "correct": 1, "success": "O bilhete esfria e a tinta desaparece. O relógio do saguão volta a funcionar.",
+             "correct": 1, "evidence_ids": ["poltronas"], "evidence_note": "O bilhete com seu nome indica uma armadilha pessoal; não o recolha.", "success": "O bilhete esfria e a tinta desaparece. O relógio do saguão volta a funcionar.",
              "failure": "A tinta se move e escreve: 'Assento reservado'. Uma poltrona range atrás de você."}
         ],
         "reveal": "O Cine Orfeu fechou há décadas. A sessão de hoje foi registrada como a primeira com público."
@@ -179,14 +179,24 @@ class ShiftGame:
         if type(choice_index) is not int or choice_index not in range(3):
             raise ValueError("Escolha inválida.")
         task = self.task
+        collected = {
+            item.get("id") for item in self.state.get("evidence", [])
+            if isinstance(item, dict) and item.get("mission") == self.mission["id"]
+        }
+        matched_evidence = sorted(collected.intersection(task.get("evidence_ids", [])))
+        evidence_used = bool(matched_evidence)
         correct = choice_index == task["correct"]
         if correct:
             result = {"correct": True, "message": task["success"]}
-            self.state["reputation"] += 1
+            self.state["reputation"] += 2 if evidence_used else 1
         else:
             result = {"correct": False, "message": task["failure"]}
             self.state["sanity"] = max(0, self.state["sanity"] - 1)
             self.state["mistakes"] += 1
+        result["evidence_used"] = evidence_used
+        if evidence_used:
+            result["evidence_note"] = task.get("evidence_note", "A investigação forneceu contexto para esta decisão.")
+            result["evidence_ids"] = matched_evidence
         self.state["task_index"] += 1
         finished = self.state["task_index"] >= len(self.mission["tasks"])
         if self.state["sanity"] <= 0 or self.state["mistakes"] >= 2:
@@ -237,7 +247,8 @@ class ShiftGame:
         if not isinstance(evidence_id, str) or not evidence_id.strip():
             raise ValueError("Identificador de evidência inválido.")
         evidence = self.state.setdefault("evidence", [])
-        if any(item.get("id") == evidence_id for item in evidence if isinstance(item, dict)):
+        if any(item.get("id") == evidence_id and item.get("mission") == self.mission["id"]
+               for item in evidence if isinstance(item, dict)):
             return False
         evidence.append({"id": evidence_id, "description": str(description)[:240],
                          "mission": self.mission["id"], "task_index": self.state["task_index"]})
