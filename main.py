@@ -2,7 +2,7 @@
 import sys
 import json
 import tkinter as tk
-from PIL import Image, ImageOps, ImageTk
+from PIL import Image, ImageDraw, ImageOps, ImageTk
 from tkinter import messagebox, simpledialog
 from turnos_zero import ShiftGame, DIFFICULTIES, MISSIONS
 from scene_manager import SceneManager, SceneError, scene_for_mission
@@ -1042,9 +1042,47 @@ class TurnosZeroApp:
                     x = int(obj["x"] * scene_w + (box[0] - sprite.width) / 2)
                     y = int(obj["y"] * scene_h + (box[1] - sprite.height) / 2)
                     composed.alpha_composite(sprite, (x, y))
+                # A presença ocupa a região do último objeto que elevou a pressão.
+                threat_channel = None
+                threat_state = self.game.state or {}
+                if threat_state.get("threat_active", False):
+                    last_trigger = (threat_state.get("threat_triggered") or [None])[-1]
+                    trigger_hotspot = next(
+                        (item for item in scene_data.get("hotspots", []) if item.get("id") == last_trigger),
+                        None
+                    )
+                    trigger_object = next(
+                        (item for item in scene_data.get("objects", [])
+                         if trigger_hotspot and item.get("id") == trigger_hotspot.get("object")),
+                        None
+                    )
+                    if trigger_object:
+                        gx = trigger_object["x"] + trigger_object["w"] / 2
+                        gy = trigger_object["y"] + trigger_object["h"] / 2
+                    else:
+                        gx, gy = 0.78, 0.58
+                    col = min(2, max(0, int(gx * 3)))
+                    row = min(1, max(0, int(gy * 2)))
+                    threat_channel = row * 3 + col
+                    # Silhueta aparece só na câmera que cobre o ponto anômalo.
+                    px, py = int(gx * scene_w), int(gy * scene_h)
+                    draw = ImageDraw.Draw(composed, "RGBA")
+                    draw.ellipse((px - 15, py - 48, px + 15, py - 14),
+                                 fill=(2, 5, 7, 238), outline=(126, 63, 55, 190), width=2)
+                    draw.polygon(
+                        [(px - 12, py - 17), (px + 12, py - 17),
+                         (px + 28, py + 54), (px - 28, py + 54)],
+                        fill=(2, 5, 7, 238), outline=(83, 48, 45, 190)
+                    )
+                    if self.game.get_tool_state("camera"):
+                        draw.ellipse((px - 7, py - 35, px - 3, py - 31), fill=(211, 77, 63, 255))
+                        draw.ellipse((px + 3, py - 35, px + 7, py - 31), fill=(211, 77, 63, 255))
+                else:
+                    threat_channel = None
                 source_image = composed.convert("RGB")
             except (OSError, ValueError, KeyError, TypeError):
                 source_image = None
+                threat_channel = None
 
         channel_names = [
             "ENTRADA", "CORREDOR", "ÁREA CENTRAL",
@@ -1060,7 +1098,23 @@ class TurnosZeroApp:
             x = grid_x[col]
             y = grid_y[row]
             width, height = 194, 150
-            hotspot = hotspots[index % len(hotspots)] if hotspots else None
+            # Cada canal fica associado ao hotspot cujo objeto está mais perto
+            # do centro da região observada, em vez de repetir a lista em sequência.
+            hotspot = None
+            if hotspots:
+                scene_objects = {
+                    obj["id"]: obj for obj in scene_data.get("objects", [])
+                }
+                region_x = (col + 0.5) / 3
+                region_y = (row + 0.5) / 2
+                def camera_distance(item):
+                    obj = scene_objects.get(item.get("object"))
+                    if not obj:
+                        return 10.0
+                    ox = obj["x"] + obj["w"] / 2
+                    oy = obj["y"] + obj["h"] / 2
+                    return (ox - region_x) ** 2 + (oy - region_y) ** 2
+                hotspot = min(hotspots, key=camera_distance)
             selected = bool(
                 hotspot and self.current_camera_hotspot
                 and hotspot["id"] == self.current_camera_hotspot.get("id")
@@ -1111,7 +1165,15 @@ class TurnosZeroApp:
             if self.current_camera_hotspot else "Nenhum canal selecionado"
         )
         self.text(750, 280, selected_label.upper(), 13, self.TEXT, "nw", 215)
-        self.text(750, 325, "Aproxime a imagem, compare o ambiente e registre uma anomalia.", 9, self.MUTED, "nw", 215)
+        if threat_channel is not None:
+            self.text(
+                750, 325,
+                f"SINAL SUSPEITO / CAM-{threat_channel + 1:02d}",
+                9, "#e58d83", "nw"
+            )
+            self.text(750, 349, "Compare o feed suspeito com os demais canais.", 8, self.MUTED, "nw", 215)
+        else:
+            self.text(750, 325, "Aproxime a imagem, compare o ambiente e registre uma anomalia.", 9, self.MUTED, "nw", 215)
 
         remaining = self.game.get_tool_resource("camera")
         camera_active = self.game.get_tool_state("camera")
@@ -1157,10 +1219,22 @@ class TurnosZeroApp:
             return
         try:
             self.game.consume_tool_resource("camera", 1)
+            threat_state = self.game.state or {}
+            threat_hotspot_id = (
+                (threat_state.get("threat_triggered") or [None])[-1]
+                if threat_state.get("threat_active", False) else None
+            )
+            captured_presence = (
+                threat_hotspot_id is not None
+                and hotspot["id"] == threat_hotspot_id
+            )
+            prefix = "PRESENÇA ANÔMALA FOTOGRAFADA / CCTV. " if captured_presence else "FOTO CCTV / "
             self.game.record_evidence(
                 hotspot["id"],
-                "FOTO CCTV / " + hotspot.get("finding", "Anomalia registrada no circuito interno.")
+                prefix + hotspot.get("finding", "Anomalia registrada no circuito interno.")
             )
+            if captured_presence:
+                self.current_interaction_message = "A presença foi registrada no canal. A imagem foi anexada ao dossiê."
             self.play_effect("acerto.wav")
         except (RuntimeError, ValueError):
             self.play_effect("erro.wav")
