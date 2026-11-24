@@ -3,6 +3,8 @@ import sys
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 from turnos_zero import ShiftGame, DIFFICULTIES, MISSIONS
+from scene_manager import SceneManager, SceneError
+from pathlib import Path
 
 class TurnosZeroApp:
     W, H = 1024, 700
@@ -18,12 +20,16 @@ class TurnosZeroApp:
         self.root.geometry(f"{self.W}x{self.H}")
         self.root.minsize(900, 620)
         self.game = ShiftGame()
+        self.scene_manager = SceneManager()
+        self.scene_images = {}
+        self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         self.targets = []
         self.screen = "menu"
         self.root.bind("<Escape>", lambda _e: self.menu())
         self.root.bind("<Return>", lambda _e: self.start_shift() if self.screen == "briefing" else None)
+        self.canvas.bind("<Configure>", self.resize_canvas)
         self.menu()
 
     def clear(self):
@@ -44,9 +50,34 @@ class TurnosZeroApp:
         self.text(x+w/2,y+h/2,label,12,self.GOLD)
         self.targets.append(((x,y,x+w,y+h),callback))
 
+    def resize_canvas(self, event):
+        if event.width <= 1 or event.height <= 1:
+            return
+        sx, sy = event.width / self._draw_w, event.height / self._draw_h
+        if abs(sx - 1) > 0.001 or abs(sy - 1) > 0.001:
+            self.canvas.scale("all", 0, 0, sx, sy)
+            self._draw_w, self._draw_h = event.width, event.height
+
+    def draw_scene(self, scene_id, center_x=512, center_y=390):
+        try:
+            scene = self.scene_manager.get(scene_id)
+            relative = scene.get("background")
+            if not relative:
+                return
+            path = Path(__file__).resolve().parent / relative
+            if not path.is_file():
+                return
+            if scene_id not in self.scene_images:
+                self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
+            self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
+        except (SceneError, tk.TclError, OSError):
+            return
+
     def click(self, event):
+        logical_x = event.x * self.W / max(1, self.canvas.winfo_width())
+        logical_y = event.y * self.H / max(1, self.canvas.winfo_height())
         for (x1,y1,x2,y2), callback in reversed(self.targets):
-            if x1 <= event.x <= x2 and y1 <= event.y <= y2:
+            if x1 <= logical_x <= x2 and y1 <= logical_y <= y2:
                 callback()
                 return
 
@@ -155,6 +186,9 @@ class TurnosZeroApp:
         self.rect(55,180,969,570,"#101723","#66543e",2)
         self.rect(70,195,954,555,"#131e2b","#26384a",1)
         self.rect(95,220,929,535,"#0b111c")
+        scene_id = {"loja_24h":"loja_24h", "edificio_9":"edificio_9", "cinema_vazio":"cinema_vazio"}.get(mission["id"])
+        if scene_id:
+            self.draw_scene(scene_id, 512, 390)
         self.text(512,250,"REGISTRO DE OCORRÊNCIA",10,self.GOLD)
         self.text(512,345,task["prompt"],17,self.TEXT,width=760)
         for i,choice in enumerate(task["choices"]):
@@ -190,20 +224,29 @@ class TurnosZeroApp:
         self.bind_clicks()
 
     def advance_contract(self):
-        self.game.next_shift()
-        self.show_contract()
+        next_mission = self.game.next_shift()
+        if next_mission is None:
+            self.show_ending()
+        else:
+            self.show_contract()
 
     def show_ending(self):
         self.screen="ending"
         self.clear()
         state=self.game.state or {}
         self.rect(0,0,self.W,self.H,self.BG)
-        self.header("ARQUIVO DE PESSOAL / STATUS", "Contrato encerrado",
-                    f"FUNCIONÁRIO: {state.get('player','—')}")
+        completed = state.get("status") == "campaign_completed"
+        title = "Campanha concluída" if completed else "Contrato encerrado"
+        subtitle = "TODOS OS LOCAIS FORAM INSPECIONADOS" if completed else f"FUNCIONÁRIO: {state.get('player','—')}"
+        self.header("ARQUIVO DE PESSOAL / STATUS", title, subtitle)
         self.rect(100,220,924,520,self.PANEL,"#8b6b42",2)
         self.text(150,280,f"STATUS: {state.get('status','—').upper()}",18,self.GOLD,"nw")
         self.text(150,340,f"Saldo acumulado: R$ {state.get('cash',0):,}".replace(",", "."),15,self.TEXT,"nw")
-        self.text(150,395,"A agência agradece seus serviços.",13,self.MUTED,"nw")
+        if completed:
+            self.text(150,395,f"Locais concluídos: {len(state.get('completed', []))}/{len(MISSIONS)}",13,self.MUTED,"nw")
+            self.text(150,435,"Seu expediente terminou. O arquivo permanece aberto.",12,self.MUTED,"nw")
+        else:
+            self.text(150,395,state.get("last_reveal", "A agência agradece seus serviços."),12,self.MUTED,"nw",700)
         self.button(650,555,230,"VOLTAR AO MENU",self.menu,44)
         self.bind_clicks()
 
