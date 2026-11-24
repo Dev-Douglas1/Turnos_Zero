@@ -1,5 +1,6 @@
 import json
 import struct
+import wave
 import unittest
 from pathlib import Path
 
