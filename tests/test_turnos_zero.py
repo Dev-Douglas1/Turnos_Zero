@@ -421,6 +421,21 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertFalse(self.game.state["threat_active"])
         self.assertFalse(self.game.state["threat_disrupted"])
 
+    def test_ultima_foto_ainda_interrompe_perseguicao(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        self.game.state["tool_resources"]["camera"] = 1
+        self.game.save()
+        self.game.toggle_tool("camera")
+        self.game.document_anomaly("geladeira")
+        self.game.consume_tool_resource("camera", 1)
+        self.assertFalse(self.game.get_tool_state("camera"))
+        self.assertTrue(self.game.state["threat_disrupted"])
+        result = self.game.act(self.game.task["correct"])
+        self.assertTrue(result["threat_documented"])
+        self.assertEqual(self.game.state["mistakes"], 0)
+
     def test_fotografia_de_canal_incorreto_nao_interrompe_ameaca(self):
         self.game.start_shift()
         self.game.interact_object("porta")
@@ -485,6 +500,7 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertFalse(reopened.state["threat_active"])
         self.assertFalse(reopened.state["is_hidden"])
         self.assertFalse(reopened.state["hide_used"])
+        self.assertFalse(reopened.state["threat_disrupted"])
         self.assertEqual(reopened.state["threat_triggered"], [])
 
     def test_save_rejeita_pressao_anomala_invalida(self):
@@ -493,6 +509,9 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertFalse(ShiftGame._valid_state(state))
         state["threat_level"] = 1
         state["threat_active"] = "yes"
+        self.assertFalse(ShiftGame._valid_state(state))
+        state["threat_active"] = True
+        state["threat_disrupted"] = "yes"
         self.assertFalse(ShiftGame._valid_state(state))
 
 if __name__ == "__main__":
