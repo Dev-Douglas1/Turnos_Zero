@@ -878,7 +878,10 @@ class TurnosZeroApp:
         self.text(55, 595, "ARQUIVO VISUAL DO LOCAL  ·  EXAMINE O AMBIENTE APÓS ASSINAR", 8, self.MUTED, "nw")
         if state.get("advance_payment_due", 0):
             due = state["advance_payment_due"]
-            self.text(55, 622, f"PROMESSA AO AGIOTA: R$ {due:,} AMANHÃ".replace(",", "."), 8, "#e58d83", "nw")
+            self.text(55, 622, f"PROMESSA AO AGIOTA: R$ {due:,} NO PRÓXIMO PAGAMENTO".replace(",", "."), 8, "#e58d83", "nw")
+        elif state.get("loan_shark_accepted"):
+            credit = int(state.get("loan_shark_credit_total", 0))
+            self.text(55, 622, f"AGIOTA: R$ {credit:,} ABATIDOS · COBRANÇA DO SALDO ATIVA".replace(",", "."), 8, "#e58d83", "nw")
         else:
             self.text(55, 622, "O pagamento só será liberado após a conclusão do expediente.", 8, "#c59a72", "nw")
         if state.get("forced_contract_acceptance"):
@@ -923,15 +926,31 @@ class TurnosZeroApp:
 
     def accept_loan_shark(self):
         state = self.game.state
+        # A oferta abate uma parte da dívida, mas não quita o contrato:
+        # o agiota continua cobrando o saldo restante normalmente.
+        if state.get("loan_shark_accepted"):
+            state["last_reveal"] = (
+                "O agiota confirma que a cobrança continua. A dívida restante "
+                "ainda pode ser abatida com os pagamentos dos próximos turnos."
+            )
+            self.game.save()
+            self.show_contract()
+            return
+
+        outstanding = max(0, -int(state.get("cash", 0)))
+        credit = min(100_000, max(25_000, outstanding // 10)) if outstanding else 0
+        state["cash"] = int(state.get("cash", 0)) + credit
         state["loan_shark_accepted"] = True
-        state["status"] = "ended"
-        state["task_index"] = 1
+        state["loan_shark_credit_total"] = int(state.get("loan_shark_credit_total", 0)) + credit
+        state["forced_contract_acceptance"] = True
+        state["contract_refused"] = False
         state["last_reveal"] = (
-            "Você aceitou a proposta do agiota. O contrato da agência foi substituído "
-            "por uma dívida cobrada sobre o próprio corpo. O arquivo foi encerrado."
+            f"O agiota abateu R$ {credit:,} da dívida. ".replace(",", ".") +
+            "A cobrança continua sobre o saldo restante. Você ainda pode quitar "
+            "a dívida trabalhando nos próximos turnos."
         )
         self.game.save()
-        self.show_ending()
+        self.show_contract()
 
     def promise_payment(self):
         state = self.game.state
