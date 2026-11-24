@@ -256,6 +256,19 @@ class TurnosZeroApp:
         self.text(cx, 660, "ARQUIVO INTERNO  ·  ACESSO RESTRITO  ·  V. 1.2", 9, self.MUTED)
         self.bind_clicks()
 
+    def draw_backdrop(self, filename, y=390):
+        path = Path(__file__).resolve().parent / "assets" / "ambientes" / filename
+        if not path.is_file():
+            return False
+        try:
+            key = "backdrop:" + filename
+            if key not in self.scene_images:
+                self.scene_images[key] = tk.PhotoImage(file=str(path))
+            self.canvas.create_image(self.W//2, y, image=self.scene_images[key], anchor="center")
+            return True
+        except tk.TclError:
+            return False
+
     def new_campaign(self):
         player = simpledialog.askstring("Novo contrato","Nome para o crachá:",parent=self.root)
         if player is None:
@@ -263,18 +276,24 @@ class TurnosZeroApp:
         self.screen="difficulty"
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
-        self.header("RECURSOS HUMANOS / ADMISSÃO","Escolha seu vínculo","O tipo de contrato altera sua resistência e remuneração.")
+        self.draw_backdrop("agencia_menu.png", 385)
+        self.rect(0,0,self.W,700,"#080e18")
+        self.header("RECURSOS HUMANOS / ADMISSÃO","Escolha seu vínculo","A agência oferece proteção limitada. A dívida permanece sob sua responsabilidade.")
+        self.rect(58,190,966,585,"#101a28","#9a7848",2)
+        self.text(86,220,"DÍVIDA CONTRATUAL",10,"#d98b75","nw")
+        self.text(86,255,"− R$ 1.000.000",24,"#e58d83","nw")
+        self.text(86,286,"Cada serviço concluído reduz sua dívida. A remuneração dobra a cada contrato.",10,self.TEXT,"nw",820)
         descriptions = [
-            ("estagiario","ESTAGIÁRIO","5 pontos de estabilidade · suporta 2 violações · salário padrão"),
-            ("efetivo","EFETIVO","4 pontos de estabilidade · 1 violação encerra o contrato · adicional de 25%"),
-            ("terceirizado","TERCEIRIZADO","3 pontos de estabilidade · 1 violação encerra o contrato · adicional de 60%")
+            ("estagiario","ESTAGIÁRIO","5 estabilidade · suporta 2 violações"),
+            ("efetivo","EFETIVO","4 estabilidade · 1 violação encerra o contrato"),
+            ("terceirizado","TERCEIRIZADO","3 estabilidade · 1 violação encerra o contrato")
         ]
         for i,(key,label,desc) in enumerate(descriptions):
-            y=220+i*112
-            self.rect(80,y,944,y+88,"#101a28","#9a7848",2)
-            self.text(110,y+27,label,17,self.GOLD,"nw")
-            self.text(110,y+58,desc,11,self.MUTED,"nw")
-            self.button(735,y+20,170,"ASSINAR",lambda k=key,p=player:self.create_campaign(p,k),44)
+            y=325+i*78
+            self.rect(82,y,942,y+64,"#14202d","#8b6b45",1)
+            self.text(108,y+20,label,13,self.GOLD,"nw")
+            self.text(108,y+43,desc,9,self.MUTED,"nw")
+            self.button(750,y+10,165,"ASSINAR",lambda k=key,p=player:self.create_campaign(p,k),44)
         self.bind_clicks()
 
     def create_campaign(self, player, difficulty):
@@ -297,16 +316,27 @@ class TurnosZeroApp:
         mission=self.game.mission
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
-        self.header("ORDEM DE SERVIÇO  /  CONFIDENCIAL",mission["title"],mission["location"])
-        self.rect(55,195,969,575,"#101a28","#9a7848",2)
-        self.text(90,225,"DESCRIÇÃO DO SERVIÇO",11,self.GOLD,"nw")
-        self.text(90,260,mission["brief"],14,self.TEXT,"nw",820)
-        self.text(90,330,"PROTOCOLO DE SEGURANÇA",11,self.GOLD,"nw")
-        for i,rule in enumerate(mission["rules"]):
-            self.text(105,365+i*34,f"{i+1:02d}  {rule}",11,self.TEXT,"nw",820)
-        self.text(90,520,f"REMUNERAÇÃO: R$ {mission['pay']:,}".replace(",", "."),14,self.GOLD,"nw")
-        self.text(90,548,f"FUNCIONÁRIO: {self.game.state['player']}   |   VÍNCULO: {DIFFICULTIES[self.game.state['difficulty']]['label']}",10,self.MUTED,"nw")
-        self.button(690,600,260,"INICIAR EXPEDIENTE  [ENTER]",self.start_shift,44)
+        scene_id=scene_for_mission(mission["id"])
+        background={"loja_24h":"loja_24_horas.png","edificio_9":"edificio_residencial.png","cinema_vazio":"cinema_ultima_sessao.png","laboratorio":"laboratorio_experimental.png"}.get(scene_id)
+        if background:
+            self.draw_backdrop(background, 390)
+        self.header("ORDEM DE SERVIÇO / CONFIDENCIAL",mission["title"],mission["location"])
+        state=self.game.state
+        debt=max(0,-state["cash"])
+        reward=50*(2**state["shift_index"])
+        risk=2**state["shift_index"]
+        self.rect(55,190,969,590,"#0d1521","#9a7848",2)
+        self.text(88,220,"OBJETIVO PRINCIPAL",10,self.GOLD,"nw")
+        self.text(88,250,"QUITAR A DÍVIDA COM A AGÊNCIA",17,self.TEXT,"nw")
+        self.text(88,280,f"DÍVIDA ATUAL: R$ {debt:,}".replace(",", "."),12,"#e58d83","nw")
+        self.text(88,310,f"RECOMPENSA: R$ {reward:,}  |  RISCO DO CONTRATO: x{risk}".replace(",", "."),12,"#e5b96d","nw")
+        self.text(88,352,"DESCRIÇÃO DO SERVIÇO",10,self.GOLD,"nw")
+        self.text(88,380,mission["brief"],11,self.TEXT,"nw",820)
+        self.text(88,430,"PROTOCOLOS DE SOBREVIVÊNCIA",10,self.GOLD,"nw")
+        for i,rule in enumerate(mission["rules"][:4]):
+            self.text(105,458+i*25,f"{i+1:02d}  {rule}",9,self.TEXT,"nw",820)
+        self.text(88,565,f"FUNCIONÁRIO: {state['player']}  |  VÍNCULO: {DIFFICULTIES[state['difficulty']]['label']}",9,self.MUTED,"nw")
+        self.button(690,610,260,"ACEITAR CONTRATO  [ENTER]",self.start_shift,44)
         self.bind_clicks()
 
     def start_shift(self):
