@@ -48,12 +48,12 @@ A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json
 - Vínculos de trabalho, estabilidade, reputação e pagamento.
 - Escolhas com sucesso/falha, finais de turno e histórico.
 - Salvamento e retomada.
-- Modo terminal didático.
+- Modo terminal com investigação de evidências e decisões.
 - Testes unitários.
 
 ### Etapa B — Apresentação e atmosfera
 - Catálogo declarativo de cenas e coordenadas normalizadas: implementado.
-- Integração dos arquivos de arte em `assets/ambientes/`: pendente de inclusão dos binários no repositório.
+- Integração das seis artes em PNG no runtime e SVGs preservados como fontes editáveis: concluída.
 - Efeitos de luz, chuva, ruído, rádio e transições.
 - Animações e feedback visual para ocorrências.
 
@@ -76,4 +76,4 @@ A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json
 
 ## 7. Limites conhecidos da versão atual
 
-Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. As seis artes vetoriais SVG já estão no repositório. Tkinter não as renderiza nativamente; a interface utiliza versões Canvas equivalentes até ser adotado um renderizador SVG ou exportação PNG. Áudio direcional, entidades animadas e inventário continuam planejados. A interface gráfica precisa de validação manual em Windows.
+Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. As seis artes vetoriais SVG permanecem como fontes editáveis e são exportadas para PNG no fluxo de CI. O histórico identifica cada expediente para impedir duplicação de pagamentos e registros em retomadas. O modo terminal também permite coletar evidências. Áudio direcional, entidades animadas, inventário e expansão de conteúdo continuam planejados. A interface gráfica precisa de validação manual em Windows.
