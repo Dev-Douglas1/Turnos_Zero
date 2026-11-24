@@ -29,8 +29,9 @@ A inspiração é o formato de episódios de trabalhos perigosos e regras anôma
 - Loja 24 horas: protocolos de luz, telefone e cliente sem reflexo.
 - Edifício Residencial 9: elevador no andar zero, vizinho com guarda-chuva e apartamento inexistente.
 - Última Sessão: plateia imóvel, projetor autônomo e bilhete com data futura.
+- Protocolo de Contenção: laboratório interditado, terminal persistente e câmara fria.
 
-Cada missão tem três ocorrências, escolhas, respostas narrativas e remuneração. O contrato define estabilidade inicial e multiplicador salarial:
+Cada missão tem três ocorrências, escolhas, respostas narrativas e remuneração. A quarta missão reutiliza a cena de laboratório e conecta suas pistas às decisões de contenção. O contrato define estabilidade inicial e multiplicador salarial:
 - Estagiário: 5 pontos de estabilidade, pagamento padrão.
 - Efetivo: 4 pontos, adicional de 25%.
 - Terceirizado: 3 pontos, adicional de 60%.
