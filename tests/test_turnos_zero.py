@@ -104,5 +104,30 @@ class TurnosZeroTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.game.record_evidence("caixa", "Pista")
 
+    def test_evidencia_aplicada_a_decisao_aumenta_reputacao(self):
+        self.game.start_shift()
+        self.game.record_evidence("geladeira", "A mensagem confirma o protocolo.")
+        result = self.game.act(self.game.task["correct"])
+        self.assertTrue(result["evidence_used"])
+        self.assertIn("evidence_note", result)
+        self.assertEqual(self.game.state["reputation"], 2)
+
+    def test_decisao_sem_evidencia_nao_recebe_bonus(self):
+        self.game.start_shift()
+        result = self.game.act(self.game.task["correct"])
+        self.assertFalse(result["evidence_used"])
+        self.assertEqual(self.game.state["reputation"], 1)
+
+    def test_evidencia_de_outro_contrato_nao_influencia_decisao(self):
+        self.game.start_shift()
+        self.game.state["evidence"].append({
+            "id": "geladeira", "description": "Pista antiga",
+            "mission": "edificio_9", "task_index": 0
+        })
+        self.game.save()
+        result = self.game.act(self.game.task["correct"])
+        self.assertFalse(result["evidence_used"])
+        self.assertEqual(self.game.state["reputation"], 1)
+
 if __name__ == "__main__":
     unittest.main()
