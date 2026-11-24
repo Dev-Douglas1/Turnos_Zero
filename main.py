@@ -1180,8 +1180,16 @@ def terminal():
             for i, hotspot in enumerate(scene.get("hotspots", []), 1):
                 status = " [INVESTIGADA]" if hotspot["id"] in collected else ""
                 print(f"{i} - {hotspot.get('label', hotspot['id'])}{status}")
-            print("I - investigar ponto | ENTER - seguir para ocorrência")
+            print(f"I - investigar ponto | R - consultar rádio ({game.get_tool_resource('radio')} transmissões) | ENTER - seguir")
             command = input("> ").strip().lower()
+            if command == "r":
+                try:
+                    game.consume_tool_resource("radio", 1)
+                    print("\\n[TRANSMISSÃO / CANAL 03.17]")
+                    print(game.task.get("radio_hint", "A transmissão chega cortada."))
+                except (RuntimeError, ValueError) as exc:
+                    print("RÁDIO:", str(exc))
+                continue
             if command == "i" and scene.get("hotspots"):
                 choice = input("Número do ponto para investigar: ").strip()
                 if choice.isdigit() and 1 <= int(choice) <= len(scene["hotspots"]):
