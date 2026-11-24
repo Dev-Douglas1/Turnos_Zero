@@ -973,8 +973,7 @@ class TurnosZeroApp:
         # Painel lateral: instruções, estado das pistas e acesso por lista.
         self.rect(710, 195, 984, 590, "#0b141e", "#9a7848", 2)
         self.text(730, 218, "OBJETIVO DE CAMPO", 9, self.GOLD, "nw")
-        self.text(730, 242, "Investigue os objetos e registre pistas.", 8, self.TEXT, "nw", 230)
-        self.text(730, 258, "Respeite os protocolos para sobreviver.", 8, self.MUTED, "nw", 230)
+        self.text(730, 242, "Investigue os objetos e respeite os protocolos.", 8, self.TEXT, "nw", 230)
         threat_level = state.get("threat_level", 0)
         threat_active = state.get("threat_active", False)
         is_hidden = state.get("is_hidden", False)
@@ -984,13 +983,13 @@ class TurnosZeroApp:
         elif is_hidden:
             threat_label += "  /  AGENTE OCULTO"
         threat_color = "#e58d83" if threat_active else ("#83c4a8" if is_hidden else "#d6ad70")
-        self.text(730, 282, threat_label, 8, threat_color, "nw")
+        self.text(730, 270, threat_label, 8, threat_color, "nw")
         if threat_active:
-            self.text(730, 299, "A presença vai atacar na próxima decisão. Esconda-se.", 7, "#e58d83", "nw", 230)
+            self.text(730, 288, "A presença vai atacar na próxima decisão. Esconda-se.", 7, "#e58d83", "nw", 230)
         elif is_hidden:
-            self.text(730, 299, "Você está fora do campo de visão da presença.", 7, "#83c4a8", "nw", 230)
+            self.text(730, 288, "Você está fora do campo de visão da presença.", 7, "#83c4a8", "nw", 230)
         else:
-            self.text(730, 299, "Evite interações desnecessárias: elas atraem a anomalia.", 7, self.MUTED, "nw", 230)
+            self.text(730, 288, "Interações podem atrair a anomalia.", 7, self.MUTED, "nw", 230)
 
         scene_data = self.object_scene_data.get(scene_id, {})
         hotspots = scene_data.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", [])) if scene_id else []
@@ -1000,11 +999,11 @@ class TurnosZeroApp:
         ]
         found_ids = {item.get("id") for item in evidence}
         found_count = sum(1 for hotspot in hotspots if hotspot["id"] in found_ids)
-        self.text(730, 326, f"PISTAS REGISTRADAS: {found_count}/{len(hotspots)}", 8, "#8bc9a0" if evidence else "#d6ad70", "nw")
-        self.text(730, 350, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
+        self.text(730, 316, f"PISTAS REGISTRADAS: {found_count}/{len(hotspots)}", 8, "#8bc9a0" if evidence else "#d6ad70", "nw")
+        self.text(730, 340, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
 
         for index, hotspot in enumerate(hotspots[:4]):
-            y = 369 + index * 36
+            y = 359 + index * 37
             collected = hotspot["id"] in found_ids
             label = hotspot.get("label", hotspot["id"])
             status = "REGISTRADO" if collected else "EXAMINAR"
