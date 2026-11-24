@@ -17,6 +17,7 @@ A inspiração é o formato de episódios de trabalhos perigosos e regras anôma
 ## 3. Arquitetura implementada nesta primeira etapa
 - main.py: interface Tkinter e modo terminal.
 - scene_manager.py: validação de catálogo de cenas e hotspots.
+- assets/ambientes/*.svg: seis ilustrações vetoriais editáveis dos ambientes.
 - dados/cenas.json: definição declarativa de ambientes, fundos e áreas interativas.
 - turnos_zero.py: regras do jogo, catálogo de missões, dificuldades, decisões, remuneração e persistência.
 - dados/turnos_zero_progresso.json: campanha nova, separada dos saves antigos.
@@ -75,4 +76,4 @@ A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json
 
 ## 7. Limites conhecidos da versão atual
 
-Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. A inclusão dos fundos PNG no repositório ainda está pendente; áudio direcional, entidades animadas e inventário continuam planejados. A interface gráfica precisa de validação manual em Windows.
+Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. As seis artes vetoriais SVG já estão no repositório. Tkinter não as renderiza nativamente; a interface utiliza versões Canvas equivalentes até ser adotado um renderizador SVG ou exportação PNG. Áudio direcional, entidades animadas e inventário continuam planejados. A interface gráfica precisa de validação manual em Windows.
