@@ -244,7 +244,7 @@ class TurnosZeroApp:
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
-                    f"CLIQUE NOS PONTOS DE INTERESSE ANTES DE DECIDIR  |  ESTABILIDADE: {state['sanity']}")
+                    f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
         self.rect(55,180,969,570,"#101723","#66543e",2)
         self.rect(70,195,954,555,"#131e2b","#26384a",1)
         self.rect(95,220,929,535,"#0b111c")
@@ -266,7 +266,7 @@ class TurnosZeroApp:
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
         self.header(f"AO VIVO  /  {mission['location']}",mission["title"],
-                    f"FUNCIONÁRIO: {state['player']}     ESTABILIDADE: {state['sanity']}     FALHAS: {state['mistakes']}")
+                    f"{state['player']}  |  ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
         self.rect(70,190,954,575,self.PANEL,"#66543e",2)
         self.text(512,235,"REGISTRO DE OCORRÊNCIA",10,self.GOLD)
         self.text(512,305,task["prompt"],17,self.TEXT,width=790)
