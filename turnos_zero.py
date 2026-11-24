@@ -136,6 +136,38 @@ DIFFICULTIES = {
 
 TOOL_RESOURCES = {"lanterna": 100, "radio": 3, "camera": 3}
 
+ANOMALY_THRESHOLD = 3
+ANOMALY_PROFILES = {
+    "loja_24h": {
+        "triggers": {"caixa": 1, "porta": 2, "geladeira": 2},
+        "hiding_spot": "atrás do balcão de aço",
+        "alert": "O compressor para. Passos molhados se aproximam do balcão.",
+        "caught": "A presença encontra você fora de cobertura. Algo segura seu ombro no escuro.",
+        "evaded": "A presença passa pelo corredor e para exatamente onde você estava.",
+    },
+    "edificio_9": {
+        "triggers": {"porta": 1, "elevador": 1, "presenca": 2, "painel": 2},
+        "hiding_spot": "na escadaria de serviço, atrás da porta corta-fogo",
+        "alert": "O elevador abre em algum lugar atrás de você. O indicador continua no andar 0.",
+        "caught": "O elevador chega sem ruído. As portas se fecham com você no corredor.",
+        "evaded": "As portas do elevador se fecham. O painel continua exibindo o andar 0.",
+    },
+    "cinema_vazio": {
+        "triggers": {"projetor": 1, "tela": 2, "poltronas": 1, "espectador": 2},
+        "hiding_spot": "na cabine de projeção, atrás da cortina acústica",
+        "alert": "Os aplausos param de uma vez. Uma poltrona range na última fileira.",
+        "caught": "A plateia inteira vira a cabeça na sua direção. Um assento fica reservado para você.",
+        "evaded": "A sessão continua sem você. Os aplausos se afastam até desaparecer.",
+    },
+    "laboratorio": {
+        "triggers": {"camara_vazia": 1, "camara": 2, "terminal": 2, "luz": 1},
+        "hiding_spot": "dentro do armário de descontaminação",
+        "alert": "O sistema de contenção muda para ALERTA. Há movimento dentro das paredes.",
+        "caught": "A câmara responde ao seu crachá. As travas fecham atrás de você.",
+        "evaded": "O alarme volta ao modo de espera. Algo arranha a porta do armário e se afasta.",
+    },
+}
+
 def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
     if difficulty not in DIFFICULTIES:
         difficulty = "estagiario"
@@ -145,6 +177,8 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
         "completed": [], "evidence": [], "object_states": {},
+        "threat_level": 0, "threat_active": False, "is_hidden": False,
+        "threat_triggered": [],
         "inventory": ["lanterna", "radio", "camera"],
         "tool_states": {"lanterna": True, "radio": False, "camera": False},
         "tool_resources": dict(TOOL_RESOURCES),
@@ -160,11 +194,24 @@ class ShiftGame:
         self.history = history if isinstance(history, dict) and isinstance(history.get("shifts"), list) else {"shifts": []}
         state = self._read(self.save_path, None)
         self.state = state if self._valid_state(state) else None
-        if self.state is not None and "initial_debt" not in self.state:
-            # Migra campanhas antigas para o novo objetivo econômico sem perder pagamentos já feitos.
-            self.state["initial_debt"] = 1_000_000
-            self.state["cash"] -= self.state["initial_debt"]
-            self.save()
+        if self.state is not None:
+            migrated = False
+            # Migra saves anteriores sem descartar campanhas em andamento.
+            if "initial_debt" not in self.state:
+                self.state["initial_debt"] = 1_000_000
+                self.state["cash"] -= self.state["initial_debt"]
+                migrated = True
+            for key, default in (
+                ("threat_level", 0),
+                ("threat_active", False),
+                ("is_hidden", False),
+                ("threat_triggered", []),
+            ):
+                if key not in self.state:
+                    self.state[key] = default
+                    migrated = True
+            if migrated:
+                self.save()
 
     @staticmethod
     def _valid_state(state):
@@ -240,6 +287,18 @@ class ShiftGame:
                 not 0 <= value <= TOOL_RESOURCES[key]
                 for key, value in tool_resources.items())):
             return False
+        threat_level = state.get("threat_level", 0)
+        if type(threat_level) is not int or not 0 <= threat_level <= 5:
+            return False
+        if type(state.get("threat_active", False)) is not bool or type(state.get("is_hidden", False)) is not bool:
+            return False
+        triggered = state.get("threat_triggered", [])
+        if (not isinstance(triggered, list) or
+            any(not isinstance(item, str) or not item for item in triggered) or
+            len(triggered) != len(set(triggered))):
+            return False
+        if state.get("is_hidden", False) and not state.get("threat_active", False):
+            return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
                 not isinstance(item.get("mission"), str) or
@@ -296,6 +355,7 @@ class ShiftGame:
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
                           tool_resources=dict(TOOL_RESOURCES),
                           tool_states={"lanterna": True, "radio": False, "camera": False},
+                          threat_level=0, threat_active=False, is_hidden=False, threat_triggered=[],
                           current_seed=random.randrange(1, 2**31), shift_token=uuid.uuid4().hex)
         self.save()
         return self.mission
@@ -322,6 +382,24 @@ class ShiftGame:
             risk_multiplier = self.state.get("risk_multiplier", 2 ** self.state["shift_index"])
             self.state["sanity"] = max(0, self.state["sanity"] - risk_multiplier)
             self.state["mistakes"] += 1
+
+        # Uma presença ativa ataca no momento da decisão se o agente não estiver abrigado.
+        if self.state.get("threat_active", False):
+            profile = ANOMALY_PROFILES.get(self.mission["id"], {})
+            if self.state.get("is_hidden", False):
+                result["threat_evaded"] = True
+                result["threat_message"] = profile.get("evaded", "A presença não encontrou você.")
+            else:
+                risk_multiplier = self.state.get("risk_multiplier", 2 ** self.state["shift_index"])
+                self.state["sanity"] = max(0, self.state["sanity"] - risk_multiplier)
+                self.state["mistakes"] += 1
+                result["threat_hit"] = True
+                result["threat_message"] = profile.get("caught", "A presença encontrou você.")
+            self.state["threat_active"] = False
+            self.state["is_hidden"] = False
+            self.state["threat_level"] = max(0, self.state.get("threat_level", 0) - 2)
+            result["message"] += "\\n\\n" + result["threat_message"]
+
         resources = self.state.setdefault("tool_resources", dict(TOOL_RESOURCES))
         tool_states = self.state.setdefault("tool_states", {"lanterna": True, "radio": False, "camera": False})
         if tool_states.get("lanterna", True) and resources.get("lanterna", 0) > 0:
@@ -471,6 +549,81 @@ class ShiftGame:
         object_states[key] = value
         self.save()
         return True
+
+    def interact_object(self, object_id: str, repeatable: bool = False) -> dict:
+        """Manipula um objeto e atualiza a pressão anômala do contrato."""
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Só é possível manipular objetos durante um turno.")
+        if type(repeatable) is not bool:
+            raise ValueError("Configuração de interação inválida.")
+        profile = ANOMALY_PROFILES.get(self.mission["id"], {})
+        triggers = profile.get("triggers", {})
+        if object_id not in triggers:
+            raise ValueError("Este objeto não possui interação de campo registrada.")
+
+        key = self._object_state_key(object_id)
+        object_states = self.state.setdefault("object_states", {})
+        current = object_states.get(key, "0")
+        if current == "1" and not repeatable:
+            return {
+                "changed": False,
+                "state": current,
+                "threat_level": self.state.get("threat_level", 0),
+                "threat_active": self.state.get("threat_active", False),
+                "activated": False,
+                "message": "A interação deste objeto já foi realizada.",
+            }
+
+        next_state = "0" if current == "1" else "1"
+        object_states[key] = next_state
+        triggered = self.state.setdefault("threat_triggered", [])
+        activated = False
+        message = "O objeto mudou de estado."
+        if object_id not in triggered:
+            triggered.append(object_id)
+            self.state["threat_level"] = min(
+                5,
+                self.state.get("threat_level", 0) + triggers[object_id]
+            )
+            if self.state["threat_level"] >= ANOMALY_THRESHOLD and not self.state.get("threat_active", False):
+                self.state["threat_active"] = True
+                activated = True
+                message = profile.get("alert", "A presença anômala começou a se aproximar.")
+            else:
+                message = "Você ouviu algo se mover em uma área que deveria estar vazia."
+        self.save()
+        return {
+            "changed": True,
+            "state": next_state,
+            "threat_level": self.state["threat_level"],
+            "threat_active": self.state["threat_active"],
+            "activated": activated,
+            "message": message,
+        }
+
+    def hide_from_anomaly(self) -> str:
+        """Usa o abrigo específico do local para evitar uma aproximação ativa."""
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Só é possível se esconder durante um turno.")
+        if not self.state.get("threat_active", False):
+            raise RuntimeError("Nenhuma presença está procurando você neste momento.")
+        if self.state.get("is_hidden", False):
+            raise RuntimeError("Você já está escondido.")
+        spot = ANOMALY_PROFILES.get(self.mission["id"], {}).get("hiding_spot")
+        if not spot:
+            raise RuntimeError("Este local não possui um abrigo conhecido.")
+        self.state["is_hidden"] = True
+        self.save()
+        return spot
+
+    def leave_hiding(self) -> None:
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Não há turno em andamento.")
+        if not self.state.get("is_hidden", False):
+            raise RuntimeError("Você não está escondido.")
+        # A ameaça continua ativa; sair agora deixa o agente exposto à próxima ocorrência.
+        self.state["is_hidden"] = False
+        self.save()
 
     def abandon(self):
         if self.state:
