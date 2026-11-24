@@ -71,7 +71,19 @@
             0.98
           ],
           "finding": "O livro-caixa registra vendas às 02:13 com o nome de um funcionário desaparecido.",
-          "object": "balcao"
+          "object": "balcao",
+          "interaction": {
+            "label": "ABRIR A GAVETA",
+            "states": [
+              "fechada",
+              "aberta"
+            ],
+            "responses": [
+              "A gaveta está emperrada. Há riscos recentes ao redor da fechadura.",
+              "A gaveta abre com um estalo. Dentro há um recibo assinado com seu nome e data de amanhã."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "porta",
@@ -83,7 +95,19 @@
             0.86
           ],
           "finding": "Uma mão aparece pelo lado de dentro do vidro, embora a loja esteja vazia.",
-          "object": "porta_fria"
+          "object": "porta_fria",
+          "interaction": {
+            "label": "TOCAR NO VIDRO",
+            "states": [
+              "intacto",
+              "tocado"
+            ],
+            "responses": [
+              "O vidro está gelado. Há uma sombra imóvel do outro lado.",
+              "A mão do outro lado encosta exatamente onde você tocou. O vidro fica morno."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "geladeira",
@@ -95,7 +119,19 @@
             0.95
           ],
           "finding": "A condensação forma uma mensagem que muda quando você desvia o olhar: NÃO ATENDA.",
-          "object": "geladeira"
+          "object": "geladeira",
+          "interaction": {
+            "label": "PUXAR A PORTA DA GELADEIRA",
+            "states": [
+              "fechada",
+              "aberta"
+            ],
+            "responses": [
+              "O motor para quando você se aproxima. Algo bate três vezes por dentro.",
+              "A porta abre. O interior está vazio, mas a mensagem NÃO ATENDA permanece no vidro."
+            ],
+            "repeatable": false
+          }
         }
       ]
     },
@@ -163,7 +199,19 @@
             0.92
           ],
           "finding": "A porta está trancada por dentro, mas há marcas recentes no lado externo.",
-          "object": "porta_apartamento"
+          "object": "porta_apartamento",
+          "interaction": {
+            "label": "TOCAR NO VIDRO",
+            "states": [
+              "intacto",
+              "tocado"
+            ],
+            "responses": [
+              "O vidro está gelado. Há uma sombra imóvel do outro lado.",
+              "A mão do outro lado encosta exatamente onde você tocou. O vidro fica morno."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "elevador",
@@ -175,7 +223,19 @@
             0.96
           ],
           "finding": "O elevador abre para um corredor que não existe na planta do edifício.",
-          "object": "elevador"
+          "object": "elevador",
+          "interaction": {
+            "label": "CHAMAR O ELEVADOR",
+            "states": [
+              "parado",
+              "chamado"
+            ],
+            "responses": [
+              "O indicador do elevador está apagado.",
+              "O elevador chega sem ruído. O painel mostra o andar 0."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "presenca",
@@ -187,7 +247,19 @@
             0.9
           ],
           "finding": "Uma figura permanece imóvel no elevador. O reflexo dela se move antes do corpo.",
-          "object": "presenca"
+          "object": "presenca",
+          "interaction": {
+            "label": "OBSERVAR A PRESENÇA",
+            "states": [
+              "imóvel",
+              "observando você"
+            ],
+            "responses": [
+              "A figura não se move.",
+              "A figura inclina a cabeça. O reflexo se move antes dela."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "painel",
@@ -199,7 +271,19 @@
             0.85
           ],
           "finding": "O botão 0 está aceso, embora o painel não tenha ligação elétrica.",
-          "object": "painel"
+          "object": "painel",
+          "interaction": {
+            "label": "PRESSIONAR O BOTÃO 0",
+            "states": [
+              "apagado",
+              "acionado"
+            ],
+            "responses": [
+              "O botão 0 está aceso, mas não responde ao toque.",
+              "O botão afunda sozinho. O elevador começa a descer, embora as portas permaneçam abertas."
+            ],
+            "repeatable": false
+          }
         }
       ]
     },
@@ -267,7 +351,19 @@
             0.98
           ],
           "finding": "O projetor continua funcionando, embora tenha sido desligado da tomada há anos.",
-          "object": "projetor"
+          "object": "projetor",
+          "interaction": {
+            "label": "ACIONAR O PROJETOR",
+            "states": [
+              "ligado",
+              "desligado"
+            ],
+            "responses": [
+              "O projetor funciona sem cabo de energia. A película está girando ao contrário.",
+              "O projetor para. Os aplausos continuam vindo da sala."
+            ],
+            "repeatable": true
+          }
         },
         {
           "id": "tela",
@@ -279,7 +375,19 @@
             0.65
           ],
           "finding": "As marcas de mãos estão no lado interno da tela, como se alguém tentasse sair por ela.",
-          "object": "tela"
+          "object": "tela",
+          "interaction": {
+            "label": "TOCAR NA TELA",
+            "states": [
+              "intacta",
+              "tocada"
+            ],
+            "responses": [
+              "A tela parece comum à distância.",
+              "Do outro lado do tecido, alguma coisa pressiona sua mão de volta."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "poltronas",
@@ -291,7 +399,19 @@
             0.98
           ],
           "finding": "Um assento está deformado pelo peso de alguém que não aparece na gravação.",
-          "object": "poltrona"
+          "object": "poltrona",
+          "interaction": {
+            "label": "EXAMINAR A POLTRONA",
+            "states": [
+              "intacta",
+              "movida"
+            ],
+            "responses": [
+              "O assento está vazio, mas ainda conserva o calor de alguém.",
+              "A almofada afunda como se alguém invisível tivesse acabado de se levantar."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "espectador",
@@ -303,7 +423,19 @@
             0.98
           ],
           "finding": "O espectador não tem rosto. O ingresso em seu colo traz o nome do funcionário.",
-          "object": "espectador"
+          "object": "espectador",
+          "interaction": {
+            "label": "CHAMAR O ESPECTADOR",
+            "states": [
+              "silencioso",
+              "respondeu"
+            ],
+            "responses": [
+              "A figura permanece imóvel, de costas para você.",
+              "Uma voz sai do assento: 'Você chegou atrasado para a sua sessão.'"
+            ],
+            "repeatable": false
+          }
         }
       ]
     },
@@ -371,7 +503,19 @@
             0.96
           ],
           "finding": "Os fechos estão intactos, mas o interior da câmara está molhado por dentro.",
-          "object": "camara_vazia"
+          "object": "camara_vazia",
+          "interaction": {
+            "label": "TESTAR O FECHO",
+            "states": [
+              "travado",
+              "acionado"
+            ],
+            "responses": [
+              "O fecho parece intacto. O vidro está molhado por dentro.",
+              "O fecho se move sozinho e uma gota escorre pela parte interna do vidro."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "camara",
@@ -383,7 +527,19 @@
             0.96
           ],
           "finding": "A figura dentro da câmara acompanha seus movimentos com atraso de alguns segundos.",
-          "object": "camara_presenca"
+          "object": "camara_presenca",
+          "interaction": {
+            "label": "OBSERVAR A CÂMARA C-03",
+            "states": [
+              "estática",
+              "sincronizada"
+            ],
+            "responses": [
+              "A figura está imóvel no líquido.",
+              "A figura acompanha seu movimento com alguns segundos de atraso."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "terminal",
@@ -395,7 +551,19 @@
             0.97
           ],
           "finding": "O terminal registra uma sessão iniciada há onze anos e ainda ativa.",
-          "object": "terminal"
+          "object": "terminal",
+          "interaction": {
+            "label": "ACESSAR O TERMINAL",
+            "states": [
+              "bloqueado",
+              "sessão aberta"
+            ],
+            "responses": [
+              "O monitor exibe uma sessão iniciada há onze anos.",
+              "A tela revela uma lista de funcionários. Seu nome está no topo, com status ATIVO."
+            ],
+            "repeatable": false
+          }
         },
         {
           "id": "luz",
@@ -407,7 +575,19 @@
             0.29
           ],
           "finding": "A luz pisca em código Morse, repetindo o número do seu contrato.",
-          "object": "luminaria"
+          "object": "luminaria",
+          "interaction": {
+            "label": "DESLIGAR A LUZ DE EMERGÊNCIA",
+            "states": [
+              "acesa",
+              "apagada"
+            ],
+            "responses": [
+              "A luz pisca em intervalos irregulares.",
+              "A luz apaga. No escuro, três batidas soam atrás de você."
+            ],
+            "repeatable": true
+          }
         }
       ]
     }

@@ -60,6 +60,11 @@ class EditableSceneManifestTests(unittest.TestCase):
                     expected = [obj["x"], obj["y"], obj["x"] + obj["w"], obj["y"] + obj["h"]]
                     for actual, target in zip(hotspot["bounds"], expected):
                         self.assertAlmostEqual(actual, target, places=6)
+                    interaction = hotspot.get("interaction")
+                    self.assertIsInstance(interaction, dict)
+                    self.assertTrue(interaction.get("label"))
+                    self.assertEqual(len(interaction.get("states", [])), 2)
+                    self.assertEqual(len(interaction.get("responses", [])), 2)
 
 
 if __name__ == "__main__":

@@ -130,7 +130,7 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "difficulty": difficulty, "cash": -1_000_000, "initial_debt": 1_000_000,
         "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
-        "completed": [], "evidence": [], "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
+        "completed": [], "evidence": [], "object_states": {}, "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
     }
 
 class ShiftGame:
@@ -195,6 +195,14 @@ class ShiftGame:
             if completed_id != expected_id and completed_id != expected_id + "#contrato-" + str(index + 1):
                 return False
         if not isinstance(state.get("evidence", []), list):
+            return False
+        object_states = state.get("object_states", {})
+        if not isinstance(object_states, dict):
+            return False
+        if any(
+            not isinstance(key, str) or not isinstance(value, str) or value not in {"0", "1"}
+            for key, value in object_states.items()
+        ):
             return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
@@ -345,6 +353,30 @@ class ShiftGame:
             return False
         evidence.append({"id": evidence_id, "description": str(description)[:240],
                          "mission": self.mission["id"], "task_index": self.state["task_index"]})
+        self.save()
+        return True
+
+    def _object_state_key(self, object_id: str) -> str:
+        if not isinstance(object_id, str) or not object_id.strip():
+            raise ValueError("Identificador de objeto inválido.")
+        return f"{self.state['shift_index']}:{object_id}"
+
+    def get_object_state(self, object_id: str) -> str:
+        if self.state is None:
+            return "0"
+        key = self._object_state_key(object_id)
+        return self.state.setdefault("object_states", {}).get(key, "0")
+
+    def set_object_state(self, object_id: str, value: str) -> bool:
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Só é possível manipular objetos durante um turno.")
+        if value not in {"0", "1"}:
+            raise ValueError("Estado de objeto inválido.")
+        key = self._object_state_key(object_id)
+        object_states = self.state.setdefault("object_states", {})
+        if object_states.get(key, "0") == value:
+            return False
+        object_states[key] = value
         self.save()
         return True
 

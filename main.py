@@ -36,6 +36,7 @@ class TurnosZeroApp:
         except (OSError, json.JSONDecodeError):
             self.object_scene_data = {}
         self.active_scene = None
+        self.current_hotspot = None
         self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -208,25 +209,102 @@ class TurnosZeroApp:
             self.rect(400,310,560,395,"#08141d","#5c8e89",3)
 
     def inspect_hotspot(self, hotspot):
+        """Abre a ficha de inspeção; não coleta evidência apenas por selecionar."""
+        self.current_hotspot = hotspot
+        self.show_inspection()
+
+    def show_inspection(self):
+        hotspot = self.current_hotspot
+        if not hotspot:
+            self.show_investigation()
+            return
         self.screen = "inspection"
         self.clear()
-        self.rect(0,0,self.W,self.H,self.BG)
-        self.header("ANÁLISE DE CAMPO", hotspot.get("label", hotspot["id"]),
-                    "OBSERVE O REGISTRO. USE A PISTA PARA DECIDIR COMO AGIR.")
-        self.rect(82,220,942,520,"#111b28","#786044",2)
-        self.rect(82,220,91,520,"#a64f45")
-        self.text(125,270,"ANOMALIA IDENTIFICADA",10,"#d98b75","nw")
-        self.text(125,322,hotspot.get("label", hotspot["id"]).upper(),19,"#e7d9c5","nw")
-        self.rect(125,352,895,353,"#394b59")
-        finding = hotspot.get("finding", "O ambiente apresenta uma alteração que não pode ser explicada.")
-        recorded = self.game.record_evidence(hotspot["id"], finding) if self.game.state and self.game.state.get("status") == "on_shift" else False
-        self.text(125,392,"RELATO / EVIDÊNCIA",9,"#d6ad70","nw")
-        self.text(125,430,finding,14,"#e7e5df","nw",735)
-        self.text(125,480,"A pista foi adicionada ao seu relatório de campo." if recorded else "Esta pista já consta no relatório deste contrato.",10,"#82b9a7","nw")
-        self.text(125,555,"PRÓXIMO PASSO",9,"#d6ad70","nw")
-        self.text(125,580,"Volte ao ambiente, examine os outros pontos e só então avance para a ocorrência.",10,self.MUTED,"nw",760)
-        self.button(650,615,245,"VOLTAR AO AMBIENTE",self.show_investigation,42)
+        self.rect(0, 0, self.W, self.H, self.BG)
+        self.header(
+            "ANÁLISE DE CAMPO",
+            hotspot.get("label", hotspot["id"]),
+            "EXAMINE A EVIDÊNCIA E DEPOIS DECIDA SE VAI MANIPULAR O OBJETO."
+        )
+        self.rect(55, 190, 435, 660, "#101923", "#786044", 2)
+        self.rect(455, 190, 969, 660, "#101923", "#786044", 2)
+        self.text(80, 218, "OBJETO SOB ANÁLISE", 9, self.GOLD, "nw")
+
+        # O mesmo sprite da missão é ampliado, sem editar ou achatar o fundo.
+        scene_data = self.object_scene_data.get(self.active_scene or "", {})
+        object_id = hotspot.get("object")
+        obj = next(
+            (item for item in scene_data.get("objects", []) if item.get("id") == object_id),
+            None
+        )
+        asset = (Path(__file__).resolve().parent / "assets" / "objetos" / obj["asset"]) if obj else None
+        if asset and asset.is_file():
+            photo = self.scaled_photo(asset, (300, 365), self.object_images, contain=True)
+            self.canvas.create_image(245, 425, image=photo, anchor="center")
+        else:
+            self.rect(110, 275, 380, 580, "#080e14", "#364955", 1)
+            self.text(245, 425, "ARQUIVO VISUAL\nINDISPONÍVEL", 12, self.MUTED)
+
+        self.text(485, 218, "REGISTRO DE ANOMALIA", 9, "#d6ad70", "nw")
+        self.text(485, 254, hotspot.get("label", hotspot["id"]).upper(), 16, self.TEXT, "nw", 440)
+        self.text(
+            485, 300, hotspot.get("finding", "Nenhuma evidência descrita."),
+            11, self.TEXT, "nw", 435
+        )
+
+        state = self.game.get_object_state(hotspot["id"])
+        interaction = hotspot.get("interaction", {})
+        states = interaction.get("states", ["intacto", "alterado"])
+        responses = interaction.get("responses", ["Nada muda.", "O objeto reage de forma anormal."])
+        state_index = 1 if state == "1" else 0
+        self.text(485, 390, "ESTADO DO OBJETO", 9, self.GOLD, "nw")
+        self.text(485, 416, states[state_index], 12, "#83c4a8" if state_index else self.MUTED, "nw")
+        self.text(485, 452, responses[state_index], 10, self.TEXT, "nw", 430)
+
+        mission_id = self.game.mission["id"]
+        evidence_found = any(
+            item.get("id") == hotspot["id"] and item.get("mission") == mission_id
+            for item in self.game.state.get("evidence", [])
+        )
+        self.text(485, 510, "RELATÓRIO DE CAMPO", 9, self.GOLD, "nw")
+        if evidence_found:
+            self.text(485, 535, "EVIDÊNCIA REGISTRADA", 10, "#83c4a8", "nw")
+        else:
+            self.button(485, 526, 410, "EXAMINAR E REGISTRAR EVIDÊNCIA", self.collect_current_evidence, 40)
+
+        if interaction:
+            interaction_label = interaction.get("label", "INTERAGIR COM OBJETO")
+            if state_index and not interaction.get("repeatable", False):
+                self.text(485, 588, "INTERAÇÃO JÁ REALIZADA", 9, "#d6ad70", "nw")
+            else:
+                self.button(485, 575, 410, interaction_label, self.interact_current_object, 40)
+
+        self.button(485, 625, 410, "VOLTAR AO AMBIENTE", self.show_investigation, 34)
         self.bind_clicks()
+
+    def collect_current_evidence(self):
+        hotspot = self.current_hotspot
+        if not hotspot:
+            return
+        finding = hotspot.get("finding", "Evidência visual identificada.")
+        try:
+            self.game.record_evidence(hotspot["id"], finding)
+        except RuntimeError:
+            pass
+        self.show_inspection()
+
+    def interact_current_object(self):
+        hotspot = self.current_hotspot
+        if not hotspot:
+            return
+        interaction = hotspot.get("interaction", {})
+        current = self.game.get_object_state(hotspot["id"])
+        if current == "1" and not interaction.get("repeatable", False):
+            self.show_inspection()
+            return
+        next_state = "0" if current == "1" else "1"
+        self.game.set_object_state(hotspot["id"], next_state)
+        self.show_inspection()
 
     def click(self, event):
         if self._view_scale <= 0:

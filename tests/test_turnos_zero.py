@@ -257,6 +257,27 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(self.game.state["last_payment"], 0)
         self.assertEqual(self.game.state["status"], "ended")
 
+    def test_estado_de_objeto_persiste_apos_reabrir(self):
+        self.game.start_shift()
+        self.assertEqual(self.game.get_object_state("geladeira"), "0")
+        self.assertTrue(self.game.set_object_state("geladeira", "1"))
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertEqual(reopened.get_object_state("geladeira"), "1")
+
+    def test_estado_de_objeto_nao_vaza_para_contrato_seguinte(self):
+        self.game.start_shift()
+        self.game.set_object_state("geladeira", "1")
+        for task in self.game.mission["tasks"]:
+            self.game.act(task["correct"])
+        self.game.next_shift()
+        self.game.start_shift()
+        self.assertEqual(self.game.get_object_state("geladeira"), "0")
+
+    def test_estado_de_objeto_invalido_corrompe_save(self):
+        state = fresh_state("Teste")
+        state["object_states"] = {"0:geladeira": "destruido"}
+        self.assertFalse(ShiftGame._valid_state(state))
+
     def test_estado_encerrado_persiste_apos_reabrir(self):
         self.game.start_campaign("Teste", "efetivo")
         self.game.start_shift()
