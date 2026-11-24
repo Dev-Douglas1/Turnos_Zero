@@ -19,8 +19,12 @@ class TurnosZeroApp:
     def __init__(self, root):
         self.root = root
         self.root.title("TURNOS ZERO | Agência de Serviços Extraordinários")
-        self.root.geometry(f"{self.W}x{self.H}")
-        self.root.minsize(900, 620)
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        initial_w = max(640, min(self.W, screen_w - 80))
+        initial_h = max(440, min(self.H, screen_h - 120))
+        self.root.geometry(f"{initial_w}x{initial_h}")
+        self.root.minsize(640, 440)
         self.game = ShiftGame()
         self.scene_manager = SceneManager()
         self.scene_images = {}
@@ -50,6 +54,11 @@ class TurnosZeroApp:
     def clear(self):
         self.canvas.delete("all")
         self.targets = []
+        # A tela nova começa em coordenadas lógicas, sem herdar a escala anterior.
+        self._view_scale = 1.0
+        self._view_x = 0.0
+        self._view_y = 0.0
+        self._has_canvas_transform = False
 
     def rect(self, x1, y1, x2, y2, fill, outline=None, width=1):
         self.canvas.create_rectangle(x1,y1,x2,y2,fill=fill,outline=outline or fill,width=width)
@@ -82,13 +91,15 @@ class TurnosZeroApp:
             except tk.TclError:
                 pass
 
-    def resize_canvas(self, event):
-        """Redimensiona mantendo proporção e centralizando a área lógica 1024x700."""
-        if event.width <= 1 or event.height <= 1:
+    def resize_canvas(self, event=None):
+        """Adapta a interface ao espaço disponível sem deformar o layout."""
+        width = event.width if event is not None else self.canvas.winfo_width()
+        height = event.height if event is not None else self.canvas.winfo_height()
+        if width <= 1 or height <= 1:
             return
-        scale = min(event.width / self.W, event.height / self.H)
-        offset_x = (event.width - self.W * scale) / 2
-        offset_y = (event.height - self.H * scale) / 2
+        scale = min(width / self.W, height / self.H)
+        offset_x = (width - self.W * scale) / 2
+        offset_y = (height - self.H * scale) / 2
 
         if self._has_canvas_transform:
             factor = scale / self._view_scale
@@ -399,22 +410,8 @@ class TurnosZeroApp:
                 return
 
     def bind_clicks(self):
-        width = max(1, self.canvas.winfo_width())
-        height = max(1, self.canvas.winfo_height())
-        if width < 100 or height < 100:
-            self.canvas.bind("<Button-1>", self.click)
-            return
-        scale = min(width / self.W, height / self.H)
-        offset_x = (width - self.W * scale) / 2
-        offset_y = (height - self.H * scale) / 2
-        # As telas são desenhadas em coordenadas lógicas; aplica uma transformação
-        # uniforme para impedir distorção em monitores ultrawide ou janelas altas.
-        self.canvas.scale("all", 0, 0, scale, scale)
-        self.canvas.move("all", offset_x, offset_y)
-        self._view_scale = scale
-        self._view_x = offset_x
-        self._view_y = offset_y
-        self._has_canvas_transform = True
+        # O desenho lógico é transformado uma vez; Configure atualiza a escala.
+        self.resize_canvas()
         self.canvas.bind("<Button-1>", self.click)
         self.canvas.config(cursor="hand2")
 
