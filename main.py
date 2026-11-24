@@ -240,7 +240,7 @@ class TurnosZeroApp:
         self.screen="investigation"
         mission=self.game.mission
         state=self.game.state
-        scene_id={"loja_24h":"loja_24h","edificio_9":"edificio_9","cinema_vazio":"cinema_vazio"}.get(mission["id"])
+        scene_id={"loja_24h":"loja_24h","edificio_9":"edificio_9","cinema_vazio":"cinema_vazio","laboratorio":"laboratorio"}.get(mission["id"])
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
