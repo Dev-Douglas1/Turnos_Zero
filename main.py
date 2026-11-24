@@ -854,13 +854,49 @@ class TurnosZeroApp:
             "cinema_vazio": "cinema_ultima_sessao.png",
             "laboratorio": "laboratorio_experimental.png",
         }.get(scene_id)
-        background_path = Path(__file__).resolve().parent / "assets" / "ambientes" / (background_name or "")
+        root = Path(__file__).resolve().parent
+        background_path = root / "assets" / "ambientes" / (background_name or "")
         source_image = None
         if background_path.is_file():
             try:
+                manifest_size = self.object_scene_data.get("viewport", [834, 469])
+                scene_w, scene_h = int(manifest_size[0]), int(manifest_size[1])
                 with Image.open(background_path) as source:
-                    source_image = source.convert("RGB")
-            except OSError:
+                    composed = source.convert("RGBA").resize(
+                        (scene_w, scene_h), Image.Resampling.LANCZOS
+                    )
+
+                # Reconstrói a cena com o mesmo z-order e os mesmos estados visuais
+                # usados no Canvas. Assim, cada monitor mostra objetos reais do local.
+                hotspot_by_object = {
+                    item.get("object"): item.get("id")
+                    for item in scene_data.get("hotspots", [])
+                    if item.get("object")
+                }
+                for obj in sorted(scene_data.get("objects", []), key=lambda item: item.get("z", 0)):
+                    if not obj.get("visible", True):
+                        continue
+                    hotspot_id = hotspot_by_object.get(obj["id"])
+                    object_state = self.game.get_object_state(hotspot_id) if hotspot_id else "0"
+                    asset_name = obj.get("asset_states", {}).get(object_state, obj.get("asset", ""))
+                    asset_path = root / "assets" / "objetos" / asset_name
+                    if not asset_path.is_file():
+                        asset_path = root / "assets" / "objetos" / obj.get("asset", "")
+                    if not asset_path.is_file():
+                        continue
+                    box = (
+                        max(1, int(obj["w"] * scene_w)),
+                        max(1, int(obj["h"] * scene_h))
+                    )
+                    with Image.open(asset_path) as source:
+                        sprite = ImageOps.contain(
+                            source.convert("RGBA"), box, method=Image.Resampling.LANCZOS
+                        )
+                    x = int(obj["x"] * scene_w + (box[0] - sprite.width) / 2)
+                    y = int(obj["y"] * scene_h + (box[1] - sprite.height) / 2)
+                    composed.alpha_composite(sprite, (x, y))
+                source_image = composed.convert("RGB")
+            except (OSError, ValueError, KeyError, TypeError):
                 source_image = None
 
         channel_names = [
