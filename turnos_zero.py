@@ -168,9 +168,10 @@ class ShiftGame:
             return False
         if status == "between_shifts" and task_index not in (0, len(MISSIONS[shift_index % len(MISSIONS)]["tasks"])):
             return False
-        if status == "ended" and task_index not in range(1, len(MISSIONS[shift_index]["tasks"]) + 1):
+        if status == "ended" and task_index not in range(1, len(MISSIONS[shift_index % len(MISSIONS)]["tasks"]) + 1):
             return False
         if status == "campaign_completed" and task_index != len(MISSIONS[(shift_index - 1) % len(MISSIONS)]["tasks"]):
+            return False
         if not isinstance(state.get("player"), str) or not state["player"].strip() or len(state["player"]) > 24:
             return False
         if (type(state.get("cash")) is not int or
