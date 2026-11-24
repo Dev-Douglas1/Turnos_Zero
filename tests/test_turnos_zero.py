@@ -373,5 +373,81 @@ class TurnosZeroTests(unittest.TestCase):
         reopened = ShiftGame(self.game.save_path, self.game.history_path)
         self.assertEqual(reopened.state["status"], "ended")
 
+    def test_interacoes_aumentam_pressao_e_ativam_ameaca(self):
+        self.game.start_shift()
+        first = self.game.interact_object("caixa")
+        self.assertEqual(first["threat_level"], 1)
+        self.assertFalse(first["threat_active"])
+        second = self.game.interact_object("porta")
+        self.assertTrue(second["activated"])
+        self.assertTrue(self.game.state["threat_active"])
+        self.assertEqual(self.game.state["threat_level"], 3)
+
+    def test_objeto_repetido_nao_aumenta_pressao_indefinidamente(self):
+        self.game.start_shift()
+        self.game.interact_object("porta", repeatable=True)
+        self.game.interact_object("porta", repeatable=True)
+        self.assertEqual(self.game.state["threat_level"], 2)
+        self.assertEqual(self.game.state["threat_triggered"], ["porta"])
+
+    def test_ameaca_exposta_causa_penalidade_adicional(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        self.assertTrue(self.game.state["threat_active"])
+        result = self.game.act(self.game.task["correct"])
+        self.assertTrue(result["threat_hit"])
+        self.assertFalse(result.get("threat_evaded", False))
+        self.assertEqual(self.game.state["mistakes"], 1)
+        self.assertEqual(self.game.state["sanity"], 4)
+
+    def test_abrigo_persiste_e_evade_ameaca(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        spot = self.game.hide_from_anomaly()
+        self.assertIn("balcão", spot)
+        self.assertTrue(self.game.state["is_hidden"])
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertTrue(reopened.state["is_hidden"])
+        result = reopened.act(reopened.task["correct"])
+        self.assertTrue(result["threat_evaded"])
+        self.assertFalse(result.get("threat_hit", False))
+        self.assertEqual(reopened.state["mistakes"], 0)
+        self.assertFalse(reopened.state["is_hidden"])
+
+    def test_ameaca_sem_abrigo_ativo_nao_permite_esconder(self):
+        self.game.start_shift()
+        with self.assertRaises(RuntimeError):
+            self.game.hide_from_anomaly()
+
+    def test_agente_escondido_nao_pode_manipular_outro_objeto(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        self.game.hide_from_anomaly()
+        with self.assertRaises(RuntimeError):
+            self.game.interact_object("caixa")
+
+    def test_save_antigo_migra_estado_de_ameaca_padrao(self):
+        self.game.state.pop("threat_level", None)
+        self.game.state.pop("threat_active", None)
+        self.game.state.pop("is_hidden", None)
+        self.game.state.pop("threat_triggered", None)
+        self.game.save()
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertEqual(reopened.state["threat_level"], 0)
+        self.assertFalse(reopened.state["threat_active"])
+        self.assertFalse(reopened.state["is_hidden"])
+        self.assertEqual(reopened.state["threat_triggered"], [])
+
+    def test_save_rejeita_pressao_anomala_invalida(self):
+        state = fresh_state("Teste")
+        state["threat_level"] = 6
+        self.assertFalse(ShiftGame._valid_state(state))
+        state["threat_level"] = 1
+        state["threat_active"] = "yes"
+        self.assertFalse(ShiftGame._valid_state(state))
+
 if __name__ == "__main__":
     unittest.main()
