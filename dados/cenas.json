@@ -28,7 +28,8 @@
             0.42,
             0.96
           ],
-          "action": "inspect_cashier"
+          "action": "inspect_cashier",
+          "finding": "O livro-caixa registra vendas às 02:13 com o nome de um funcionário desaparecido."
         },
         {
           "id": "geladeira",
@@ -39,7 +40,8 @@
             0.94,
             0.85
           ],
-          "action": "inspect_fridge"
+          "action": "inspect_fridge",
+          "finding": "A condensação na porta forma letras: NÃO ATENDA."
         }
       ]
     },
@@ -57,7 +59,8 @@
             0.65,
             0.96
           ],
-          "action": "inspect_elevator"
+          "action": "inspect_elevator",
+          "finding": "O painel tem um botão 0 instalado atrás da placa de manutenção."
         }
       ]
     },
@@ -75,7 +78,8 @@
             0.8,
             0.65
           ],
-          "action": "inspect_screen"
+          "action": "inspect_screen",
+          "finding": "A película da tela contém marcas de dedos pelo lado de dentro."
         },
         {
           "id": "poltronas",
@@ -86,7 +90,8 @@
             0.95,
             0.98
           ],
-          "action": "inspect_seats"
+          "action": "inspect_seats",
+          "finding": "Um bilhete de assento está marcado com o nome do funcionário."
         }
       ]
     },
@@ -104,7 +109,8 @@
             0.72,
             0.92
           ],
-          "action": "inspect_terminal"
+          "action": "inspect_terminal",
+          "finding": "O terminal registra uma sessão iniciada há onze anos e ainda ativa."
         }
       ]
     }
