@@ -112,6 +112,21 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertIn("evidence_note", result)
         self.assertEqual(self.game.state["reputation"], 2)
 
+    def test_evidencia_desbloqueia_decisao_alternativa(self):
+        self.game.start_shift()
+        self.game.record_evidence("geladeira", "A mensagem diz para não interagir.")
+        result = self.game.act(2)
+        self.assertTrue(result["correct"])
+        self.assertTrue(result["evidence_used"])
+        self.assertEqual(self.game.state["reputation"], 2)
+
+    def test_decisao_alternativa_sem_evidencia_e_violacao(self):
+        self.game.start_shift()
+        result = self.game.act(2)
+        self.assertFalse(result["correct"])
+        self.assertFalse(result["evidence_used"])
+        self.assertEqual(self.game.state["mistakes"], 1)
+
     def test_decisao_sem_evidencia_nao_recebe_bonus(self):
         self.game.start_shift()
         result = self.game.act(self.game.task["correct"])
