@@ -78,3 +78,39 @@ A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json
 ## 7. Limites conhecidos da versão atual
 
 Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. As seis artes vetoriais SVG permanecem como fontes editáveis e são exportadas para PNG no fluxo de CI. O histórico identifica cada expediente para impedir duplicação de pagamentos e registros em retomadas. O modo terminal também permite coletar evidências. Áudio direcional, entidades animadas, inventário e expansão de conteúdo continuam planejados. A interface gráfica precisa de validação manual em Windows.
+## 8. Fluxo de dados e estados
+
+### Fluxo de uma ocorrência
+
+```mermaid
+flowchart TD
+    A[Interface Tkinter] --> B[SceneManager]
+    B --> C[Hotspot selecionado]
+    C --> D[ShiftGame.record_evidence]
+    D --> E[Save JSON da campanha]
+    A --> F[Escolha do jogador]
+    E --> G[ShiftGame.act]
+    F --> G
+    G --> H{Evidência compatível?}
+    H -->|Sim| I[Alternativa pode ser desbloqueada]
+    H -->|Não| J[Aplicar regra padrão]
+    I --> K[Atualizar reputação ou falhas]
+    J --> K
+    K --> L[Salvar progresso]
+    K --> M{Turno terminou?}
+    M -->|Sim| N[Registrar histórico e pagamento]
+    M -->|Não| A
+```
+
+### Estados persistidos
+
+- `between_shifts`: contrato aguardando início ou próximo contrato disponível.
+- `on_shift`: expediente em andamento; investigação e decisões permitidas.
+- `ended`: contrato encerrado por violação ou estabilidade zerada.
+- `campaign_completed`: todos os contratos concluídos.
+
+O motor valida os campos e a coerência entre estado, índice da missão e contratos concluídos antes de aceitar um save. O progresso é gravado por arquivo temporário e substituição. Cada expediente recebe um token único para impedir duplicação de pagamento e histórico caso o fechamento seja reprocessado.
+
+### Validação contínua
+
+O GitHub Actions executa a suíte em Python 3.10, 3.11 e 3.12. Em cada versão, compila os módulos, exporta os cenários PNG, executa os testes unitários e verifica JSON e referências dos assets.
