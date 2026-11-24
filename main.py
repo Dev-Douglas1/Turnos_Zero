@@ -178,7 +178,7 @@ class TurnosZeroApp:
             cache[cache_key] = ImageTk.PhotoImage(image, master=self.root)
         return cache[cache_key]
 
-    def draw_scene(self, scene_id, center_x=512, center_y=372):
+    def draw_scene(self, scene_id, center_x=512, center_y=372, show_hotspots=True):
         """Renderiza fundo cinematográfico, objetos independentes e hotspots clicáveis."""
         try:
             scene = self.scene_manager.get(scene_id)
@@ -282,43 +282,44 @@ class TurnosZeroApp:
                 self.text(left + 39, top + 23, "REC  /  CAM-01", 7, "#9ce2b5")
                 self.rect(left + 4, top + 4, right - 4, bottom - 4, "", "#70a98c", 1)
 
-            evidence_ids = {
-                item.get("id") for item in (self.game.state or {}).get("evidence", [])
-                if item.get("mission") == (self.game.mission or {}).get("id")
-            }
-            for index, hotspot in enumerate(scene_hotspots, 1):
-                # Quando o ponto pertence a um sprite, a área clicável acompanha
-                # diretamente x/y/w/h do objeto, mesmo antes de salvar o editor.
-                object_bounds = None
-                if layered and hotspot.get("object"):
-                    layer_obj = next(
-                        (item for item in layered.get("objects", []) if item.get("id") == hotspot["object"]),
-                        None
-                    )
-                    if layer_obj:
-                        object_bounds = [
-                            layer_obj["x"], layer_obj["y"],
-                            layer_obj["x"] + layer_obj["w"],
-                            layer_obj["y"] + layer_obj["h"]
-                        ]
-                bounds = SceneManager.map_bounds(object_bounds or hotspot["bounds"], viewport)
-                x1, y1, x2, y2 = bounds
-                cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
-                found = hotspot["id"] in evidence_ids
-                marker = "#79c5a5" if found else "#e7b566"
+            if show_hotspots:
+                evidence_ids = {
+                    item.get("id") for item in (self.game.state or {}).get("evidence", [])
+                    if item.get("mission") == (self.game.mission or {}).get("id")
+                }
+                for index, hotspot in enumerate(scene_hotspots, 1):
+                    # Quando o ponto pertence a um sprite, a área clicável acompanha
+                    # diretamente x/y/w/h do objeto, mesmo antes de salvar o editor.
+                    object_bounds = None
+                    if layered and hotspot.get("object"):
+                        layer_obj = next(
+                            (item for item in layered.get("objects", []) if item.get("id") == hotspot["object"]),
+                            None
+                        )
+                        if layer_obj:
+                            object_bounds = [
+                                layer_obj["x"], layer_obj["y"],
+                                layer_obj["x"] + layer_obj["w"],
+                                layer_obj["y"] + layer_obj["h"]
+                            ]
+                    bounds = SceneManager.map_bounds(object_bounds or hotspot["bounds"], viewport)
+                    x1, y1, x2, y2 = bounds
+                    cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+                    found = hotspot["id"] in evidence_ids
+                    marker = "#79c5a5" if found else "#e7b566"
 
-                # Marcador pequeno; a área clicável cobre o objeto, não a moldura.
-                self.canvas.create_oval(
-                    cx - 11, cy - 11, cx + 11, cy + 11,
-                    fill="#101923", outline=marker, width=2,
-                    tags=("hotspot_marker",)
-                )
-                self.canvas.create_text(
-                    cx, cy, text="✓" if found else str(index),
-                    fill=marker, font=("Consolas", 9, "bold"),
-                    tags=("hotspot_marker",)
-                )
-                self.targets.append((bounds, lambda h=hotspot: self.inspect_hotspot(h)))
+                    # Marcador pequeno; a área clicável cobre o objeto, não a moldura.
+                    self.canvas.create_oval(
+                        cx - 11, cy - 11, cx + 11, cy + 11,
+                        fill="#101923", outline=marker, width=2,
+                        tags=("hotspot_marker",)
+                    )
+                    self.canvas.create_text(
+                        cx, cy, text="✓" if found else str(index),
+                        fill=marker, font=("Consolas", 9, "bold"),
+                        tags=("hotspot_marker",)
+                    )
+                    self.targets.append((bounds, lambda h=hotspot: self.inspect_hotspot(h)))
         except (SceneError, tk.TclError, OSError, KeyError, ValueError):
             self.active_scene = None
             self.draw_scene_fallback(scene_id)
@@ -1061,32 +1062,59 @@ class TurnosZeroApp:
         self.bind_clicks()
 
     def show_task(self):
-        self.screen="task"
+        """Ocorrência com o cenário visível e o registro operacional em painel lateral."""
+        self.screen = "task"
         self.start_ambience()
-        mission=self.game.mission
-        task=self.game.task
-        state=self.game.state
+        mission = self.game.mission
+        task = self.game.task
+        state = self.game.state
+        scene_id = scene_for_mission(mission["id"])
         self.clear()
-        self.rect(0,0,self.W,self.H,self.BG)
-        self.header(f"AO VIVO  /  {mission['location']}",mission["title"],
-                    f"{state['player']}  |  ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
-        self.rect(70,195,954,575,"#111b28","#786044",2)
-        self.rect(70,195,954,202,"#26343d")
-        self.text(100,220,f"OCORRÊNCIA {state['task_index']+1} / 3",9,"#d6ad70","nw")
-        self.text(100,252,"O QUE ESTÁ ACONTECENDO?",11,"#e7d9c5","nw")
-        self.text(100,292,task["prompt"],14,self.TEXT,"nw",820)
-        evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
-        self.text(100,365,f"PISTAS NO RELATÓRIO: {len(evidence)}",9,"#82b9a7" if evidence else "#d6ad70","nw")
-        self.text(100,388,"Escolha uma ação. A decisão errada pode encerrar seu contrato.",9,self.MUTED,"nw")
-        for i,choice in enumerate(task["choices"]):
-            y=420+i*48
-            self.rect(112,y,912,y+40,"#1b2934","#536777",1)
-            self.rect(112,y,118,y+40,"#a46e4c")
-            self.text(138,y+20,str(i+1),10,"#e7d9c5")
-            self.text(158,y+20,choice,10,self.TEXT,"nw")
-            self.targets.append(((112,y,912,y+40),lambda n=i:self.choose(n)))
-        self.button(112,570,250,"VOLTAR À INVESTIGAÇÃO",self.show_investigation,38)
-        self.text(920,589,"[ESC] MENU",8,self.MUTED,"ne")
+        self.rect(0, 0, self.W, self.H, self.BG)
+        self.header(
+            f"AO VIVO / {mission['location']}",
+            mission["title"],
+            f"AGENTE: {state['player']}  |  ESTABILIDADE: {state['sanity']}  |  "
+            f"FALHAS: {state['mistakes']}  |  RISCO x{state.get('risk_multiplier', 2 ** state['shift_index'])}"
+        )
+
+        left, top, right, bottom = self.SCENE_VIEWPORT
+        self.rect(left - 5, top - 5, right + 5, bottom + 5, "#0b111a", "#8e704c", 2)
+        if scene_id:
+            self.draw_scene(
+                scene_id,
+                (left + right) / 2,
+                (top + bottom) / 2,
+                show_hotspots=False
+            )
+
+        # Ficha operacional substitui a antiga tela genérica de texto.
+        self.rect(710, 195, 984, 572, "#0b141e", "#9a7848", 2)
+        self.text(730, 218, f"OCORRÊNCIA {state['task_index'] + 1} / 3", 9, "#d6ad70", "nw")
+        self.text(730, 246, "REGISTRO DE INCIDENTE", 10, self.GOLD, "nw")
+        self.text(730, 274, task["prompt"], 10, self.TEXT, "nw", 230)
+
+        evidence = [
+            item for item in state.get("evidence", [])
+            if item.get("mission") == mission["id"]
+        ]
+        self.rect(728, 342, 966, 343, "#354657")
+        self.text(730, 365, f"PISTAS NO DOSSIÊ: {len(evidence)}", 8, "#8bc9a0" if evidence else "#d6ad70", "nw")
+        self.text(730, 387, "ESCOLHA UMA CONDUTA", 8, self.MUTED, "nw")
+
+        for index, choice in enumerate(task["choices"]):
+            y = 410 + index * 49
+            self.button(
+                728, y, 238,
+                f"{index + 1}.  {choice}",
+                lambda n=index: self.choose(n),
+                42
+            )
+
+        self.button(728, 565, 112, "DOSSIÊ", self.show_evidence_report, 34)
+        self.button(852, 565, 114, "VOLTAR", self.show_investigation, 34)
+        self.text(55, 590, "UMA VIOLAÇÃO REDUZ A ESTABILIDADE PELO NÍVEL DE RISCO ATUAL.", 8, "#d18b70", "nw")
+        self.text(55, 615, "A agência não garante resgate de funcionários desaparecidos.", 8, self.MUTED, "nw")
         self.bind_clicks()
 
     def choose(self,index):
