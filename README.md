@@ -1,162 +1,62 @@
-# O Último Segredo da Mansão — Escape Room em Pixel Art
+# Turnos Zero — Agência de Serviços Extraordinários
 
-Jogo escolar original em Python 3, com interface gráfica Tkinter, arte pixelada em primeira pessoa (cenas fixas), objetos clicáveis, inventário, códigos, dicas, contagem regressiva, conquistas, três finais e arquivos JSON persistentes.
+Jogo narrativo de horror sobrenatural em Python 3.10+, com interface Tkinter e modo terminal. Você trabalha para uma agência misteriosa, recebe ordens de serviço em locais anômalos e precisa seguir protocolos para concluir cada expediente.
 
-## Instalação no Windows com VS Code
+## Executar
 
-1. Extraia o arquivo ZIP. Abra a pasta `mansao_ultimo_segredo` no VS Code.
-2. Confira se `main.py`, `assets/` e `dados/` estão nessa pasta.
-3. Abra **Terminal > Novo Terminal**.
-4. Execute `python main.py` (ou `py main.py`).
-5. Digite seu nome e comece a explorar a mansão.
+No Windows, abra a pasta do projeto no VS Code e execute:
 
-**Não é necessário instalar bibliotecas externas.** Tkinter normalmente acompanha o Python para Windows. Os arquivos de arte e som já estão incluídos.
+```powershell
+python main.py
+```
 
-## Controles
-
-- **Mouse**: clicar nos objetos delimitados em dourado.
-- **F1**: solicitar uma pista (aumenta o contador de dicas).
-- **I**: visualizar inventário.
-- **ESC**: voltar ao menu; o progresso permanece salvo.
-- **Salvar**: grava os dados em `dados/progresso.json`.
-- **Continuar**: recupera o progresso salvo, inclusive inventário e tempo.
-
-## Modo de terminal com input()
-
-Para demonstrar explicitamente `input()`, `while`, `for`, `if`, `elif`, `else`:
+Modo terminal:
 
 ```powershell
 python main.py --terminal
 ```
 
-O modo terminal usa o mesmo motor e os mesmos JSON, porém não exibe interface gráfica. Ele permite navegar, investigar, digitar códigos, pedir dicas e escolher o final. A contagem regressiva é aplicada no modo gráfico; no terminal o tempo salvo é preservado.
+Testes:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Não são necessárias bibliotecas externas. A interface usa Canvas do Tkinter e o motor usa apenas a biblioteca padrão do Python.
+
+## Como jogar
+
+1. Crie um contrato e informe o nome do crachá.
+2. Escolha o vínculo: Estagiário, Efetivo ou Terceirizado.
+3. Leia a ordem de serviço e os protocolos.
+4. Em cada expediente, resolva três ocorrências escolhendo uma das três ações.
+5. Decisões corretas aumentam reputação. Violações reduzem estabilidade.
+6. Duas violações ou estabilidade zerada encerram o contrato. Sobreviver gera pagamento.
+7. Avance para o próximo local e descubra a história da agência.
+
+## Missões da primeira versão
+
+- **Loja 24 horas:** o telefone toca, a música para e um cliente sem reflexo aparece.
+- **Edifício Residencial 9:** elevador no andar zero, vizinho com guarda-chuva e apartamento inexistente.
+- **Última Sessão:** uma plateia imóvel, um projetor autônomo e um bilhete com data futura.
 
 ## Estrutura
 
-```
-mansao_ultimo_segredo/
-├── main.py
-├── assets/
-│   ├── capa.png
-│   ├── hall.png
-│   ├── biblioteca.png
-│   ├── escritorio.png
-│   ├── porao.png
-│   ├── camara.png
-│   ├── ambiente.wav
-│   ├── porta.wav
-│   ├── acerto.wav
-│   └── erro.wav
-├── dados/
-│   ├── enigmas.json
-│   ├── progresso.json
-│   └── historico.json
-├── gerar_assets.py
-├── requirements.txt
-└── README.md
-```
+- main.py — interface Tkinter e modo terminal.
+- turnos_zero.py — motor de jogo, missões, decisões, remuneração e salvamento.
+- dados/turnos_zero_progresso.json — campanha nova.
+- dados/turnos_zero_historico.json — histórico dos expedientes.
+- tests/test_turnos_zero.py — testes automatizados do novo motor.
+- docs/PLANO_TECNICO_TURNOS_ZERO.md — arquitetura, etapas e roadmap.
 
-O jogo lê `enigmas.json` para montar as cinco salas e seus objetos. `progresso.json` é atualizado durante a exploração e permite continuar após fechar o programa. `historico.json` registra resultados finais. Todos usam listas, objetos e pares chave-valor.
+Os saves antigos da Mansão continuam preservados em seus arquivos originais. A nova campanha usa arquivos separados e não os sobrescreve.
 
-`gerar_assets.py` é opcional e só serve para **recriar** as imagens e os sons originais. Se quiser executá-lo, instale `Pillow` com `python -m pip install pillow`. **Não é necessário executá-lo para jogar.**
+## Estado do desenvolvimento
 
-## Finais
+A fundação jogável está implementada: menu, criação de contrato, três missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface usa cenários abstratos temporários desenhados no Canvas.
 
-- **Verdade revelada**: sair com o diário e a prova da conspiração.
-- **Fuga**: sair sem revelar o segredo.
-- **Derrota**: esgotar quatro tentativas em um código ou deixar o tempo acabar.
+Ainda estão planejados: artes originais por local, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
 
-## Roteiro de demonstração ao professor
+## Identidade original
 
-1. Abra `dados/enigmas.json` e mostre a lista de cinco salas, os objetos e os códigos.
-2. Execute `python main.py` e inicie uma partida.
-3. Clique em objetos e recolha uma chave para demonstrar o inventário.
-4. Peça uma dica e teste uma senha incorreta.
-5. Salve, feche o jogo, abra novamente e use **Continuar**.
-6. Mostre as alterações em `dados/progresso.json`.
-7. Complete o jogo e mostre `dados/historico.json`.
-8. Execute `python main.py --terminal` para demonstrar `input()` e o `while` diretamente.
-
-## Atenção
-
-A arte é uma composição pixelada original criada para este projeto. A visão em primeira pessoa é **point-and-click com cenas estáticas**, não um mundo 3D navegável. No Windows, a trilha e os efeitos WAV usam `winsound`; em outros sistemas o jogo funciona, mas o áudio pode ser substituído pelo sinal sonoro da interface.
-
-
-## Atualização visual e narrativa
-
-A versão atual inclui uma abertura narrativa em três quadros, com texto revelado gradualmente, antes de iniciar a exploração. Durante as salas, pequenos pixels de poeira flutuam e a iluminação pulsa discretamente para dar vida aos cenários. As áreas de clique são invisíveis; o cursor muda ao passar sobre objetos interativos. O cronômetro atualiza sem redesenhar toda a cena.
-
-
-## Direção visual e referências
-
-A direção visual foi refinada com base em convenções de aventuras point-and-click de terror: cenários fixos com composição legível, objetos integrados à narrativa, atmosfera por chuva/luz/som e pistas ambientais. Referências de estudo:
-- The Mansion (pixel-art horror adventure): https://yusaku-nakayama.itch.io/the-mansion-demo
-- A Room Beyond (pixel graphics, point-and-click e atmosfera): https://www.aroombeyond.com/
-- The Horror of Salazar House (aventura de mansão, investigação e múltiplos finais): https://www.grimoireofhorror.com/the-banshee/the-horror-of-salazar-house-game-review/
-
-As imagens incluídas neste projeto foram desenhadas para este jogo e não são extraídas desses títulos.
-
-
-## Versão refinada — narrativa e animações
-
-- A tela de introdução agora mostra os três blocos de história imediatamente, sem depender do fim de uma animação de digitação para revelar o texto.
-- Abertura com chuva animada e relâmpagos ocasionais.
-- Cenários de cinco salas redesenhados em pixel art com mais detalhes, profundidade e objetos ambientais.
-- Poeira flutuante durante a exploração, oscilação de chama no escritório/porão e aparição breve de uma silhueta no hall.
-- Corrigido o tratamento do movimento do mouse sobre os botões e objetos: a lista de áreas clicáveis contém dois formatos de registro e agora ambos são tratados corretamente.
-- O menu usa a nova arte exterior da mansão.
-
-### Atualização
-Feche a versão anterior, extraia este ZIP em uma pasta nova e execute `python main.py` dentro da pasta que contém o arquivo principal. Não misture os arquivos antigos com os novos.
-
-
-## Dificuldade e narrativa
-
-A campanha oferece 20 minutos por partida, três tentativas por mecanismo, penalidade de 1 minuto por erro e custo de 1 minuto e 30 segundos por dica. O nível de alerta aumenta com erros. As pistas são ambientais e exigem relacionar informações encontradas em salas diferentes.
-
-
-## Mecanismos interativos inspirados em aventuras de caixas de enigmas
-
-Os cofres e painéis de senha agora abrem uma tela própria de mecanismo. O jogador gira discos numéricos ou alfabéticos com os botões de seta e precisa montar a combinação antes de testar. O cronômetro continua ativo enquanto o mecanismo está aberto; erros aplicam as penalidades normais do jogo. Esta implementação é uma adaptação 2D original para Tkinter, não uma reprodução dos recursos 3D ou dos controles por toque de The Room.
-
-
-## Campanha procedural: uma investigação diferente a cada partida
-
-Cada nova partida gera e salva sua própria campanha. A geração altera:
-- ano do desaparecimento e identidade da pessoa desaparecida;
-- suspeito e motivo central da conspiração;
-- selo da família e frase-chave da investigação;
-- três combinações secretas diferentes;
-- tipo de interação de cada mecanismo (discos giratórios ou seleção de caracteres por teclado);
-- pistas e documentos que são reconstruídos a partir da campanha gerada.
-
-A campanha fica registrada em `dados/progresso.json`. Ao escolher **Continuar**, o jogo restaura a mesma combinação e a mesma narrativa da partida salva. Somente **Nova partida** sorteia outro caso.
-
-### Ferramentas de investigação
-
-- **Lente [F2]**: revela uma observação oculta específica do cômodo e consome 30 segundos.
-- **Pista [F1]**: oferece uma orientação mais direta e consome 90 segundos.
-- Os mecanismos podem apresentar discos ou teclado de caracteres; a combinação é gerada para a campanha atual.
-
-A geração é procedural e combina variações narrativas e de enigmas dentro da estrutura atual de cinco cômodos. Ela não cria infinitas salas ou modelos 3D.
-
-## Sistemas de inovação (v2)
-
-A evolução técnica está documentada em `docs/PLANO_TECNICO_INOVACAO.md`.
-O módulo `sistemas.py` acrescenta perfis de dificuldade, migração compatível de saves,
-geração determinística de casos, registro de evidências, eventos de atmosfera e avaliação de hipóteses.
-Os dados legados continuam sendo lidos; antes da primeira gravação de um save antigo, o jogo cria
-uma cópia de segurança em `dados/backups/`. A migração não apaga nem reinicializa o histórico.
-
-### Novos recursos
-- Ao iniciar uma nova campanha, escolha **História**, **Investigador** ou **Pesadelo**.
-- A dificuldade define tempo, custo das dicas, penalidade por erro e tentativas; os parâmetros usados ficam salvos com a partida.
-- A tecla **B** ou o botão **EVIDÊNCIAS** abre o quadro de investigação.
-- O quadro permite formular uma acusação; uma conclusão correta exige evidências suficientes.
-- A campanha recebe uma semente e um caso procedural reproduzível, com suspeitos, motivo e evidências.
-- O estado parcial dos mecanismos é salvo durante a manipulação.
-- Eventos de tensão aparecem conforme marcos da investigação.
-
-### Testes
-Execute `python -m unittest discover -s tests -v` para testar migração, perfis, geração de caso e avaliação de hipótese.
-O GitHub Actions também compila os módulos, executa os testes e valida os três JSONs em cada push.
+Turnos Zero utiliza o conceito geral de expedientes sobrenaturais e protocolos de segurança fictícios, mas possui agência, personagens, locais, textos, regras e acontecimentos próprios. Não reproduz personagens, cenas ou roteiros de outras séries.
