@@ -79,6 +79,18 @@ jobs:
             echo "Os PNGs já estão atualizados."
           else
             git commit -m "Exporta fundos, objetos e áudio do jogo"
-            git pull --rebase origin main
-            git push
+            # Outro commit pode atualizar main enquanto os arquivos são exportados.
+            # Rebase + push em tentativas curtas evita perder commits concorrentes.
+            for attempt in 1 2 3 4 5; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                echo "Assets publicados no main."
+                exit 0
+              fi
+              echo "main mudou durante o push (tentativa $attempt). Sincronizando novamente..."
+              sleep 2
+            done
+            echo "Não foi possível publicar os assets após cinco tentativas."
+            exit 1
           fi
