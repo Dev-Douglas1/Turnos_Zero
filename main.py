@@ -42,6 +42,7 @@ class TurnosZeroApp:
             self.object_scene_data = {}
         self.active_scene = None
         self.current_hotspot = None
+        self.current_interaction_message = None
         self.current_camera_hotspot = None
         self.current_radio_message = None
         self.current_radio_status = "READY"
@@ -447,8 +448,15 @@ class TurnosZeroApp:
         self.show_investigation()
 
     def inspect_hotspot(self, hotspot):
-        """Abre a ficha de inspeção; não coleta evidência apenas por selecionar."""
+        """Abre a ficha de inspeção; agentes abrigados não podem manipular objetos."""
+        if self.game.state.get("is_hidden", False):
+            messagebox.showinfo(
+                "Abrigo de campo",
+                "Você está escondido. Resolva a ocorrência ou saia do abrigo antes de voltar a examinar objetos."
+            )
+            return
         self.current_hotspot = hotspot
+        self.current_interaction_message = None
         self.show_inspection()
 
     def show_inspection(self):
@@ -522,6 +530,12 @@ class TurnosZeroApp:
         self.text(485, 390, "ESTADO DO OBJETO", 9, self.GOLD, "nw")
         self.text(485, 416, states[state_index], 12, "#83c4a8" if state_index else self.MUTED, "nw")
         self.text(485, 452, responses[state_index], 10, self.TEXT, "nw", 430)
+        if self.current_interaction_message:
+            self.text(
+                485, 482, self.current_interaction_message,
+                8, "#e58d83" if self.game.state.get("threat_active", False) else "#d6ad70",
+                "nw", 430
+            )
 
         mission_id = self.game.mission["id"]
         evidence_found = any(
@@ -582,14 +596,37 @@ class TurnosZeroApp:
         if not hotspot:
             return
         interaction = hotspot.get("interaction", {})
-        current = self.game.get_object_state(hotspot["id"])
-        if current == "1" and not interaction.get("repeatable", False):
-            self.show_inspection()
-            return
-        next_state = "0" if current == "1" else "1"
-        self.game.set_object_state(hotspot["id"], next_state)
-        self.play_effect("porta.wav")
+        try:
+            outcome = self.game.interact_object(
+                hotspot["id"],
+                repeatable=bool(interaction.get("repeatable", False))
+            )
+            self.current_interaction_message = outcome["message"]
+            self.play_effect("erro.wav" if outcome["activated"] else "porta.wav")
+        except (RuntimeError, ValueError) as exc:
+            self.current_interaction_message = str(exc)
+            self.play_effect("erro.wav")
         self.show_inspection()
+
+    def hide_from_anomaly(self):
+        try:
+            spot = self.game.hide_from_anomaly()
+            self.current_interaction_message = f"Você se escondeu em {spot}. Permaneça imóvel até a ocorrência passar."
+            self.play_effect("porta.wav")
+        except (RuntimeError, ValueError) as exc:
+            self.current_interaction_message = str(exc)
+            self.play_effect("erro.wav")
+        self.show_investigation()
+
+    def leave_hiding(self):
+        try:
+            self.game.leave_hiding()
+            self.current_interaction_message = "Você deixou o abrigo. A presença ainda está ativa e pode encontrá-lo durante a próxima ocorrência."
+            self.play_effect("porta.wav")
+        except (RuntimeError, ValueError) as exc:
+            self.current_interaction_message = str(exc)
+            self.play_effect("erro.wav")
+        self.show_investigation()
 
     def click(self, event):
         if self._view_scale <= 0:
@@ -817,9 +854,25 @@ class TurnosZeroApp:
             self.draw_scene(scene_id, (left + right) / 2, (top + bottom) / 2)
 
         # Painel lateral: instruções, estado das pistas e acesso por lista.
-        self.rect(710, 195, 984, 561, "#0b141e", "#9a7848", 2)
+        self.rect(710, 195, 984, 590, "#0b141e", "#9a7848", 2)
         self.text(730, 218, "OBJETIVO DE CAMPO", 9, self.GOLD, "nw")
-        self.text(730, 244, "Investigue os objetos, registre evidências e siga os protocolos.", 9, self.TEXT, "nw", 230)
+        self.text(730, 244, "Investigue objetos, registre pistas e respeite os protocolos.", 8, self.TEXT, "nw", 230)
+        threat_level = state.get("threat_level", 0)
+        threat_active = state.get("threat_active", False)
+        is_hidden = state.get("is_hidden", False)
+        threat_label = f"PRESSÃO ANÔMALA: {threat_level}/{3}"
+        if threat_active:
+            threat_label += "  /  PRESENÇA ATIVA"
+        elif is_hidden:
+            threat_label += "  /  AGENTE OCULTO"
+        threat_color = "#e58d83" if threat_active else ("#83c4a8" if is_hidden else "#d6ad70")
+        self.text(730, 275, threat_label, 8, threat_color, "nw")
+        if threat_active:
+            self.text(730, 291, "A presença vai atacar na próxima decisão. Esconda-se.", 7, "#e58d83", "nw", 230)
+        elif is_hidden:
+            self.text(730, 291, "Você está fora do campo de visão da presença.", 7, "#83c4a8", "nw", 230)
+        else:
+            self.text(730, 291, "Evite interações desnecessárias: elas atraem a anomalia.", 7, self.MUTED, "nw", 230)
 
         scene_data = self.object_scene_data.get(scene_id, {})
         hotspots = scene_data.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", [])) if scene_id else []
@@ -830,13 +883,13 @@ class TurnosZeroApp:
         found_ids = {item.get("id") for item in evidence}
         self.rect(728, 293, 966, 294, "#354657")
         found_count = sum(1 for hotspot in hotspots if hotspot["id"] in found_ids)
-        self.text(730, 315, f"PISTAS: {found_count}/{len(hotspots)}", 10, "#8bc9a0" if evidence else "#d6ad70", "nw")
-        self.text(730, 340, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
+        self.text(730, 320, f"PISTAS: {found_count}/{len(hotspots)}", 9, "#8bc9a0" if evidence else "#d6ad70", "nw")
+        self.text(730, 343, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
 
         for index, hotspot in enumerate(hotspots[:4], 1):
             # Quatro linhas compactas deixam a central CCTV livre inclusive
             # no laboratório, que possui quatro pontos de inspeção.
-            y = 354 + (index - 1) * 39
+            y = 357 + (index - 1) * 37
             collected = hotspot["id"] in found_ids
             mark = "✓" if collected else f"{index:02d}"
             label = hotspot.get("label", hotspot["id"])
@@ -844,10 +897,16 @@ class TurnosZeroApp:
                 728, y, 238,
                 f"{mark}  {label[:24]}",
                 lambda h=hotspot: self.inspect_hotspot(h),
-                32
+                30
             )
 
-        self.button(728, 514, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 30)
+        self.button(728, 512, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 29)
+        if threat_active:
+            self.button(728, 548, 238, "ESCONDER-SE AGORA", self.hide_from_anomaly, 30)
+        elif is_hidden:
+            self.button(728, 548, 238, "SAIR DO ESCONDERIJO", self.leave_hiding, 30)
+        else:
+            self.text(730, 562, "NENHUMA PRESENÇA À CAÇA", 7, self.MUTED, "nw")
 
         # Barra de equipamento fora do cenário: não obstrui os pontos clicáveis.
         tool_states = state.setdefault("tool_states", {})
@@ -1225,6 +1284,12 @@ class TurnosZeroApp:
 def terminal():
     game=ShiftGame()
     print("=== TURNOS ZERO | AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS ===")
+    try:
+        object_manifest = json.loads(
+            (Path(__file__).resolve().parent / "dados" / "objetos_cenas.json").read_text(encoding="utf-8")
+        ).get("scenes", {})
+    except (OSError, json.JSONDecodeError):
+        object_manifest = {}
     while True:
         if game.state and game.state["status"] == "campaign_completed":
             print("\nCAMPANHA CONCLUÍDA — todos os contratos foram encerrados.")
@@ -1250,7 +1315,11 @@ def terminal():
             for i, hotspot in enumerate(scene.get("hotspots", []), 1):
                 status = " [INVESTIGADA]" if hotspot["id"] in collected else ""
                 print(f"{i} - {hotspot.get('label', hotspot['id'])}{status}")
-            print(f"I - investigar ponto | R - consultar rádio ({game.get_tool_resource('radio')} transmissões) | ENTER - seguir")
+            print(
+                f"I - registrar pista | M - manipular objeto | R - consultar rádio ({game.get_tool_resource('radio')} transmissões) | "
+                + ("H - esconder-se | " if game.state.get("threat_active") else "")
+                + "ENTER - seguir"
+            )
             command = input("> ").strip().lower()
             if command == "r":
                 try:
@@ -1259,6 +1328,29 @@ def terminal():
                     print(game.task.get("radio_hint", "A transmissão chega cortada."))
                 except (RuntimeError, ValueError) as exc:
                     print("RÁDIO:", str(exc))
+                continue
+            if command == "h" and game.state.get("threat_active"):
+                try:
+                    print("ABRIGO:", game.hide_from_anomaly())
+                except RuntimeError as exc:
+                    print("ABRIGO:", str(exc))
+                continue
+            if command == "m" and scene.get("hotspots"):
+                choice = input("Número do objeto para manipular: ").strip()
+                if choice.isdigit() and 1 <= int(choice) <= len(scene["hotspots"]):
+                    hotspot = scene["hotspots"][int(choice)-1]
+                    configured = next(
+                        (item for item in object_manifest.get(scene_id, {}).get("hotspots", [])
+                         if item.get("id") == hotspot["id"]),
+                        {}
+                    )
+                    repeatable = bool(configured.get("interaction", {}).get("repeatable", False))
+                    try:
+                        outcome = game.interact_object(hotspot["id"], repeatable=repeatable)
+                        print("INTERAÇÃO:", outcome["message"])
+                        print(f"PRESSÃO ANÔMALA: {outcome['threat_level']}/3")
+                    except (RuntimeError, ValueError) as exc:
+                        print("INTERAÇÃO:", str(exc))
                 continue
             if command == "i" and scene.get("hotspots"):
                 choice = input("Número do ponto para investigar: ").strip()
