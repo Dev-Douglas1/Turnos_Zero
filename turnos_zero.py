@@ -131,6 +131,20 @@ class ShiftGame:
             return False
         if type(state.get("task_index")) is not int or not 0 <= state["task_index"] <= 3:
             return False
+        shift_index = state["shift_index"]
+        task_index = state["task_index"]
+        status = state["status"]
+        # Estados incompatíveis com a posição da campanha não podem ser retomados.
+        if status == "campaign_completed" and shift_index != len(MISSIONS):
+            return False
+        if status != "campaign_completed" and shift_index >= len(MISSIONS):
+            return False
+        if status == "on_shift" and task_index >= len(MISSIONS[shift_index]["tasks"]):
+            return False
+        if status in {"between_shifts", "ended", "campaign_completed"} and task_index != 0 and status != "ended":
+            return False
+        if not isinstance(state.get("player"), str) or not state["player"].strip():
+            return False
         return (all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")) and
                 isinstance(state.get("completed"), list) and isinstance(state.get("evidence", []), list))
 
