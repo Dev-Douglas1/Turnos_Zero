@@ -16,6 +16,8 @@ A inspiração é o formato de episódios de trabalhos perigosos e regras anôma
 
 ## 3. Arquitetura implementada nesta primeira etapa
 - main.py: interface Tkinter e modo terminal.
+- scene_manager.py: validação de catálogo de cenas e hotspots.
+- dados/cenas.json: definição declarativa de ambientes, fundos e áreas interativas.
 - turnos_zero.py: regras do jogo, catálogo de missões, dificuldades, decisões, remuneração e persistência.
 - dados/turnos_zero_progresso.json: campanha nova, separada dos saves antigos.
 - dados/turnos_zero_historico.json: histórico dos expedientes.
@@ -49,7 +51,8 @@ A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json
 - Testes unitários.
 
 ### Etapa B — Apresentação e atmosfera
-- Produzir artes originais específicas para cada local e integrar no Tkinter.
+- Catálogo declarativo de cenas e coordenadas normalizadas: implementado.
+- Integração dos arquivos de arte em `assets/ambientes/`: pendente de inclusão dos binários no repositório.
 - Efeitos de luz, chuva, ruído, rádio e transições.
 - Animações e feedback visual para ocorrências.
 
@@ -72,4 +75,4 @@ A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json
 
 ## 7. Limites conhecidos da versão atual
 
-Esta é a primeira base jogável da reconstrução, não a versão final. A apresentação usa cenários abstratos desenhados no Canvas; as artes cinematográficas específicas, áudio direcional, entidades animadas e sistemas de inventário ainda estão planejados. A interface gráfica precisa de validação manual em Windows.
+Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. A inclusão dos fundos PNG no repositório ainda está pendente; áudio direcional, entidades animadas e inventário continuam planejados. A interface gráfica precisa de validação manual em Windows.
