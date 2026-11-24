@@ -3,7 +3,7 @@ import sys
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 from turnos_zero import ShiftGame, DIFFICULTIES, MISSIONS
-from scene_manager import SceneManager, SceneError
+from scene_manager import SceneManager, SceneError, scene_for_mission
 from pathlib import Path
 
 class TurnosZeroApp:
@@ -244,7 +244,7 @@ class TurnosZeroApp:
         self.screen="investigation"
         mission=self.game.mission
         state=self.game.state
-        scene_id={"loja_24h":"loja_24h","edificio_9":"edificio_9","cinema_vazio":"cinema_vazio","laboratorio":"laboratorio"}.get(mission["id"])
+        scene_id=scene_for_mission(mission["id"])
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
@@ -345,7 +345,7 @@ def terminal():
     print("=== TURNOS ZERO | AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS ===")
     while True:
         if game.state and game.state["status"] == "campaign_completed":
-            print("\\nCAMPANHA CONCLUÍDA — todos os contratos foram encerrados.")
+            print("\nCAMPANHA CONCLUÍDA — todos os contratos foram encerrados.")
             return
         if not game.state or game.state["status"]=="ended":
             player=input("Nome no crachá (ou SAIR): ").strip()
@@ -361,7 +361,7 @@ def terminal():
             game.start_shift()
         if game.state["status"]=="on_shift":
             t=game.task
-            scene_id={"loja_24h":"loja_24h","edificio_9":"edificio_9","cinema_vazio":"cinema_vazio"}.get(game.mission["id"])
+            scene_id=scene_for_mission(game.mission["id"])
             scene = SceneManager().get(scene_id) if scene_id else {"hotspots": []}
             collected = {item.get("id") for item in game.state.get("evidence", []) if item.get("mission") == game.mission["id"]}
             print("\nINVESTIGAÇÃO — pistas disponíveis:")
