@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: exportar-assets-main
+  cancel-in-progress: false
+
 jobs:
   export:
     runs-on: ubuntu-latest
@@ -47,5 +51,6 @@ jobs:
             echo "Os PNGs já estão atualizados."
           else
             git commit -m "Exporta cenários do jogo para PNG"
+            git pull --rebase origin main
             git push
           fi
