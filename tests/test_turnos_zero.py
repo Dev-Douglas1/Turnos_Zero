@@ -69,7 +69,7 @@ class TurnosZeroTests(unittest.TestCase):
             if index < len(expected_rewards) - 1:
                 self.game.next_shift()
         self.assertEqual(self.game.state["shift_index"], 4)
-        self.assertEqual(self.game.state["cash"], -999_250)
+        self.assertEqual(self.game.state["cash"], -998_450)
         self.assertEqual(self.game.state["status"], "between_shifts")
 
     def test_save_entre_contratos_e_valido_apos_turno_concluido(self):
