@@ -179,16 +179,22 @@ class ShiftGame:
             return False
         if type(state.get("initial_debt", 1_000_000)) is not int or state.get("initial_debt", 1_000_000) <= 0:
             return False
+        mission_ids = {m["id"] for m in MISSIONS}
         if not isinstance(state.get("completed"), list) or not all(isinstance(x, str) and x for x in state["completed"]):
             return False
         expected_completed = shift_index + 1 if status == "between_shifts" and task_index == 3 else shift_index
         if len(state["completed"]) != expected_completed:
             return False
+        for index, completed_id in enumerate(state["completed"]):
+            expected_id = MISSIONS[index % len(MISSIONS)]["id"]
+            if completed_id != expected_id and completed_id != expected_id + "#contrato-" + str(index + 1):
+                return False
         if not isinstance(state.get("evidence", []), list):
             return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
-                not isinstance(item.get("mission"), str) or item.get("mission") not in mission_ids or
+                not isinstance(item.get("mission"), str) or
+                not any(item["mission"] == base or item["mission"].startswith(base + "#contrato-") for base in mission_ids) or
                 not isinstance(item.get("description"), str) or type(item.get("task_index")) is not int or
                 item["task_index"] not in (0, 1, 2)):
                 return False
