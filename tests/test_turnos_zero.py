@@ -92,5 +92,17 @@ class TurnosZeroTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.game.start_shift()
 
+    def test_evidencia_fica_salva_e_nao_duplica(self):
+        self.game.start_shift()
+        self.assertTrue(self.game.record_evidence("caixa", "Livro-caixa com registro anômalo"))
+        self.assertFalse(self.game.record_evidence("caixa", "Livro-caixa com registro anômalo"))
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertEqual(len(reopened.state["evidence"]), 1)
+        self.assertEqual(reopened.state["evidence"][0]["id"], "caixa")
+
+    def test_evidencia_so_pode_ser_registrada_durante_turno(self):
+        with self.assertRaises(RuntimeError):
+            self.game.record_evidence("caixa", "Pista")
+
 if __name__ == "__main__":
     unittest.main()
