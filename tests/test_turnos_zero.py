@@ -450,6 +450,7 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(reopened.state["threat_level"], 0)
         self.assertFalse(reopened.state["threat_active"])
         self.assertFalse(reopened.state["is_hidden"])
+        self.assertFalse(reopened.state["hide_used"])
         self.assertEqual(reopened.state["threat_triggered"], [])
 
     def test_save_rejeita_pressao_anomala_invalida(self):
