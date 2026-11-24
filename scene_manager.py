@@ -30,18 +30,26 @@ class SceneManager:
                 raise SceneError(f"ID de cena ausente ou duplicado: {sid!r}")
             background = scene.get("background")
             if background is not None:
+                if not isinstance(background, str) or not background.strip():
+                    raise SceneError(f"Caminho de fundo inválido na cena {sid}.")
                 path = Path(background)
                 if path.is_absolute() or ".." in path.parts:
                     raise SceneError(f"Caminho de fundo não permitido na cena {sid}.")
             hotspots = scene.get("hotspots", [])
             if not isinstance(hotspots, list):
                 raise SceneError(f"Hotspots inválidos na cena {sid}.")
+            hotspot_ids = set()
             for hotspot in hotspots:
-                if not isinstance(hotspot, dict) or not isinstance(hotspot.get("id"), str):
+                if not isinstance(hotspot, dict) or not isinstance(hotspot.get("id"), str) or not hotspot["id"].strip():
                     raise SceneError(f"Hotspot sem ID válido na cena {sid}.")
+                if hotspot["id"] in hotspot_ids:
+                    raise SceneError(f"Hotspot duplicado na cena {sid}: {hotspot['id']}.")
+                hotspot_ids.add(hotspot["id"])
+                if not isinstance(hotspot.get("label", hotspot["id"]), str) or not isinstance(hotspot.get("action", "inspect"), str):
+                    raise SceneError(f"Rótulo ou ação inválida no hotspot {hotspot['id']}.")
                 bounds = hotspot.get("bounds")
                 if (not isinstance(bounds, list) or len(bounds) != 4 or
-                    any(not isinstance(v, (int, float)) for v in bounds) or
+                    any(type(v) not in (int, float) for v in bounds) or
                     not (0 <= bounds[0] < bounds[2] <= 1 and 0 <= bounds[1] < bounds[3] <= 1)):
                     raise SceneError(f"Coordenadas inválidas no hotspot {hotspot['id']}.")
             result[sid] = scene
