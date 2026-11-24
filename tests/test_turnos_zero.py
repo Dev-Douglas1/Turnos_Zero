@@ -56,5 +56,41 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertGreater(DIFFICULTIES["terceirizado"]["salary"], DIFFICULTIES["estagiario"]["salary"])
         self.assertEqual(len(MISSIONS), 3)
 
+    def test_campanha_termina_apos_terceiro_local(self):
+        for index, expected in enumerate(MISSIONS):
+            self.assertEqual(self.game.mission["id"], expected["id"])
+            self.game.start_shift()
+            for task in self.game.mission["tasks"]:
+                result = self.game.act(task["correct"])
+            self.assertEqual(result["ending"], "survived")
+            if index < len(MISSIONS) - 1:
+                self.game.next_shift()
+        self.assertIsNone(self.game.next_shift())
+        self.assertEqual(self.game.state["status"], "campaign_completed")
+        self.assertEqual(self.game.state["shift_index"], len(MISSIONS))
+        with self.assertRaises(RuntimeError):
+            self.game.start_shift()
+
+    def test_save_corrompido_nao_quebra_abertura(self):
+        self.game.save_path.write_text("{json inválido", encoding="utf-8")
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertIsNone(reopened.state)
+
+    def test_estado_com_schema_invalido_e_descartado(self):
+        self.game.save_path.write_text('{"schema_version":99,"status":"on_shift"}', encoding="utf-8")
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertIsNone(reopened.state)
+
+    def test_escolha_invalida_nao_altera_turno(self):
+        self.game.start_shift()
+        with self.assertRaises(ValueError):
+            self.game.act(True)
+        self.assertEqual(self.game.state["task_index"], 0)
+
+    def test_nao_inicia_turno_duas_vezes(self):
+        self.game.start_shift()
+        with self.assertRaises(RuntimeError):
+            self.game.start_shift()
+
 if __name__ == "__main__":
     unittest.main()
