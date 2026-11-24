@@ -1,0 +1,48 @@
+import json
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+MANIFEST = ROOT / "dados" / "objetos_cenas.json"
+
+class EditableSceneManifestTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+    def test_all_four_missions_have_independent_objects(self):
+        scenes = self.data["scenes"]
+        self.assertEqual(set(scenes), {"loja_24h", "edificio_9", "cinema_vazio", "laboratorio"})
+        for scene_id, scene in scenes.items():
+            with self.subTest(scene=scene_id):
+                self.assertGreaterEqual(len(scene["objects"]), 3)
+                ids = [obj["id"] for obj in scene["objects"]]
+                self.assertEqual(len(ids), len(set(ids)))
+
+    def test_object_properties_are_editable_and_bounded(self):
+        for scene_id, scene in self.data["scenes"].items():
+            for obj in scene["objects"]:
+                with self.subTest(scene=scene_id, obj=obj["id"]):
+                    self.assertTrue(obj["asset"].endswith(".png"))
+                    self.assertTrue(0 <= obj["x"] < 1)
+                    self.assertTrue(0 <= obj["y"] < 1)
+                    self.assertTrue(0 < obj["w"] <= 1)
+                    self.assertTrue(0 < obj["h"] <= 1)
+                    self.assertIsInstance(obj["z"], int)
+                    self.assertIsInstance(obj["visible"], bool)
+
+    def test_hotspots_are_inside_the_scene_and_have_findings(self):
+        for scene_id, scene in self.data["scenes"].items():
+            object_ids = {obj["id"] for obj in scene["objects"]}
+            hotspot_ids = [item["id"] for item in scene["hotspots"]]
+            self.assertEqual(len(hotspot_ids), len(set(hotspot_ids)))
+            for hotspot in scene["hotspots"]:
+                with self.subTest(scene=scene_id, hotspot=hotspot["id"]):
+                    x1, y1, x2, y2 = hotspot["bounds"]
+                    self.assertTrue(0 <= x1 < x2 <= 1)
+                    self.assertTrue(0 <= y1 < y2 <= 1)
+                    self.assertTrue(hotspot["finding"])
+                    self.assertIn(hotspot.get("object"), object_ids)
+
+if __name__ == "__main__":
+    unittest.main()
