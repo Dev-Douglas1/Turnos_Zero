@@ -4,6 +4,7 @@ Python 3.10+, biblioteca padrão. Saves novos ficam separados dos saves legados.
 from __future__ import annotations
 import json
 import random
+import uuid
 from pathlib import Path
 from datetime import datetime
 
@@ -103,7 +104,7 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "schema_version": 1, "player": player, "status": "between_shifts",
         "difficulty": difficulty, "cash": 0, "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
-        "completed": [], "evidence": [], "current_seed": None, "created_at": datetime.now().isoformat(timespec="seconds")
+        "completed": [], "evidence": [], "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
     }
 
 class ShiftGame:
@@ -139,14 +140,34 @@ class ShiftGame:
             return False
         if status != "campaign_completed" and shift_index >= len(MISSIONS):
             return False
-        if status == "on_shift" and task_index >= len(MISSIONS[shift_index]["tasks"]):
+        if status == "on_shift" and (shift_index >= len(MISSIONS) or task_index >= len(MISSIONS[shift_index]["tasks"])):
+            return False
+        if status == "between_shifts" and task_index not in (0, len(MISSIONS[shift_index]["tasks"])):
+            return False
+        if status == "ended" and task_index not in range(1, len(MISSIONS[shift_index]["tasks"]) + 1):
             return False
         if status == "campaign_completed" and task_index != len(MISSIONS[shift_index - 1]["tasks"]):
             return False
-        if not isinstance(state.get("player"), str) or not state["player"].strip():
+        if not isinstance(state.get("player"), str) or not state["player"].strip() or len(state["player"]) > 24:
             return False
-        return (all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")) and
-                isinstance(state.get("completed"), list) and isinstance(state.get("evidence", []), list))
+        if not all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")):
+            return False
+        mission_ids = {m["id"] for m in MISSIONS}
+        if not isinstance(state.get("completed"), list) or not all(x in mission_ids for x in state["completed"]):
+            return False
+        if len(state["completed"]) != len(set(state["completed"])):
+            return False
+        if not isinstance(state.get("evidence", []), list):
+            return False
+        for item in state.get("evidence", []):
+            if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
+                not isinstance(item.get("mission"), str) or item.get("mission") not in mission_ids or
+                not isinstance(item.get("description"), str) or type(item.get("task_index")) is not int or
+                item["task_index"] not in (0, 1, 2)):
+                return False
+        if status == "on_shift" and not isinstance(state.get("shift_token"), str):
+            return False
+        return True
 
     @staticmethod
     def _read(path: Path, default):
@@ -183,7 +204,7 @@ class ShiftGame:
             raise RuntimeError("A campanha já foi concluída.")
         self.state.update(status="on_shift", task_index=0, mistakes=0,
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
-                          current_seed=random.randrange(1, 2**31))
+                          current_seed=random.randrange(1, 2**31), shift_token=uuid.uuid4().hex)
         self.save()
         return self.mission
 
@@ -237,11 +258,16 @@ class ShiftGame:
         self.state.update(status="between_shifts" if survived else "ended",
                           last_outcome=outcome, last_payment=paid,
                           last_reveal=mission["reveal"])
-        self.history.setdefault("shifts", []).append({
-            "player": self.state["player"], "mission": mission["title"],
-            "outcome": outcome, "payment": paid, "date": datetime.now().isoformat(timespec="seconds")
-        })
-        self.history_path.write_text(json.dumps(self.history, ensure_ascii=False, indent=2), encoding="utf-8")
+        token = self.state.get("shift_token")
+        shifts = self.history.setdefault("shifts", [])
+        if not token or not any(item.get("shift_token") == token for item in shifts if isinstance(item, dict)):
+            shifts.append({
+                "shift_token": token, "player": self.state["player"], "mission": mission["title"],
+                "outcome": outcome, "payment": paid, "date": datetime.now().isoformat(timespec="seconds")
+            })
+            temp = self.history_path.with_suffix(self.history_path.suffix + ".tmp")
+            temp.write_text(json.dumps(self.history, ensure_ascii=False, indent=2), encoding="utf-8")
+            temp.replace(self.history_path)
 
     def next_shift(self):
         if self.state is None or self.state["status"] != "between_shifts":
