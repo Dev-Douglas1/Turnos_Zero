@@ -554,6 +554,8 @@ class ShiftGame:
         """Manipula um objeto e atualiza a pressão anômala do contrato."""
         if self.state is None or self.state.get("status") != "on_shift":
             raise RuntimeError("Só é possível manipular objetos durante um turno.")
+        if self.state.get("is_hidden", False):
+            raise RuntimeError("Você está escondido. Saia do abrigo antes de manipular outro objeto.")
         if type(repeatable) is not bool:
             raise ValueError("Configuração de interação inválida.")
         profile = ANOMALY_PROFILES.get(self.mission["id"], {})
