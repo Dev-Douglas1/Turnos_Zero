@@ -257,6 +257,18 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(self.game.state["last_payment"], 0)
         self.assertEqual(self.game.state["status"], "ended")
 
+    def test_save_antigo_sem_inventario_recebe_equipamentos_padrao(self):
+        self.game.state.pop("inventory", None)
+        self.game.state.pop("tool_states", None)
+        self.game.save()
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertIsNotNone(reopened.state)
+        self.assertTrue(reopened.get_tool_state("lanterna"))
+        self.assertFalse(reopened.get_tool_state("radio"))
+        self.assertFalse(reopened.get_tool_state("camera"))
+        reopened.start_shift()
+        self.assertFalse(reopened.toggle_tool("lanterna"))
+
     def test_inventario_inicial_contem_tres_equipamentos(self):
         self.assertEqual(self.game.state["inventory"], ["lanterna", "radio", "camera"])
         self.assertTrue(self.game.get_tool_state("lanterna"))
