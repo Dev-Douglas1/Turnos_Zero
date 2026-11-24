@@ -885,9 +885,70 @@ class TurnosZeroApp:
             )
 
         self.text(55, 595, "ARQUIVO VISUAL DO LOCAL  ·  EXAMINE O AMBIENTE APÓS ASSINAR", 8, self.MUTED, "nw")
-        self.text(55, 622, "A remuneração só é creditada se o agente concluir o expediente.", 8, "#c59a72", "nw")
-        self.button(710, 610, 274, "ASSINAR E INICIAR TURNO  [ENTER]", self.start_shift, 44)
+        if state.get("advance_payment_due", 0):
+            due = state["advance_payment_due"]
+            self.text(55, 622, f"PROMESSA AO AGIOTA: R$ {due:,} AMANHÃ".replace(",", "."), 8, "#e58d83", "nw")
+        else:
+            self.text(55, 622, "O pagamento só será liberado após a conclusão do expediente.", 8, "#c59a72", "nw")
+        if state.get("forced_contract_acceptance"):
+            self.button(710, 610, 274, "ACEITAR E INICIAR TURNO", self.start_shift, 44)
+        else:
+            self.button(520, 610, 220, "ACEITAR CONTRATO", self.start_shift, 44)
+            self.button(760, 610, 224, "RECUSAR CONTRATO", self.refuse_contract, 44)
         self.bind_clicks()
+
+    def refuse_contract(self):
+        state = self.game.state
+        state["contract_refused"] = True
+        self.game.save()
+        self.show_loan_shark()
+
+    def show_loan_shark(self):
+        self.stop_ambience()
+        self.screen = "loan_shark"
+        self.clear()
+        self.rect(0, 0, self.W, self.H, self.BG)
+        self.header(
+            "COBRANÇA EXTRAJUDICIAL / 02:17",
+            "O homem que esperava do lado de fora",
+            "Você recusou o contrato. A dívida, porém, não recusou você."
+        )
+        self.rect(80, 215, 944, 555, "#101a28", "#9a7848", 2)
+        self.text(125, 250, "AGIOTA", 10, "#e58d83", "nw")
+        self.wrapped_text(
+            125, 285,
+            "A porta fecha atrás de você. Um homem de luvas claras coloca uma pasta sobre a mesa. "
+            "Ele conhece seu nome, o valor exato da dívida e o endereço da sua família. "
+            "“Dinheiro não é a única coisa que tem valor. Posso quitar uma parte se você aceitar "
+            "entregar algo que não deveria estar à venda: uma parte do próprio corpo ou seus serviços. "
+            "Você escolhe. Se não aceitar, amanhã quero uma parte da dívida em dinheiro.”",
+            12, self.TEXT, 760, 5
+        )
+        self.text(125, 430, "A oferta parece pior do que o trabalho. A ameaça parece pior do que a oferta.", 10, "#d7ad70", "nw", 760)
+        self.text(125, 475, "Você sente o estômago apertar. Ainda assim, precisa do dinheiro.", 10, self.MUTED, "nw", 760)
+        self.button(125, 505, 350, "ACEITAR A OFERTA", self.accept_loan_shark, 42)
+        self.button(520, 505, 350, "PAGAR UMA PARTE AMANHÃ", self.promise_payment, 42)
+        self.bind_clicks()
+
+    def accept_loan_shark(self):
+        state = self.game.state
+        state["loan_shark_accepted"] = True
+        state["status"] = "ended"
+        state["task_index"] = 1
+        state["last_reveal"] = (
+            "Você aceitou a proposta do agiota. O contrato da agência foi substituído "
+            "por uma dívida cobrada sobre o próprio corpo. O arquivo foi encerrado."
+        )
+        self.game.save()
+        self.show_ending()
+
+    def promise_payment(self):
+        state = self.game.state
+        state["advance_payment_due"] = max(500, int(max(0, -state["cash"]) * 0.01))
+        state["forced_contract_acceptance"] = True
+        state["contract_refused"] = False
+        self.game.save()
+        self.show_contract()
 
     def start_shift(self):
         if self.game.state["status"]=="between_shifts":
