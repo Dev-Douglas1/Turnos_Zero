@@ -981,7 +981,12 @@ class TurnosZeroApp:
             not self.current_camera_hotspot
             or not any(item["id"] == self.current_camera_hotspot.get("id") for item in hotspots)
         ):
-            self.current_camera_hotspot = hotspots[0]
+            threat_triggered = (self.game.state or {}).get("threat_triggered", [])
+            preferred_id = threat_triggered[-1] if (self.game.state or {}).get("threat_active") and threat_triggered else None
+            self.current_camera_hotspot = next(
+                (item for item in hotspots if item["id"] == preferred_id),
+                hotspots[0]
+            )
 
         self.clear()
         self.rect(0, 0, self.W, self.H, "#050b0d")
@@ -1004,6 +1009,7 @@ class TurnosZeroApp:
         root = Path(__file__).resolve().parent
         background_path = root / "assets" / "ambientes" / (background_name or "")
         source_image = None
+        threat_channel = None
         if background_path.is_file():
             try:
                 manifest_size = self.object_scene_data.get("viewport", [834, 469])
