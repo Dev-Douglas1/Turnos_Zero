@@ -31,7 +31,7 @@ jobs:
           import struct
           for path in Path("assets/ambientes").glob("*.png"):
               data = path.read_bytes()
-              if data[:8] != b"\\x89PNG\\r\\n\\x1a\\n":
+              if data[:8] != bytes.fromhex('89504e470d0a1a0a'):
                   raise SystemExit(f"PNG inválido: {path}")
               width, height = struct.unpack(">II", data[16:24])
               if (width, height) != (834, 315):
