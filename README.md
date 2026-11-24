@@ -78,3 +78,7 @@ A direção combina inspeção tátil de documentos (*Papers, Please*), ferramen
 ## Identidade original
 
 Turnos Zero utiliza o conceito geral de expedientes sobrenaturais e protocolos de segurança fictícios, mas possui agência, personagens, locais, textos, regras e acontecimentos próprios. Não reproduz personagens, cenas ou roteiros de outras séries.
+
+## Edição de cenários
+
+Execute `python tools/editor_cenas.py` para abrir o editor visual. Selecione a missão e uma camada para arrastar, ajustar x/y/largura/altura, aumentar ou diminuir, alterar a ordem, ocultar ou substituir a imagem. Os PNGs de objetos ficam em `assets/objetos/`; o manifesto `dados/objetos_cenas.json` guarda os parâmetros editáveis. Fundos exportados preservam a proporção 16:9.
