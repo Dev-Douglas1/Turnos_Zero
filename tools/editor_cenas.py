@@ -29,6 +29,7 @@ class SceneEditor:
         self.scene_id = next(iter(self.data["scenes"]))
         self.selected = None
         self.drag_origin = None
+        self.rendered_objects = []
         self.photos = {}
         self.tk_images = []
         self.background_photo = None
@@ -93,11 +94,12 @@ class SceneEditor:
         self.scene_id = self.scene_var.get()
         self.selected = None
         self.render()
+        self._sync_transform_fields()
 
     def select_from_list(self, _event=None):
         selection = self.object_list.curselection()
         if selection:
-            self.selected = self.scene["objects"][selection[0]]["id"]
+            self.selected = self.rendered_objects[selection[0]]["id"]
             self.render()
             self._sync_transform_fields()
 
@@ -150,6 +152,7 @@ class SceneEditor:
         obj["x"] = min(1-obj["w"], max(0, x+(event.x-ox)/W))
         obj["y"] = min(1-obj["h"], max(0, y+(event.y-oy)/H))
         self.render()
+        self._sync_transform_fields()
 
     def get_selected(self):
         return next((o for o in self.scene["objects"] if o["id"] == self.selected), None)
@@ -160,18 +163,21 @@ class SceneEditor:
             obj["x"] = min(1-obj["w"], max(0, obj["x"]+dx))
             obj["y"] = min(1-obj["h"], max(0, obj["y"]+dy))
             self.render()
+            self._sync_transform_fields()
 
     def toggle_visible(self):
         obj = self.get_selected()
         if obj:
             obj["visible"] = not obj.get("visible", True)
             self.render()
+            self._sync_transform_fields()
 
     def change_z(self, delta):
         obj = self.get_selected()
         if obj:
             obj["z"] = obj.get("z", 0) + delta
             self.render()
+            self._sync_transform_fields()
 
     def replace_asset(self):
         obj = self.get_selected()
@@ -195,6 +201,7 @@ class SceneEditor:
                 canvas.save(destination, format="PNG", optimize=True)
             obj["asset"] = filename
             self.render()
+            self._sync_transform_fields()
         except (OSError, ValueError) as exc:
             messagebox.showerror("Editor de cenários", f"Não foi possível importar a imagem: {exc}")
 
@@ -224,7 +231,8 @@ class SceneEditor:
 
         self.object_list.delete(0, "end")
         self.tk_images = []
-        for obj in sorted(self.scene["objects"], key=lambda x: x.get("z", 0)):
+        self.rendered_objects = sorted(self.scene["objects"], key=lambda x: x.get("z", 0))
+        for obj in self.rendered_objects:
             visible = obj.get("visible", True)
             self.object_list.insert("end", ("● " if visible else "○ ") + obj["label"])
             if not visible:
@@ -246,7 +254,7 @@ class SceneEditor:
                 self.canvas.create_rectangle(obj["x"]*W, obj["y"]*H,
                     (obj["x"]+obj["w"])*W, (obj["y"]+obj["h"])*H,
                     outline="#f2c46e", width=2, dash=(5, 3))
-        for i, obj in enumerate(self.scene["objects"]):
+        for i, obj in enumerate(self.rendered_objects):
             if obj["id"] == self.selected:
                 self.object_list.selection_set(i)
                 self.object_list.see(i)
