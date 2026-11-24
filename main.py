@@ -630,7 +630,49 @@ class TurnosZeroApp:
         self.button(70,610,155,f"LANTERNA {lantern_charge}%",lambda:self.toggle_field_tool("lanterna"),40)
         self.button(235,610,155,f"RÁDIO {radio_uses}",lambda:self.toggle_field_tool("radio"),40)
         self.button(400,610,155,f"CÂMERA {camera_film}",lambda:self.toggle_field_tool("camera"),40)
+        self.button(565,610,110,"DOSSIÊ",self.show_evidence_report,40)
         self.button(690,610,260,"AVANÇAR PARA A OCORRÊNCIA",self.show_task,44)
+        self.bind_clicks()
+
+    def show_evidence_report(self):
+        """Dossiê diegético com todas as evidências registradas no contrato atual."""
+        self.screen = "evidence_report"
+        mission = self.game.mission
+        state = self.game.state
+        evidence = [
+            item for item in state.get("evidence", [])
+            if item.get("mission") == mission["id"]
+        ]
+        self.clear()
+        self.rect(0, 0, self.W, self.H, self.BG)
+        self.header(
+            "ARQUIVO DE CAMPO / CONFIDENCIAL",
+            "Dossiê de evidências",
+            f"{mission['title']}  ·  {len(evidence)} REGISTRO(S) ARQUIVADO(S)"
+        )
+        self.rect(70, 195, 954, 570, "#0b141d", "#9a7848", 2)
+        self.text(100, 220, "REGISTROS CONFIRMADOS", 9, self.GOLD, "nw")
+        self.text(910, 220, "ARQ / 00", 8, self.MUTED, "ne")
+        self.rect(92, 244, 932, 245, "#354454")
+
+        if not evidence:
+            self.text(512, 355, "NENHUMA EVIDÊNCIA REGISTRADA", 13, "#d6ad70")
+            self.text(512, 388, "Volte à investigação e examine os objetos marcados.", 9, self.MUTED)
+        else:
+            row_height = min(74, 300 / max(1, len(evidence)))
+            for index, item in enumerate(evidence):
+                y = 254 + index * row_height
+                if y + row_height > 535:
+                    break
+                self.rect(92, y, 932, y + row_height - 5, "#101d28", "#405565", 1)
+                self.text(108, y + 12, f"REGISTRO {index + 1:02d}  /  {item.get('id', '—').upper()}", 8, self.GOLD, "nw")
+                task_number = item.get("task_index", 0) + 1
+                self.text(910, y + 12, f"OCORRÊNCIA {task_number}", 7, self.MUTED, "ne")
+                self.text(108, y + 34, item.get("description", "Sem descrição."), 9, self.TEXT, "nw", 785)
+
+        self.text(100, 545, "ORIENTAÇÃO: use as pistas compatíveis para fundamentar suas decisões.", 8, self.MUTED, "nw", 780)
+        self.button(565, 610, 180, "VOLTAR À INVESTIGAÇÃO", self.show_investigation, 42)
+        self.button(765, 610, 180, "IR À OCORRÊNCIA", self.show_task, 42)
         self.bind_clicks()
 
     def show_task(self):
