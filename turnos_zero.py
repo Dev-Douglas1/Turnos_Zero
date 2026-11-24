@@ -144,6 +144,7 @@ ANOMALY_PROFILES = {
         "alert": "O compressor para. Passos molhados se aproximam do balcão.",
         "caught": "A presença encontra você fora de cobertura. Algo segura seu ombro no escuro.",
         "evaded": "A presença passa pelo corredor e para exatamente onde você estava.",
+        "documented": "O flash atravessa o corredor. A figura recua para dentro da geladeira, mas a fotografia mostra que ela não tem reflexo.",
     },
     "edificio_9": {
         "triggers": {"porta": 1, "elevador": 1, "presenca": 2, "painel": 2},
@@ -151,6 +152,7 @@ ANOMALY_PROFILES = {
         "alert": "O elevador abre em algum lugar atrás de você. O indicador continua no andar 0.",
         "caught": "O elevador chega sem ruído. As portas se fecham com você no corredor.",
         "evaded": "As portas do elevador se fecham. O painel continua exibindo o andar 0.",
+        "documented": "O flash ilumina o corredor inteiro. A presença desaparece do espelho do elevador, embora continue no visor da câmera.",
     },
     "cinema_vazio": {
         "triggers": {"projetor": 1, "tela": 2, "poltronas": 1, "espectador": 2},
@@ -158,6 +160,7 @@ ANOMALY_PROFILES = {
         "alert": "Os aplausos param de uma vez. Uma poltrona range na última fileira.",
         "caught": "A plateia inteira vira a cabeça na sua direção. Um assento fica reservado para você.",
         "evaded": "A sessão continua sem você. Os aplausos se afastam até desaparecer.",
+        "documented": "O flash congela a plateia por um instante. A fotografia revela que todos os rostos estão voltados para a câmera.",
     },
     "laboratorio": {
         "triggers": {"camara_vazia": 1, "camara": 2, "terminal": 2, "luz": 1},
@@ -165,6 +168,7 @@ ANOMALY_PROFILES = {
         "alert": "O sistema de contenção muda para ALERTA. Há movimento dentro das paredes.",
         "caught": "A câmara responde ao seu crachá. As travas fecham atrás de você.",
         "evaded": "O alarme volta ao modo de espera. Algo arranha a porta do armário e se afasta.",
+        "documented": "O flash satura os sensores da câmara. A silhueta some do vidro e reaparece no monitor, alguns segundos atrasada.",
     },
 }
 
@@ -178,7 +182,7 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
         "completed": [], "evidence": [], "object_states": {},
         "threat_level": 0, "threat_active": False, "is_hidden": False,
-        "hide_used": False, "threat_triggered": [],
+        "hide_used": False, "threat_disrupted": False, "threat_triggered": [],
         "inventory": ["lanterna", "radio", "camera"],
         "tool_states": {"lanterna": True, "radio": False, "camera": False},
         "tool_resources": dict(TOOL_RESOURCES),
@@ -206,6 +210,7 @@ class ShiftGame:
                 ("threat_active", False),
                 ("is_hidden", False),
                 ("hide_used", False),
+                ("threat_disrupted", False),
                 ("threat_triggered", []),
             ):
                 if key not in self.state:
@@ -293,7 +298,8 @@ class ShiftGame:
             return False
         if (type(state.get("threat_active", False)) is not bool
                 or type(state.get("is_hidden", False)) is not bool
-                or type(state.get("hide_used", False)) is not bool):
+                or type(state.get("hide_used", False)) is not bool
+                or type(state.get("threat_disrupted", False)) is not bool):
             return False
         triggered = state.get("threat_triggered", [])
         if (not isinstance(triggered, list) or
@@ -303,6 +309,8 @@ class ShiftGame:
         if state.get("is_hidden", False) and not state.get("threat_active", False):
             return False
         if state.get("hide_used", False) and not state.get("threat_active", False):
+            return False
+        if state.get("threat_disrupted", False) and not state.get("threat_active", False):
             return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
@@ -360,7 +368,7 @@ class ShiftGame:
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
                           tool_resources=dict(TOOL_RESOURCES),
                           tool_states={"lanterna": True, "radio": False, "camera": False},
-                          threat_level=0, threat_active=False, is_hidden=False, hide_used=False, threat_triggered=[],
+                          threat_level=0, threat_active=False, is_hidden=False, hide_used=False, threat_disrupted=False, threat_triggered=[],
                           current_seed=random.randrange(1, 2**31), shift_token=uuid.uuid4().hex)
         self.save()
         return self.mission
@@ -388,12 +396,19 @@ class ShiftGame:
             self.state["sanity"] = max(0, self.state["sanity"] - risk_multiplier)
             self.state["mistakes"] += 1
 
-        # Uma presença ativa ataca no momento da decisão se o agente não estiver abrigado.
+        # A presença ataca na decisão, a menos que o agente esteja escondido
+        # ou tenha conseguido interrompê-la com um flash no canal correto.
         if self.state.get("threat_active", False):
             profile = ANOMALY_PROFILES.get(self.mission["id"], {})
             if self.state.get("is_hidden", False):
                 result["threat_evaded"] = True
                 result["threat_message"] = profile.get("evaded", "A presença não encontrou você.")
+            elif self.state.get("threat_disrupted", False):
+                result["threat_documented"] = True
+                result["threat_message"] = profile.get(
+                    "documented",
+                    "O flash interrompe a aproximação. A presença recua por um instante."
+                )
             else:
                 risk_multiplier = self.state.get("risk_multiplier", 2 ** self.state["shift_index"])
                 self.state["sanity"] = max(0, self.state["sanity"] - risk_multiplier)
@@ -403,6 +418,7 @@ class ShiftGame:
             self.state["threat_active"] = False
             self.state["is_hidden"] = False
             self.state["hide_used"] = False
+            self.state["threat_disrupted"] = False
             self.state["threat_level"] = max(0, self.state.get("threat_level", 0) - 2)
             result["message"] += "\n\n" + result["threat_message"]
 
@@ -608,6 +624,26 @@ class ShiftGame:
             "activated": activated,
             "message": message,
         }
+
+    def document_anomaly(self, hotspot_id: str) -> str:
+        """Usa o flash da câmera para interromper a perseguição por uma decisão."""
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Só é possível fotografar a presença durante um turno.")
+        if not self.state.get("threat_active", False):
+            raise RuntimeError("Nenhuma presença está visível neste momento.")
+        if not self.get_tool_state("camera") or self.get_tool_resource("camera") <= 0:
+            raise RuntimeError("A câmera precisa estar armada e ter filme disponível.")
+        triggered = self.state.get("threat_triggered", [])
+        expected_id = triggered[-1] if triggered else None
+        if hotspot_id != expected_id:
+            raise ValueError("Este canal não corresponde à posição da presença.")
+        self.state["threat_disrupted"] = True
+        message = ANOMALY_PROFILES.get(self.mission["id"], {}).get(
+            "documented",
+            "O flash interrompe a aproximação. A presença recua por um instante."
+        )
+        self.save()
+        return message
 
     def hide_from_anomaly(self) -> str:
         """Usa o abrigo específico do local para evitar uma aproximação ativa."""
