@@ -122,7 +122,7 @@ class TurnosZeroApp:
         finding = hotspot.get("finding", "Nenhuma evidência identificada.")
         recorded = self.game.record_evidence(hotspot["id"], finding) if self.game.state and self.game.state.get("status") == "on_shift" else False
         self.text(150,430,f"EVIDÊNCIA REGISTRADA: {finding}" if recorded else f"REGISTRO EXISTENTE: {finding}",12,self.TEXT,"nw",700)
-        self.button(650,535,230,"VOLTAR À OCORRÊNCIA",self.show_task,44)
+        self.button(650,535,230,"VOLTAR À INVESTIGAÇÃO",self.show_investigation,44)
         self.bind_clicks()
 
     def click(self, event):
@@ -202,7 +202,7 @@ class TurnosZeroApp:
         if not state:
             self.menu()
         elif state["status"]=="on_shift":
-            self.show_task()
+            self.show_investigation()
         elif state["status"]=="between_shifts":
             self.show_contract()
         else:
@@ -228,7 +228,26 @@ class TurnosZeroApp:
     def start_shift(self):
         if self.game.state["status"]=="between_shifts":
             self.game.start_shift()
-        self.show_task()
+        self.show_investigation()
+
+    def show_investigation(self):
+        self.screen="investigation"
+        mission=self.game.mission
+        state=self.game.state
+        scene_id={"loja_24h":"loja_24h","edificio_9":"edificio_9","cinema_vazio":"cinema_vazio"}.get(mission["id"])
+        self.clear()
+        self.rect(0,0,self.W,self.H,self.BG)
+        self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
+                    f"CLIQUE NOS PONTOS DE INTERESSE ANTES DE DECIDIR  |  ESTABILIDADE: {state['sanity']}")
+        self.rect(55,180,969,570,"#101723","#66543e",2)
+        self.rect(70,195,954,555,"#131e2b","#26384a",1)
+        self.rect(95,220,929,535,"#0b111c")
+        if scene_id:
+            self.draw_scene(scene_id,512,377)
+        evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
+        self.text(512,555,f"EVIDÊNCIAS COLETADAS NESTE LOCAL: {len(evidence)}",10,self.GOLD)
+        self.button(690,600,260,"IR PARA A OCORRÊNCIA",self.show_task,44)
+        self.bind_clicks()
 
     def show_task(self):
         self.screen="task"
@@ -239,17 +258,14 @@ class TurnosZeroApp:
         self.rect(0,0,self.W,self.H,self.BG)
         self.header(f"AO VIVO  /  {mission['location']}",mission["title"],
                     f"FUNCIONÁRIO: {state['player']}     ESTABILIDADE: {state['sanity']}     FALHAS: {state['mistakes']}")
-        # Mission scene frame and environmental details
-        self.rect(55,180,969,570,"#101723","#66543e",2)
-        self.rect(70,195,954,555,"#131e2b","#26384a",1)
-        self.rect(95,220,929,535,"#0b111c")
-        scene_id = {"loja_24h":"loja_24h", "edificio_9":"edificio_9", "cinema_vazio":"cinema_vazio"}.get(mission["id"])
-        if scene_id:
-            self.draw_scene(scene_id, 512, 390)
-        self.text(512,250,"REGISTRO DE OCORRÊNCIA",10,self.GOLD)
-        self.text(512,345,task["prompt"],17,self.TEXT,width=760)
+        self.rect(70,190,954,575,self.PANEL,"#66543e",2)
+        self.text(512,235,"REGISTRO DE OCORRÊNCIA",10,self.GOLD)
+        self.text(512,305,task["prompt"],17,self.TEXT,width=790)
+        evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
+        self.text(512,365,f"PISTAS NESTE CONTRATO: {len(evidence)}  |  DECISÕES INFORMADAS POR PISTAS GERAM REPUTAÇÃO EXTRA",9,self.MUTED,width=820)
         for i,choice in enumerate(task["choices"]):
-            self.button(130,410+i*54,764,f"{i+1}.  {choice}",lambda n=i:self.choose(n),44)
+            self.button(130,405+i*48,764,f"{i+1}.  {choice}",lambda n=i:self.choose(n),40)
+        self.button(130,555,250,"REVISAR AMBIENTE",self.show_investigation,38)
         self.text(512,635,f"OCORRÊNCIA {state['task_index']+1}/3     [ESC] MENU",9,self.MUTED)
         self.bind_clicks()
 
@@ -267,6 +283,9 @@ class TurnosZeroApp:
         color="#9bd1ad" if result["correct"] else "#e58d83"
         self.text(120,255,"✓" if result["correct"] else "!",34,color,"nw")
         self.text(180,265,result["message"],15,self.TEXT,"nw",700)
+        if result.get("evidence_used"):
+            self.text(120,325,"PISTA APLICADA À DECISÃO",11,self.GOLD,"nw")
+            self.text(120,350,result.get("evidence_note",""),10,self.MUTED,"nw",760)
         ending=result.get("ending")
         if ending=="survived":
             self.text(120,370,"TURNO CONCLUÍDO",18,self.GOLD,"nw")
@@ -277,7 +296,7 @@ class TurnosZeroApp:
             self.text(120,415,self.game.state.get("last_reveal",""),12,self.MUTED,"nw",720)
             self.button(650,535,230,"ENCERRAR ARQUIVO",self.show_ending,44)
         else:
-            self.button(650,535,230,"CONTINUAR",self.show_task,44)
+            self.button(650,535,230,"CONTINUAR",self.show_investigation,44)
         self.bind_clicks()
 
     def advance_contract(self):
