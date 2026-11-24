@@ -56,6 +56,7 @@ A direção visual combina quatro princípios: documentos manipuláveis e decis�
 - Selecionar um hotspot abre ficha própria de inspeção.
 - Exame registra evidência explicitamente; a seleção do objeto não coleta pista automaticamente.
 - Interagir altera o estado do objeto e salva a mudança no contrato.
+- Dossiê de campo permite rever todas as pistas arquivadas antes da ocorrência.
 - Evidências e estados não vazam para o próximo contrato.
 
 ### Equipamentos

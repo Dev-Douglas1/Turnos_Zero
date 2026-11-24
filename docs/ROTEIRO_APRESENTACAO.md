@@ -32,7 +32,7 @@ Arquivos centrais:
 4. Abrir a ordem de serviço e ler os protocolos.
 5. Entrar na investigação da Loja 24 horas e demonstrar a lanterna, rádio e câmera.
 6. Selecionar a geladeira, abrir a ficha de inspeção, examinar e manipular o objeto.
-7. Mostrar a alteração visual persistente e o registro da evidência.
+7. Mostrar a alteração visual persistente, fotografar a evidência e abrir o dossiê de campo.
 8. Avançar para a ocorrência e demonstrar a influência da pista na decisão.
 9. Mostrar o relatório, a reputação e a consequência; se houver tempo, abrir o terminal CRT do laboratório.
 

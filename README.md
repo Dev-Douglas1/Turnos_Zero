@@ -31,6 +31,7 @@ Dependência gráfica para redimensionar os objetos PNG: instale com `python -m 
 3. Leia a ordem de serviço e os protocolos.
 4. Use o cinto de equipamentos: lanterna (100% de carga, consome 35 por decisão), rádio (3 transmissões) e câmera (3 fotos); os recursos são repostos a cada contrato.
 5. Investigue o ambiente clicando nos objetos; a inspeção mostra a pista e permite manipular o objeto.
+6. Abra o dossiê para revisar as evidências antes de avançar.
 6. As pistas ficam vinculadas ao contrato; fotografar ou examinar registra evidências que podem apoiar decisões.
 7. Resolva três ocorrências escolhendo uma das três ações. Violações reduzem estabilidade conforme o risco crescente.
 8. A dívida começa em R$ 1.000.000; o pagamento começa em R$ 50 e dobra em cada contrato.
