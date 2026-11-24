@@ -10,7 +10,7 @@ No Windows, abra a pasta do projeto no VS Code e execute:
 python main.py
 ```
 
-Modo terminal:
+Modo terminal (com investigação de pistas por texto):
 
 ```powershell
 python main.py --terminal
@@ -27,7 +27,7 @@ Não são necessárias bibliotecas externas. A interface usa Canvas do Tkinter e
 ## Como jogar
 
 1. Crie um contrato e informe o nome do crachá.
-2. Escolha o vínculo: Estagiário, Efetivo ou Terceirizado.
+2. Escolha o vínculo: Estagiário (duas falhas permitidas), Efetivo ou Terceirizado (uma falha permitida).
 3. Leia a ordem de serviço e os protocolos.
 4. Antes de cada decisão, investigue o ambiente clicando nos pontos de interesse.
 5. As pistas coletadas ficam vinculadas ao local e são consultadas pelo motor nas ocorrências relacionadas; decisões corretas apoiadas por evidências concedem reputação extra.
@@ -57,7 +57,7 @@ Os saves antigos da Mansão continuam preservados em seus arquivos originais. A 
 
 ## Estado do desenvolvimento
 
-A fundação jogável está implementada: menu, criação de contrato, três missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface separa a fase de investigação da fase de decisão. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera PNGs em 834×315 pixels para encaixe na área de jogo. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
+A fundação jogável está implementada: menu, criação de contrato, três missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface gráfica e o modo terminal separam a fase de investigação da fase de decisão. O histórico usa identificador único por expediente para evitar duplicação em retomadas, e o carregamento valida a estrutura do progresso antes de aceitar um save. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera PNGs em 834×315 pixels para encaixe na área de jogo. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
 
 Ainda estão planejados: renderização direta dos SVGs ou exportação PNG otimizada, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
 
