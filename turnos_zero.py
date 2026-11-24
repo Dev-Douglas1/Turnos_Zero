@@ -108,10 +108,30 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
 
 class ShiftGame:
     def __init__(self, save_path: Path = SAVE, history_path: Path = HISTORY):
-        self.save_path, self.history_path = save_path, history_path
+        self.save_path, self.history_path = Path(save_path), Path(history_path)
         self.save_path.parent.mkdir(parents=True, exist_ok=True)
-        self.history = self._read(self.history_path, {"shifts": []})
-        self.state = self._read(self.save_path, None)
+        self.history_path.parent.mkdir(parents=True, exist_ok=True)
+        history = self._read(self.history_path, {"shifts": []})
+        self.history = history if isinstance(history, dict) and isinstance(history.get("shifts"), list) else {"shifts": []}
+        state = self._read(self.save_path, None)
+        self.state = state if self._valid_state(state) else None
+
+    @staticmethod
+    def _valid_state(state):
+        if not isinstance(state, dict):
+            return False
+        required = {"schema_version", "player", "status", "difficulty", "shift_index", "task_index", "cash", "sanity", "mistakes", "reputation", "completed"}
+        if not required.issubset(state) or state.get("schema_version") != 1:
+            return False
+        if state.get("status") not in {"between_shifts", "on_shift", "ended", "campaign_completed"}:
+            return False
+        if state.get("difficulty") not in DIFFICULTIES:
+            return False
+        if type(state.get("shift_index")) is not int or not 0 <= state["shift_index"] <= len(MISSIONS):
+            return False
+        if type(state.get("task_index")) is not int or not 0 <= state["task_index"] <= 3:
+            return False
+        return all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")) and isinstance(state.get("completed"), list)
 
     @staticmethod
     def _read(path: Path, default):
@@ -121,7 +141,9 @@ class ShiftGame:
             return default
 
     def save(self):
-        temp = self.save_path.with_suffix(".tmp")
+        if self.state is None:
+            raise RuntimeError("Não há campanha para salvar.")
+        temp = self.save_path.with_suffix(self.save_path.suffix + ".tmp")
         temp.write_text(json.dumps(self.state, ensure_ascii=False, indent=2), encoding="utf-8")
         temp.replace(self.save_path)
 
@@ -140,8 +162,10 @@ class ShiftGame:
     def start_shift(self):
         if self.state is None:
             raise RuntimeError("Crie uma campanha antes de iniciar o turno.")
+        if self.state["status"] != "between_shifts":
+            raise RuntimeError("O contrato não está aguardando início de turno.")
         if self.state["shift_index"] >= len(MISSIONS):
-            self.state["shift_index"] = 0
+            raise RuntimeError("A campanha já foi concluída.")
         self.state.update(status="on_shift", task_index=0, mistakes=0,
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
                           current_seed=random.randrange(1, 2**31))
@@ -151,7 +175,7 @@ class ShiftGame:
     def act(self, choice_index: int) -> dict:
         if self.state is None or self.state["status"] != "on_shift":
             raise RuntimeError("Não há turno em andamento.")
-        if choice_index not in range(3):
+        if type(choice_index) is not int or choice_index not in range(3):
             raise ValueError("Escolha inválida.")
         task = self.task
         correct = choice_index == task["correct"]
@@ -198,7 +222,10 @@ class ShiftGame:
             raise RuntimeError("Não é possível iniciar outro turno agora.")
         self.state["shift_index"] += 1
         if self.state["shift_index"] >= len(MISSIONS):
-            self.state["shift_index"] = 0
+            self.state["status"] = "campaign_completed"
+            self.state["completed_at"] = datetime.now().isoformat(timespec="seconds")
+            self.save()
+            return None
         self.state["status"] = "between_shifts"
         self.save()
         return self.mission
