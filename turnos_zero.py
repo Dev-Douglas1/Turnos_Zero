@@ -239,8 +239,8 @@ class ShiftGame:
             raise RuntimeError("Crie uma campanha antes de iniciar o turno.")
         if self.state["status"] != "between_shifts":
             raise RuntimeError("O contrato não está aguardando início de turno.")
-        if self.state["shift_index"] >= len(MISSIONS):
-            raise RuntimeError("A campanha já foi concluída.")
+        if self.state["shift_index"] >= 60:
+            raise RuntimeError("Limite técnico de contratos atingido.")
         risk_multiplier = 2 ** self.state["shift_index"]
         self.state.update(status="on_shift", task_index=0, mistakes=0,
                           risk_multiplier=risk_multiplier,
