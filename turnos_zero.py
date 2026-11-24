@@ -468,7 +468,11 @@ class ShiftGame:
             # A remuneração dobra a cada contrato: R$ 50, 100, 200, 400...
             # O adicional de vínculo foi removido para manter a progressão previsível.
             paid = 50 * (2 ** self.state["shift_index"])
+            advance_due = max(0, int(self.state.get("advance_payment_due", 0)))
+            paid = max(0, paid - advance_due)
             self.state["cash"] += paid
+            self.state["advance_payment_due"] = 0
+            self.state["forced_contract_acceptance"] = False
             if mission["id"] not in self.state["completed"]:
                 self.state["completed"].append(mission["id"])
             outcome = "completed"
