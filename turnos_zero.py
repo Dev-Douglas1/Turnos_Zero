@@ -122,6 +122,8 @@ DIFFICULTIES = {
     "terceirizado": {"label": "Terceirizado", "sanity": 3, "mistakes": 1, "salary": 1.6},
 }
 
+TOOL_RESOURCES = {"lanterna": 100, "radio": 3, "camera": 3}
+
 def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
     if difficulty not in DIFFICULTIES:
         difficulty = "estagiario"
@@ -133,6 +135,7 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "completed": [], "evidence": [], "object_states": {},
         "inventory": ["lanterna", "radio", "camera"],
         "tool_states": {"lanterna": True, "radio": False, "camera": False},
+        "tool_resources": dict(TOOL_RESOURCES),
         "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
     }
 
@@ -219,6 +222,12 @@ class ShiftGame:
             any(key not in {"lanterna", "radio", "camera"} or type(value) is not bool
                 for key, value in tool_states.items())):
             return False
+        tool_resources = state.get("tool_resources", TOOL_RESOURCES)
+        if (not isinstance(tool_resources, dict) or
+            any(key not in TOOL_RESOURCES or type(value) is not int or
+                not 0 <= value <= TOOL_RESOURCES[key]
+                for key, value in tool_resources.items())):
+            return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
                 not isinstance(item.get("mission"), str) or
@@ -273,6 +282,8 @@ class ShiftGame:
         self.state.update(status="on_shift", task_index=0, mistakes=0,
                           risk_multiplier=risk_multiplier,
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
+                          tool_resources=dict(TOOL_RESOURCES),
+                          tool_states={"lanterna": True, "radio": False, "camera": False},
                           current_seed=random.randrange(1, 2**31), shift_token=uuid.uuid4().hex)
         self.save()
         return self.mission
@@ -299,6 +310,13 @@ class ShiftGame:
             risk_multiplier = self.state.get("risk_multiplier", 2 ** self.state["shift_index"])
             self.state["sanity"] = max(0, self.state["sanity"] - risk_multiplier)
             self.state["mistakes"] += 1
+        resources = self.state.setdefault("tool_resources", dict(TOOL_RESOURCES))
+        tool_states = self.state.setdefault("tool_states", {"lanterna": True, "radio": False, "camera": False})
+        if tool_states.get("lanterna", True) and resources.get("lanterna", 0) > 0:
+            resources["lanterna"] = max(0, resources.get("lanterna", 0) - 10)
+            if resources["lanterna"] == 0:
+                tool_states["lanterna"] = False
+                result["tool_warning"] = "A bateria da lanterna acabou. O ambiente ficou completamente escuro."
         result["evidence_used"] = evidence_used
         if evidence_used:
             result["evidence_note"] = task.get("evidence_note", "A investigação forneceu contexto para esta decisão.")
@@ -379,6 +397,13 @@ class ShiftGame:
         defaults = {"lanterna": True, "radio": False, "camera": False}
         return bool(self.state.setdefault("tool_states", {}).get(tool, defaults.get(tool, False)))
 
+    def get_tool_resource(self, tool: str) -> int:
+        if tool not in TOOL_RESOURCES:
+            raise ValueError("Equipamento desconhecido.")
+        if self.state is None:
+            return 0
+        return self.state.setdefault("tool_resources", dict(TOOL_RESOURCES)).get(tool, 0)
+
     def toggle_tool(self, tool: str) -> bool:
         if self.state is None or self.state.get("status") != "on_shift":
             raise RuntimeError("Equipamentos só podem ser usados durante um turno.")
@@ -386,10 +411,30 @@ class ShiftGame:
             raise ValueError("Equipamento não encontrado no inventário.")
         defaults = {"lanterna": True, "radio": False, "camera": False}
         states = self.state.setdefault("tool_states", {})
-        states[tool] = not bool(states.get(tool, defaults.get(tool, False)))
+        resources = self.state.setdefault("tool_resources", dict(TOOL_RESOURCES))
+        activating = not bool(states.get(tool, defaults.get(tool, False)))
+        if activating and resources.get(tool, 0) <= 0:
+            raise RuntimeError(f"Sem carga disponível para {tool}.")
+        if activating and tool == "radio":
+            resources["radio"] -= 1
+        states[tool] = activating
         self.state["selected_tool"] = tool
         self.save()
         return states[tool]
+
+    def consume_tool_resource(self, tool: str, amount: int = 1) -> int:
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Equipamentos só podem ser usados durante um turno.")
+        if tool not in TOOL_RESOURCES or type(amount) is not int or amount <= 0:
+            raise ValueError("Consumo de equipamento inválido.")
+        resources = self.state.setdefault("tool_resources", dict(TOOL_RESOURCES))
+        if resources.get(tool, 0) < amount:
+            raise RuntimeError(f"Sem carga disponível para {tool}.")
+        resources[tool] -= amount
+        if resources[tool] == 0:
+            self.state.setdefault("tool_states", {})[tool] = False
+        self.save()
+        return resources[tool]
 
     def _object_state_key(self, object_id: str) -> str:
         if not isinstance(object_id, str) or not object_id.strip():

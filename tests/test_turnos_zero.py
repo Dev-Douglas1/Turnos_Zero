@@ -275,6 +275,38 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertFalse(self.game.get_tool_state("radio"))
         self.assertFalse(self.game.get_tool_state("camera"))
 
+    def test_radio_consume_uma_carga_por_ativacao(self):
+        self.game.start_shift()
+        self.assertEqual(self.game.get_tool_resource("radio"), 3)
+        self.assertTrue(self.game.toggle_tool("radio"))
+        self.assertEqual(self.game.get_tool_resource("radio"), 2)
+        self.assertFalse(self.game.toggle_tool("radio"))
+        self.assertEqual(self.game.get_tool_resource("radio"), 2)
+
+    def test_camera_consume_filme_ao_fotografar(self):
+        self.game.start_shift()
+        self.game.toggle_tool("camera")
+        self.game.consume_tool_resource("camera", 1)
+        self.assertEqual(self.game.get_tool_resource("camera"), 2)
+        self.assertTrue(self.game.get_tool_state("camera"))
+        self.game.consume_tool_resource("camera", 2)
+        self.assertFalse(self.game.get_tool_state("camera"))
+        self.assertEqual(self.game.get_tool_resource("camera"), 0)
+
+    def test_bateria_da_lanterna_diminui_a_cada_ocorrencia(self):
+        self.game.start_shift()
+        self.assertEqual(self.game.get_tool_resource("lanterna"), 100)
+        self.game.act(self.game.task["correct"])
+        self.assertEqual(self.game.get_tool_resource("lanterna"), 90)
+
+    def test_bateria_da_lanterna_desliga_o_item_ao_zerar(self):
+        self.game.start_shift()
+        self.game.state["tool_resources"]["lanterna"] = 10
+        self.game.save()
+        self.game.act(self.game.task["correct"])
+        self.assertEqual(self.game.get_tool_resource("lanterna"), 0)
+        self.assertFalse(self.game.get_tool_state("lanterna"))
+
     def test_equipamento_alterna_e_persiste(self):
         self.game.start_shift()
         self.assertTrue(self.game.toggle_tool("camera"))

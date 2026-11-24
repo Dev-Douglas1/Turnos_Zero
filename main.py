@@ -328,8 +328,12 @@ class TurnosZeroApp:
         self.text(485, 510, "RELATÓRIO DE CAMPO", 9, self.GOLD, "nw")
         if evidence_found:
             self.text(485, 535, "EVIDÊNCIA REGISTRADA", 10, "#83c4a8", "nw")
-        elif self.game.get_tool_state("camera"):
-            self.button(485, 526, 410, "FOTOGRAFAR E REGISTRAR", self.capture_current_evidence, 40)
+        elif self.game.get_tool_state("camera") and self.game.get_tool_resource("camera") > 0:
+            self.button(
+                485, 526, 410,
+                f"FOTOGRAFAR E REGISTRAR  /  {self.game.get_tool_resource('camera')} RESTANTES",
+                self.capture_current_evidence, 40
+            )
         else:
             self.button(485, 526, 410, "EXAMINAR E REGISTRAR EVIDÊNCIA", self.collect_current_evidence, 40)
 
@@ -349,8 +353,10 @@ class TurnosZeroApp:
             return
         finding = hotspot.get("finding", "Registro fotográfico de anomalia.")
         try:
+            self.game.consume_tool_resource("camera", 1)
             self.game.record_evidence(hotspot["id"], "FOTO / " + finding)
-            self.game.toggle_tool("camera")
+            if self.game.get_tool_state("camera"):
+                self.game.toggle_tool("camera")
             self.play_effect("acerto.wav")
         except (RuntimeError, ValueError):
             self.play_effect("erro.wav")
@@ -618,9 +624,12 @@ class TurnosZeroApp:
             self.text(512,590,radio_lines.get(scene_id, "CENTRAL: Mantenha o protocolo."),8,"#8bc9a0")
         else:
             self.text(512,590,"CINTO DE EQUIPAMENTOS",7,self.MUTED)
-        self.button(70,610,155,f"LANTERNA {'ON' if tool_states.get('lanterna', True) else 'OFF'}",lambda:self.toggle_field_tool("lanterna"),40)
-        self.button(235,610,155,f"RÁDIO {'ON' if tool_states.get('radio', False) else 'OFF'}",lambda:self.toggle_field_tool("radio"),40)
-        self.button(400,610,155,f"CÂMERA {'ON' if tool_states.get('camera', False) else 'OFF'}",lambda:self.toggle_field_tool("camera"),40)
+        lantern_charge = self.game.get_tool_resource("lanterna")
+        radio_uses = self.game.get_tool_resource("radio")
+        camera_film = self.game.get_tool_resource("camera")
+        self.button(70,610,155,f"LANTERNA {lantern_charge}%",lambda:self.toggle_field_tool("lanterna"),40)
+        self.button(235,610,155,f"RÁDIO {radio_uses}",lambda:self.toggle_field_tool("radio"),40)
+        self.button(400,610,155,f"CÂMERA {camera_film}",lambda:self.toggle_field_tool("camera"),40)
         self.button(690,610,260,"AVANÇAR PARA A OCORRÊNCIA",self.show_task,44)
         self.bind_clicks()
 
