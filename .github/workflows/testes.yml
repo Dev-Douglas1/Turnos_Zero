@@ -15,6 +15,16 @@ jobs:
         run: python -m py_compile main.py turnos_zero.py scene_manager.py sistemas.py
       - name: Executar testes
         run: python -m unittest discover -s tests -v
-      - name: Validar JSON versionados
+      - name: Validar JSON e referências de cenas
         run: |
-          python -c "import json; [json.load(open(p, encoding='utf-8')) for p in ['dados/enigmas.json','dados/progresso.json','dados/historico.json','dados/cenas.json']]"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ['dados/enigmas.json', 'dados/progresso.json', 'dados/historico.json', 'dados/cenas.json']:
+              json.loads(Path(name).read_text(encoding='utf-8'))
+          config = json.loads(Path('dados/cenas.json').read_text(encoding='utf-8'))
+          for scene in config['scenes']:
+              asset = scene.get('background')
+              if asset and not Path(asset).is_file():
+                  raise SystemExit(f'Asset ausente: {asset}')
+          PY
