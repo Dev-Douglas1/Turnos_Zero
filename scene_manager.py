@@ -77,3 +77,16 @@ class SceneManager:
             if x1 <= x <= x2 and y1 <= y <= y2:
                 return hotspot
         return None
+
+
+# Relação única entre contratos e ambientes, compartilhada pela GUI e pelo terminal.
+MISSION_SCENES = {
+    "loja_24h": "loja_24h",
+    "edificio_9": "edificio_9",
+    "cinema_vazio": "cinema_vazio",
+    "laboratorio": "laboratorio",
+}
+
+def scene_for_mission(mission_id: str) -> str | None:
+    """Retorna o ID da cena correspondente a um contrato conhecido."""
+    return MISSION_SCENES.get(mission_id)
