@@ -908,38 +908,61 @@ class TurnosZeroApp:
             "Você recusou o contrato. A dívida, porém, não recusou você."
         )
         self.rect(80, 215, 944, 555, "#101a28", "#9a7848", 2)
-        self.text(125, 250, "AGIOTA", 10, "#e58d83", "nw")
-        self.text(
-            125, 285,
-            "A porta fecha atrás de você. Um homem de luvas claras coloca uma pasta sobre a mesa. "
-            "Ele conhece seu nome, o valor exato da dívida e o endereço da sua família. "
-            "“Dinheiro não é a única coisa que tem valor. Posso quitar uma parte se você aceitar "
-            "entregar algo que não deveria estar à venda: uma parte do próprio corpo ou seus serviços. "
-            "Você escolhe. Se não aceitar, amanhã quero uma parte da dívida em dinheiro.”",
-            11, self.TEXT, "nw", 760
-        )
-        self.text(125, 430, "A oferta parece pior do que o trabalho. A ameaça parece pior do que a oferta.", 10, "#d7ad70", "nw", 760)
+        acceptances = int(state.get("loan_shark_acceptances", 0))
+        if acceptances >= 2:
+            self.text(125, 250, "TERCEIRA OFERTA / COBRANÇA FINAL", 10, "#e58d83", "nw")
+            offer_text = (
+                "O homem fecha a pasta. Nas duas vezes anteriores, ele comprou apenas uma parte da dívida. "
+                "Agora não quer dinheiro: exige sua vida e seu corpo como quitação definitiva. "
+                "Não haverá outro contrato, pagamento ou retorno depois desta escolha."
+            )
+            accept_label = "ENTREGAR TUDO / QUITAR A DÍVIDA"
+        else:
+            self.text(125, 250, f"AGIOTA / OFERTA {acceptances + 1} DE 2", 10, "#e58d83", "nw")
+            offer_text = (
+                "A porta fecha atrás de você. Um homem de luvas claras coloca uma pasta sobre a mesa. "
+                "Ele conhece seu nome, o valor exato da dívida e o endereço da sua família. "
+                "“Posso abater uma parte do que você deve. Não se engane: continuarei cobrando o restante. "
+                "Você ainda poderá pagar trabalhando nos próximos turnos.”"
+            )
+            accept_label = "ACEITAR A OFERTA"
+        self.text(125, 285, offer_text, 11, self.TEXT, "nw", 760)
+        if acceptances >= 2:
+            self.text(125, 430, "A terceira proposta não é um empréstimo. É o preço final da sua existência.", 10, "#e58d83", "nw", 760)
+        else:
+            self.text(125, 430, "A oferta parece pior do que o trabalho. A ameaça parece pior do que a oferta.", 10, "#d7ad70", "nw", 760)
         self.text(125, 475, "Você sente o estômago apertar. Ainda assim, precisa do dinheiro.", 10, self.MUTED, "nw", 760)
-        self.button(125, 505, 350, "ACEITAR A OFERTA", self.accept_loan_shark, 42)
+        self.button(125, 505, 350, accept_label, self.accept_loan_shark, 42)
         self.button(520, 505, 350, "PAGAR UMA PARTE AMANHÃ", self.promise_payment, 42)
         self.bind_clicks()
 
     def accept_loan_shark(self):
         state = self.game.state
-        # A oferta abate uma parte da dívida, mas não quita o contrato:
-        # o agiota continua cobrando o saldo restante normalmente.
-        if state.get("loan_shark_accepted"):
+        acceptances = int(state.get("loan_shark_acceptances", 0))
+
+        # A terceira aceitação encerra a campanha: o agiota considera
+        # a vida e o corpo do funcionário como quitação integral.
+        if acceptances >= 2:
+            state["loan_shark_acceptances"] = 3
+            state["loan_shark_accepted"] = True
+            state["cash"] = 0
+            state["status"] = "ended"
+            state["task_index"] = 1
+            state["advance_payment_due"] = 0
+            state["forced_contract_acceptance"] = False
             state["last_reveal"] = (
-                "O agiota confirma que a cobrança continua. A dívida restante "
-                "ainda pode ser abatida com os pagamentos dos próximos turnos."
+                "QUITAÇÃO FINAL: o agiota tomou sua vida e seu corpo como pagamento. "
+                "A dívida foi zerada nos registros. Seu vínculo com a agência e sua história "
+                "terminam aqui. FUNCIONÁRIO NÃO RETORNOU."
             )
             self.game.save()
-            self.show_contract()
+            self.show_ending()
             return
 
         outstanding = max(0, -int(state.get("cash", 0)))
         credit = min(outstanding, 100_000, max(25_000, outstanding // 10)) if outstanding else 0
         state["cash"] = int(state.get("cash", 0)) + credit
+        state["loan_shark_acceptances"] = acceptances + 1
         state["loan_shark_accepted"] = True
         state["loan_shark_credit_total"] = int(state.get("loan_shark_credit_total", 0)) + credit
         state["forced_contract_acceptance"] = True
@@ -947,7 +970,8 @@ class TurnosZeroApp:
         state["last_reveal"] = (
             f"O agiota abateu R$ {credit:,} da dívida. ".replace(",", ".") +
             "A cobrança continua sobre o saldo restante. Você ainda pode quitar "
-            "a dívida trabalhando nos próximos turnos."
+            "a dívida trabalhando nos próximos turnos. Esta foi a oferta "
+            f"{acceptances + 1} de 2; a próxima será a cobrança final."
         )
         self.game.save()
         self.show_contract()
