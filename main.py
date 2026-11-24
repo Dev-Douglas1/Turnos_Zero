@@ -79,15 +79,28 @@ class TurnosZeroApp:
                 self.draw_scene_fallback(scene_id)
             # Hotspots são normalizados em relação à área real da cena,
             # não à janela inteira. Isso mantém os cliques alinhados ao cenário.
-            viewport = (95, 220, 929, 535)
-            for hotspot in scene.get("hotspots", []):
+            viewport = (95, 235, 929, 510)
+            evidence_ids = {
+                item.get("id") for item in (self.game.state or {}).get("evidence", [])
+                if item.get("mission") == (self.game.mission or {}).get("id")
+            }
+            for index, hotspot in enumerate(scene.get("hotspots", []), 1):
                 bounds = SceneManager.map_bounds(hotspot["bounds"], viewport)
                 x1, y1, x2, y2 = bounds
-                # Marcadores discretos tornam os pontos interativos visíveis sem
-                # esconder a arte; as áreas clicáveis usam exatamente os mesmos limites.
-                self.canvas.create_rectangle(x1, y1, x2, y2, outline=self.GOLD, width=2, dash=(5, 3))
-                self.canvas.create_text(x1 + 6, y1 + 6, text=hotspot.get("label", hotspot["id"]).upper(),
-                                        fill=self.GOLD, font=("Consolas", 8, "bold"), anchor="nw")
+                cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+                found = hotspot["id"] in evidence_ids
+                marker = "#75b9a5" if found else "#e0a65b"
+                # O alvo clicável continua amplo, mas a indicação visual vira um
+                # marcador compacto para não cobrir o cenário com retângulos.
+                self.canvas.create_oval(cx-13, cy-13, cx+13, cy+13,
+                                        fill="#101923", outline=marker, width=3)
+                self.canvas.create_text(cx, cy, text="✓" if found else str(index),
+                                        fill=marker, font=("Consolas", 10, "bold"))
+                label = hotspot.get("label", hotspot["id"]).upper()
+                tag_w = min(190, max(76, len(label) * 7 + 18))
+                tag_y = max(238, cy - 34)
+                self.rect(cx-tag_w/2, tag_y-10, cx+tag_w/2, tag_y+10, "#101923", marker, 1)
+                self.text(cx, tag_y, label, 7, marker)
                 self.targets.append((bounds, lambda h=hotspot:self.inspect_hotspot(h)))
         except (SceneError, tk.TclError, OSError):
             self.active_scene = None
@@ -123,16 +136,21 @@ class TurnosZeroApp:
         self.screen = "inspection"
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
-        self.header("INSPEÇÃO DE AMBIENTE", hotspot.get("label", hotspot["id"]),
-                    f"CENA: {self.active_scene or '—'}")
-        self.rect(100,220,924,490,self.PANEL,"#8b6b42",2)
-        self.text(150,285,"PONTO DE INTERESSE IDENTIFICADO",14,self.GOLD,"nw")
-        self.text(150,335,f"Referência: {hotspot.get('id')}",12,self.TEXT,"nw")
-        self.text(150,375,f"Ação: {hotspot.get('action','inspect')}",12,self.MUTED,"nw")
-        finding = hotspot.get("finding", "Nenhuma evidência identificada.")
+        self.header("ANÁLISE DE CAMPO", hotspot.get("label", hotspot["id"]),
+                    "OBSERVE O REGISTRO. USE A PISTA PARA DECIDIR COMO AGIR.")
+        self.rect(82,220,942,520,"#111b28","#786044",2)
+        self.rect(82,220,91,520,"#a64f45")
+        self.text(125,270,"ANOMALIA IDENTIFICADA",10,"#d98b75","nw")
+        self.text(125,322,hotspot.get("label", hotspot["id"]).upper(),19,"#e7d9c5","nw")
+        self.rect(125,352,895,353,"#394b59")
+        finding = hotspot.get("finding", "O ambiente apresenta uma alteração que não pode ser explicada.")
         recorded = self.game.record_evidence(hotspot["id"], finding) if self.game.state and self.game.state.get("status") == "on_shift" else False
-        self.text(150,430,f"EVIDÊNCIA REGISTRADA: {finding}" if recorded else f"REGISTRO EXISTENTE: {finding}",12,self.TEXT,"nw",700)
-        self.button(650,535,230,"VOLTAR À INVESTIGAÇÃO",self.show_investigation,44)
+        self.text(125,392,"RELATO / EVIDÊNCIA",9,"#d6ad70","nw")
+        self.text(125,430,finding,14,"#e7e5df","nw",735)
+        self.text(125,480,"A pista foi adicionada ao seu relatório de campo." if recorded else "Esta pista já consta no relatório deste contrato.",10,"#82b9a7","nw")
+        self.text(125,555,"PRÓXIMO PASSO",9,"#d6ad70","nw")
+        self.text(125,580,"Volte ao ambiente, examine os outros pontos e só então avance para a ocorrência.",10,self.MUTED,"nw",760)
+        self.button(650,615,245,"VOLTAR AO AMBIENTE",self.show_investigation,42)
         self.bind_clicks()
 
     def click(self, event):
@@ -275,17 +293,19 @@ class TurnosZeroApp:
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
                     f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
-        self.rect(55,180,969,570,"#101723","#66543e",2)
-        self.rect(70,195,954,555,"#131e2b","#26384a",1)
-        self.rect(95,220,929,535,"#0b111c")
+        self.rect(55,190,969,575,"#101723","#786044",2)
+        self.rect(70,205,954,555,"#131e2b","#35485a",1)
+        self.text(512,220,"INVESTIGUE OS MARCADORES NUMERADOS — CLIQUE PARA EXAMINAR AS PISTAS",8,"#d6ad70")
+        self.rect(95,235,929,510,"#080e17")
         if scene_id:
-            self.draw_scene(scene_id,512,377)
+            self.draw_scene(scene_id,512,372)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
-        self.text(512,555,f"EVIDÊNCIAS COLETADAS NESTE LOCAL: {len(evidence)}",10,self.GOLD)
+        total_hotspots = len(self.scene_manager.get(scene_id).get("hotspots", [])) if scene_id else 0
+        self.text(512,548,f"RELATÓRIO DE CAMPO: {len(evidence)}/{total_hotspots} PISTAS ENCONTRADAS",10,"#82b9a7" if evidence else "#d6ad70")
         if evidence:
-            labels = "  |  ".join(item.get("description", item.get("id", "Pista"))[:58] for item in evidence[-3:])
-            self.text(512,578,labels,8,self.MUTED,width=850)
-        self.button(690,600,260,"IR PARA A OCORRÊNCIA",self.show_task,44)
+            labels = "  ·  ".join(item.get("description", item.get("id", "Pista"))[:48] for item in evidence[-2:])
+            self.text(512,570,labels,8,self.MUTED,width=850)
+        self.button(690,610,260,"AVANÇAR PARA A OCORRÊNCIA",self.show_task,44)
         self.bind_clicks()
 
     def show_task(self):
