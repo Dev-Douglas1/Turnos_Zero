@@ -1,42 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540">
 <defs>
- <linearGradient id="room" y2="1"><stop stop-color="#22212a"/><stop offset=".6" stop-color="#10111a"/><stop offset="1" stop-color="#05060b"/></linearGradient>
- <radialGradient id="screen"><stop stop-color="#d9d5c4" stop-opacity=".95"/><stop offset=".7" stop-color="#9aa5a0" stop-opacity=".55"/><stop offset="1" stop-color="#65747a" stop-opacity=".05"/></radialGradient>
- <filter id="glow"><feGaussianBlur stdDeviation="28"/></filter>
+ <linearGradient id="theater" x2="0" y2="1"><stop stop-color="#241923"/><stop offset=".55" stop-color="#151019"/><stop offset="1" stop-color="#07070c"/></linearGradient>
+ <linearGradient id="carpet" x2="0" y2="1"><stop stop-color="#332029"/><stop offset="1" stop-color="#09070c"/></linearGradient>
+ <radialGradient id="amber"><stop stop-color="#d18a4c" stop-opacity=".43"/><stop offset="1" stop-color="#d18a4c" stop-opacity="0"/></radialGradient>
+ <pattern id="grain" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M4 7h1M20 21h2M29 4h1M10 29h1" stroke="#d0bca5" stroke-opacity=".13"/></pattern>
+ <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
 </defs>
-<rect width="960" height="540" fill="#05060b"/>
-<path d="M0 0H960V400L480 500 0 400Z" fill="url(#room)"/>
-<!-- projection cone -->
-<path d="M480 0L830 430H130Z" fill="#d6d4c5" opacity=".055"/>
-<path d="M480 0L690 430H270Z" fill="#d6d4c5" opacity=".045"/>
-<ellipse cx="480" cy="180" rx="250" ry="155" fill="#c5c8b9" opacity=".12" filter="url(#glow)"/>
-<!-- screen -->
-<path d="M170 55H790L750 315H210Z" fill="#242a30" stroke="#786b5d" stroke-width="8"/>
-<path d="M195 78H765L730 292H230Z" fill="url(#screen)"/>
-<rect x="205" y="85" width="550" height="200" fill="#d2d0c2" opacity=".12"/>
-<!-- human-like handprints on the inside of the screen -->
-<g fill="#42484a" opacity=".48">
- <ellipse cx="390" cy="180" rx="23" ry="32"/><path d="M370 177L360 120Q359 108 367 108Q375 108 378 123L385 158L386 110Q386 96 395 98Q404 100 402 114L400 158L409 116Q413 103 421 108Q429 113 423 128L411 169L430 145Q440 136 445 145Q449 153 438 164L416 194Q398 216 378 200Z"/>
- <ellipse cx="590" cy="220" rx="18" ry="27"/><path d="M573 215L566 170Q565 159 572 158Q580 158 582 171L587 198L589 164Q590 152 597 154Q605 156 602 169L600 200L609 174Q614 165 621 170Q627 176 620 189L609 215L625 198Q633 192 638 199Q641 206 632 214L610 236Q593 250 580 235Z"/>
+<rect width="960" height="540" fill="#05050a"/>
+<path d="M0 0H960V420L480 470 0 420Z" fill="url(#theater)"/>
+<path d="M0 420L480 470 960 420V540H0Z" fill="url(#carpet)"/>
+<!-- heavy curtains and stage frame, but no projection screen or seats -->
+<path d="M0 0H155L188 410H0ZM960 0H805L772 410H960Z" fill="#28141c"/>
+<path d="M0 0L110 0 140 410 75 410ZM960 0L850 0 820 410 885 410Z" fill="#471d27" opacity=".38"/>
+<path d="M150 0Q210 60 265 0Q320 62 375 0M585 0Q640 60 695 0Q750 60 810 0" stroke="#72404a" stroke-width="16" opacity=".48" fill="none"/>
+<path d="M170 52H790" stroke="#78604d" stroke-width="5" opacity=".5"/>
+<path d="M180 72H780" stroke="#140e16" stroke-width="12"/>
+<!-- empty rear wall with water damage -->
+<path d="M200 85H760V380L480 425 200 380Z" fill="#1c2025" stroke="#51413f" stroke-width="5"/>
+<path d="M220 105L270 125 250 280 208 300ZM690 115L740 100 752 282 716 300" fill="#090c12" opacity=".42"/>
+<path d="M240 330Q310 290 380 335T520 325T720 340" stroke="#6e443b" stroke-width="8" opacity=".22" fill="none"/>
+<!-- projection beam from offscreen, giving the room depth -->
+<path d="M90 24L770 440H250Z" fill="#cfc9b0" opacity=".035"/>
+<path d="M110 0L690 430H360Z" fill="#d7cdb7" opacity=".045"/>
+<ellipse cx="485" cy="265" rx="330" ry="185" fill="url(#amber)" filter="url(#soft)"/>
+<!-- dead wall sconces -->
+<path d="M60 145H101V235H60ZM859 145H900V235H859Z" fill="#121219" stroke="#816347" stroke-width="3"/>
+<path d="M68 163H93V216H68ZM867 163H892V216H867Z" fill="#b16f40" opacity=".16"/>
+<!-- old decorative acoustic panels -->
+<g fill="none" stroke="#6b4b4c" stroke-width="3" opacity=".35">
+ <path d="M245 140H350V260H245ZM610 140H715V260H610Z"/>
+ <path d="M260 155H335V245H260ZM625 155H700V245H625Z"/>
 </g>
-<!-- side wall sconces, mostly dead -->
-<path d="M55 100H95V210H55ZM865 100H905V210H865Z" fill="#151b22" stroke="#74664f" stroke-width="3"/>
-<path d="M62 125H88V185H62ZM872 125H898V185H872Z" fill="#bd8651" opacity=".22"/>
-<!-- seats -->
-<g stroke="#5e3438" stroke-width="5">
- <path d="M55 360Q55 325 95 325H205Q245 325 245 360V450H55Z" fill="#38252b"/>
- <path d="M260 360Q260 325 300 325H410Q450 325 450 360V450H260Z" fill="#422b31"/>
- <path d="M510 360Q510 325 550 325H660Q700 325 700 360V450H510Z" fill="#38252b"/>
- <path d="M715 360Q715 325 755 325H865Q905 325 905 360V450H715Z" fill="#422b31"/>
-</g>
-<g fill="#9b5550" opacity=".5"><path d="M65 345H235V380H65Z"/><path d="M270 345H440V380H270Z"/><path d="M520 345H690V380H520Z"/><path d="M725 345H895V380H725Z"/></g>
-<!-- one seat occupied by a dark outline -->
-<ellipse cx="480" cy="355" rx="25" ry="34" fill="#030408"/>
-<path d="M440 455Q440 385 480 385Q520 385 520 455Z" fill="#030408"/>
-<!-- aisle and scattered ticket -->
-<path d="M0 480L480 420 960 480V540H0Z" fill="#090b11"/>
-<path d="M470 480L525 470L535 495L480 505Z" fill="#d7c9a5" opacity=".8"/>
-<text x="500" y="492" fill="#4c3433" font-family="monospace" font-size="9">SEU LUGAR</text>
-<path d="M0 0H960V540H0Z" fill="none" stroke="#020306" stroke-width="45" opacity=".8"/>
-<text x="480" y="525" fill="#b29a7c" font-family="monospace" font-size="13" text-anchor="middle" letter-spacing="4">CINE ORFEU  ·  SESSÃO ENCERRADA</text>
+<!-- aisle and worn carpet -->
+<path d="M0 460L480 430 960 460" stroke="#8e6044" stroke-width="6" opacity=".33"/>
+<path d="M450 470L510 470 680 540H270Z" fill="#120d15"/>
+<path d="M0 0H960V540H0Z" fill="url(#grain)" opacity=".38"/>
+<path d="M0 0H960V540H0Z" fill="none" stroke="#020306" stroke-width="50" opacity=".8"/>
 </svg>
