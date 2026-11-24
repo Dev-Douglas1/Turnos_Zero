@@ -157,6 +157,13 @@ class ShiftGame:
             return False
         if len(state["completed"]) != len(set(state["completed"])):
             return False
+        expected_completed = shift_index
+        if status == "between_shifts" and task_index == len(MISSIONS[shift_index]["tasks"]):
+            expected_completed += 1
+        if status == "campaign_completed":
+            expected_completed = len(MISSIONS)
+        if len(state["completed"]) != expected_completed or state["completed"] != [m["id"] for m in MISSIONS[:expected_completed]]:
+            return False
         if not isinstance(state.get("evidence", []), list):
             return False
         for item in state.get("evidence", []):
