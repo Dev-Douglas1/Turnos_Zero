@@ -142,6 +142,11 @@ class ShiftGame:
         self.history = history if isinstance(history, dict) and isinstance(history.get("shifts"), list) else {"shifts": []}
         state = self._read(self.save_path, None)
         self.state = state if self._valid_state(state) else None
+        if self.state is not None and "initial_debt" not in self.state:
+            # Migra campanhas antigas para o novo objetivo econômico sem perder pagamentos já feitos.
+            self.state["initial_debt"] = 1_000_000
+            self.state["cash"] -= self.state["initial_debt"]
+            self.save()
 
     @staticmethod
     def _valid_state(state):
