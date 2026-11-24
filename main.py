@@ -866,22 +866,23 @@ class TurnosZeroApp:
         risk = 2 ** state["shift_index"]
 
         self.text(730, 218, "DÍVIDA CONTRATUAL", 9, "#d6ad70", "nw")
-        self.text(730, 250, f"R$ {debt:,}".replace(",", "."), 22, "#e58d83", "nw")
-        self.rect(728, 270, 966, 271, "#4d3a35")
-        self.text(730, 290, f"PAGAMENTO: R$ {reward:,}".replace(",", "."), 10, "#e8c17e", "nw")
-        self.text(730, 312, f"NÍVEL DE RISCO: x{risk}", 9, "#db8875", "nw")
+        # O divisor fica abaixo do valor; antes atravessava os algarismos.
+        self.text(730, 244, f"R$ {debt:,}".replace(",", "."), 19, "#e58d83", "nw")
+        self.rect(728, 282, 966, 283, "#4d3a35")
+        self.text(730, 298, f"PAGAMENTO: R$ {reward:,}".replace(",", "."), 9, "#e8c17e", "nw")
+        self.text(730, 320, f"NÍVEL DE RISCO: x{risk}", 8, "#db8875", "nw")
 
-        self.text(730, 348, "OBJETIVO DO SERVIÇO", 9, self.GOLD, "nw")
-        brief_bottom = self.wrapped_text(730, 372, mission["brief"], 8, self.TEXT, 238, 1)
-        protocol_heading_y = max(432, brief_bottom + 18)
-        self.text(730, protocol_heading_y, "PROTOCOLOS DE SEGURANÇA", 9, self.GOLD, "nw")
-        rule_y = protocol_heading_y + 21
+        self.text(730, 354, "OBJETIVO DO SERVIÇO", 9, self.GOLD, "nw")
+        # Renderização direta do briefing: evita que o texto desapareça
+        # quando o cálculo de bbox ocorre antes da atualização do Canvas.
+        self.text(730, 378, mission["brief"], 8, self.TEXT, "nw", 238)
+
+        self.text(730, 440, "PROTOCOLOS DE SEGURANÇA", 9, self.GOLD, "nw")
         for index, rule in enumerate(mission["rules"][:4]):
-            rule_bottom = self.wrapped_text(
-                733, rule_y, f"{index + 1:02d}  {rule}",
-                7, self.MUTED, 238, 1
+            self.text(
+                733, 463 + index * 29, f"{index + 1:02d}  {rule}",
+                7, self.MUTED, "nw", 238
             )
-            rule_y = rule_bottom + 5
 
         self.text(55, 595, "ARQUIVO VISUAL DO LOCAL  ·  EXAMINE O AMBIENTE APÓS ASSINAR", 8, self.MUTED, "nw")
         self.text(55, 622, "A remuneração só é creditada se o agente concluir o expediente.", 8, "#c59a72", "nw")
