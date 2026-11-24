@@ -260,12 +260,32 @@ class TurnosZeroApp:
             self.rect(110, 275, 380, 580, "#080e14", "#364955", 1)
             self.text(245, 425, "ARQUIVO VISUAL\nINDISPONÍVEL", 12, self.MUTED)
 
-        self.text(485, 218, "REGISTRO DE ANOMALIA", 9, "#d6ad70", "nw")
-        self.text(485, 254, hotspot.get("label", hotspot["id"]).upper(), 16, self.TEXT, "nw", 440)
-        self.text(
-            485, 300, hotspot.get("finding", "Nenhuma evidência descrita."),
-            11, self.TEXT, "nw", 435
-        )
+        if hotspot["id"] == "terminal":
+            # Interface diegética CRT: logs verdes, fósforo e scanlines suaves.
+            self.text(485, 218, "TERMINAL DE CONTROLE // ACESSO OMEGA", 9, "#d6ad70", "nw")
+            self.rect(485, 244, 940, 382, "#020a08", "#527d68", 2)
+            self.rect(492, 251, 933, 375, "#03140f", "#1b4b38", 1)
+            for scan_y in range(255, 373, 5):
+                self.rect(496, scan_y, 929, scan_y + 1, "#0b281e")
+            logs = [
+                "FIELD LOG / SESSION 00011",
+                "---------------------------------------",
+                "SESSION STARTED: 11 YEARS AGO",
+                "USER: " + self.game.state.get("player", "UNKNOWN").upper(),
+                "CONNECTION: PERSISTENT",
+                "EMPLOYEE STATUS: " + ("ACTIVE" if state == "1" else "UNVERIFIED"),
+            ]
+            for row, line in enumerate(logs):
+                color = "#a0e5b6" if row != 5 else ("#e7ad65" if state == "1" else "#77bf97")
+                self.text(508, 267 + row * 17, line, 8, color, "nw")
+            self.text(485, 390, "SAÍDA DO TERMINAL", 9, self.GOLD, "nw")
+        else:
+            self.text(485, 218, "REGISTRO DE ANOMALIA", 9, "#d6ad70", "nw")
+            self.text(485, 254, hotspot.get("label", hotspot["id"]).upper(), 16, self.TEXT, "nw", 440)
+            self.text(
+                485, 300, hotspot.get("finding", "Nenhuma evidência descrita."),
+                11, self.TEXT, "nw", 435
+            )
 
         interaction = hotspot.get("interaction", {})
         states = interaction.get("states", ["intacto", "alterado"])
