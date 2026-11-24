@@ -42,6 +42,8 @@ class TurnosZeroApp:
             self.object_scene_data = {}
         self.active_scene = None
         self.current_hotspot = None
+        self.current_camera_hotspot = None
+        self.surveillance_images = {}
         self.ambience_active = False
         self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
@@ -722,7 +724,7 @@ class TurnosZeroApp:
                 36
             )
 
-        self.text(730, 548, "CLIQUE NO OBJETO OU NA SUA LINHA PARA EXAMINAR.", 7, self.MUTED, "nw", 235)
+        self.button(728, 526, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 31)
 
         # Barra de equipamento fora do cenário: não obstrui os pontos clicáveis.
         tool_states = state.setdefault("tool_states", {})
@@ -738,6 +740,155 @@ class TurnosZeroApp:
         self.button(520, 610, 150, "DOSSIÊ", self.show_evidence_report, 40)
         self.button(710, 610, 274, "AVANÇAR PARA A OCORRÊNCIA", self.show_task, 40)
         self.bind_clicks()
+
+    def show_surveillance(self):
+        """Central diegética de seis câmeras, com recortes reais do cenário atual."""
+        self.screen = "surveillance"
+        self.start_ambience()
+        mission = self.game.mission
+        scene_id = scene_for_mission(mission["id"])
+        scene = self.scene_manager.get(scene_id)
+        scene_data = self.object_scene_data.get(scene_id, {})
+        hotspots = scene_data.get("hotspots", scene.get("hotspots", []))
+        if hotspots and not self.current_camera_hotspot:
+            self.current_camera_hotspot = hotspots[0]
+
+        self.clear()
+        self.rect(0, 0, self.W, self.H, "#050b0d")
+        self.header(
+            "CENTRAL DE VIGILÂNCIA / SINAL ANALÓGICO",
+            "Monitoramento de campo",
+            f"{mission['title']}  ·  {len(hotspots)} PONTO(S) INTERATIVO(S)  ·  "
+            f"FILME: {self.game.get_tool_resource('camera')} FOTOS"
+        )
+
+        self.rect(35, 190, 682, 572, "#08120f", "#527d68", 2)
+        self.text(55, 207, "MATRIZ DE CÂMERAS  /  CANAIS LOCAIS", 8, "#86c7a5", "nw")
+
+        background_name = {
+            "loja_24h": "loja_24_horas.png",
+            "edificio_9": "edificio_residencial.png",
+            "cinema_vazio": "cinema_ultima_sessao.png",
+            "laboratorio": "laboratorio_experimental.png",
+        }.get(scene_id)
+        background_path = Path(__file__).resolve().parent / "assets" / "ambientes" / (background_name or "")
+        source_image = None
+        if background_path.is_file():
+            try:
+                with Image.open(background_path) as source:
+                    source_image = source.convert("RGB")
+            except OSError:
+                source_image = None
+
+        channel_names = [
+            "ENTRADA", "CORREDOR", "ÁREA CENTRAL",
+            "ACESSO LATERAL", "FUNDO", "PONTO CEGO"
+        ]
+        grid_x = [55, 268, 481]
+        grid_y = [230, 395]
+        self.surveillance_images = {}
+
+        for index in range(6):
+            col = index % 3
+            row = index // 3
+            x = grid_x[col]
+            y = grid_y[row]
+            width, height = 194, 150
+            hotspot = hotspots[index % len(hotspots)] if hotspots else None
+            selected = bool(
+                hotspot and self.current_camera_hotspot
+                and hotspot["id"] == self.current_camera_hotspot.get("id")
+            )
+            outline = "#d9b26d" if selected else "#38594d"
+            self.rect(x, y, x + width, y + height, "#020807", outline, 2)
+
+            feed = None
+            if source_image is not None:
+                src_w, src_h = source_image.size
+                crop_col = index % 3
+                crop_row = index // 3
+                x1 = int(crop_col * src_w / 3)
+                x2 = int((crop_col + 1) * src_w / 3)
+                y1 = int(crop_row * src_h / 2)
+                y2 = int((crop_row + 1) * src_h / 2)
+                crop = source_image.crop((x1, y1, x2, y2)).resize((178, 108), Image.Resampling.LANCZOS)
+                cache_key = (scene_id, index, src_w, src_h)
+                if cache_key not in self.surveillance_images:
+                    self.surveillance_images[cache_key] = ImageTk.PhotoImage(crop, master=self.root)
+                feed = self.surveillance_images[cache_key]
+
+            if feed is not None:
+                self.canvas.create_image(x + 8, y + 8, image=feed, anchor="nw")
+            else:
+                self.rect(x + 8, y + 8, x + 186, y + 116, "#020807", "#27493c", 1)
+                self.text(x + 97, y + 62, "SEM SINAL", 9, "#d07762")
+
+            # CRT scanlines and timestamp make each panel read as a surveillance feed.
+            for scan_y in range(y + 10, y + 115, 5):
+                self.rect(x + 8, scan_y, x + 186, scan_y + 1, "#071c16")
+            self.rect(x + 8, y + 8, x + 186, y + 116, "", "#48765c", 1)
+            self.text(x + 14, y + 124, f"CAM-{index + 1:02d}  /  {channel_names[index]}", 7, "#94c7a7", "nw")
+            self.text(x + 180, y + 124, "REC", 7, "#d76a57", "ne")
+
+            if hotspot:
+                self.targets.append((
+                    (x, y, x + width, y + height),
+                    lambda h=hotspot: self.select_surveillance_feed(h)
+                ))
+
+        # Painel do operador: seleciona o alvo e permite registrar foto.
+        self.rect(730, 190, 985, 572, "#0b1517", "#8a7049", 2)
+        self.text(750, 215, "ESTAÇÃO DO OPERADOR", 9, "#d6ad70", "nw")
+        self.text(750, 250, "CANAL SELECIONADO", 8, "#8fc9a8", "nw")
+        selected_label = (
+            self.current_camera_hotspot.get("label", "—")
+            if self.current_camera_hotspot else "Nenhum canal selecionado"
+        )
+        self.text(750, 280, selected_label.upper(), 13, self.TEXT, "nw", 215)
+        self.text(750, 325, "Aproxime a imagem, compare o ambiente e registre uma anomalia.", 9, self.MUTED, "nw", 215)
+
+        remaining = self.game.get_tool_resource("camera")
+        camera_active = self.game.get_tool_state("camera")
+        self.text(750, 390, f"FILME DISPONÍVEL: {remaining}", 10, "#d6ad70", "nw")
+        if camera_active:
+            self.text(750, 418, "CÂMERA ARMADA", 9, "#8bc9a0", "nw")
+        else:
+            self.text(750, 418, "CÂMERA EM ESPERA", 9, self.MUTED, "nw")
+
+        if self.current_camera_hotspot:
+            evidence_found = any(
+                item.get("id") == self.current_camera_hotspot["id"]
+                and item.get("mission") == mission["id"]
+                for item in self.game.state.get("evidence", [])
+            )
+            if evidence_found:
+                self.text(750, 455, "EVIDÊNCIA JÁ ARQUIVADA", 8, "#8bc9a0", "nw")
+            elif remaining > 0:
+                self.button(750, 470, 215, "FOTOGRAFAR CANAL", self.capture_surveillance_feed, 36)
+            else:
+                self.text(750, 480, "SEM FILME. USE A OBSERVAÇÃO MANUAL.", 8, "#d07762", "nw", 210)
+
+        self.button(750, 520, 215, "VOLTAR À INVESTIGAÇÃO", self.show_investigation, 36)
+        self.bind_clicks()
+
+    def select_surveillance_feed(self, hotspot):
+        self.current_camera_hotspot = hotspot
+        self.show_surveillance()
+
+    def capture_surveillance_feed(self):
+        hotspot = self.current_camera_hotspot
+        if not hotspot:
+            return
+        try:
+            self.game.consume_tool_resource("camera", 1)
+            self.game.record_evidence(
+                hotspot["id"],
+                "FOTO CCTV / " + hotspot.get("finding", "Anomalia registrada no circuito interno.")
+            )
+            self.play_effect("acerto.wav")
+        except (RuntimeError, ValueError):
+            self.play_effect("erro.wav")
+        self.show_surveillance()
 
     def show_evidence_report(self):
         """Dossiê diegético com todas as evidências registradas no contrato atual."""
