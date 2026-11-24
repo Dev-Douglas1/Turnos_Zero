@@ -187,9 +187,9 @@ class TurnosZeroApp:
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("RECURSOS HUMANOS / ADMISSÃO","Escolha seu vínculo","O tipo de contrato altera sua resistência e remuneração.")
         descriptions = [
-            ("estagiario","ESTAGIÁRIO","5 pontos de estabilidade · salário padrão"),
-            ("efetivo","EFETIVO","4 pontos de estabilidade · adicional de 25%"),
-            ("terceirizado","TERCEIRIZADO","3 pontos de estabilidade · adicional de 60%")
+            ("estagiario","ESTAGIÁRIO","5 pontos de estabilidade · suporta 2 violações · salário padrão"),
+            ("efetivo","EFETIVO","4 pontos de estabilidade · 1 violação encerra o contrato · adicional de 25%"),
+            ("terceirizado","TERCEIRIZADO","3 pontos de estabilidade · 1 violação encerra o contrato · adicional de 60%")
         ]
         for i,(key,label,desc) in enumerate(descriptions):
             y=220+i*112
@@ -327,9 +327,10 @@ class TurnosZeroApp:
         self.rect(100,220,924,520,self.PANEL,"#8b6b42",2)
         self.text(150,280,f"STATUS: {state.get('status','—').upper()}",18,self.GOLD,"nw")
         self.text(150,340,f"Saldo acumulado: R$ {state.get('cash',0):,}".replace(",", "."),15,self.TEXT,"nw")
+        self.text(150,375,f"Reputação acumulada: {state.get('reputation',0)}",13,self.MUTED,"nw")
         if completed:
-            self.text(150,395,f"Locais concluídos: {len(state.get('completed', []))}/{len(MISSIONS)}",13,self.MUTED,"nw")
-            self.text(150,435,"Seu expediente terminou. O arquivo permanece aberto.",12,self.MUTED,"nw")
+            self.text(150,415,f"Locais concluídos: {len(state.get('completed', []))}/{len(MISSIONS)}",13,self.MUTED,"nw")
+            self.text(150,455,"Seu expediente terminou. O arquivo permanece aberto.",12,self.MUTED,"nw")
         else:
             self.text(150,395,state.get("last_reveal", "A agência agradece seus serviços."),12,self.MUTED,"nw",700)
         self.button(650,555,230,"VOLTAR AO MENU",self.menu,44)
