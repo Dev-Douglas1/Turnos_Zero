@@ -56,6 +56,31 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertGreater(DIFFICULTIES["terceirizado"]["salary"], DIFFICULTIES["estagiario"]["salary"])
         self.assertEqual(len(MISSIONS), 4)
 
+    def test_dificuldade_define_local_inicial(self):
+        expected = {
+            "estagiario": "loja_24h",
+            "efetivo": "edificio_9",
+            "terceirizado": "cinema_vazio",
+        }
+        for difficulty, mission_id in expected.items():
+            game = ShiftGame(self.game.save_path.parent / f"{difficulty}.json",
+                             self.game.history_path.parent / f"{difficulty}-history.json")
+            game.start_campaign("Teste", difficulty)
+            self.assertEqual(game.mission["id"], mission_id)
+
+    def test_ordem_de_missoes_persiste_ao_reabrir(self):
+        self.game.start_campaign("Teste", "efetivo")
+        self.assertEqual(self.game.mission["id"], "edificio_9")
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertEqual(reopened.mission["id"], "edificio_9")
+        self.assertEqual(reopened.state["mission_order"][0], "edificio_9")
+
+    def test_relatorio_de_ocorrencia_tem_mensagem(self):
+        self.game.start_shift()
+        result = self.game.act(self.game.task["correct"])
+        self.assertTrue(result.get("message"))
+        self.assertIn("message", result)
+
     def test_contratos_continuam_e_recompensas_dobram(self):
         expected_rewards = [50, 100, 200, 400, 800]
         expected_risks = [1, 2, 4, 8, 16]
