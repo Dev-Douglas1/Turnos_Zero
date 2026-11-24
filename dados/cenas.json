@@ -5,19 +5,19 @@
     {
       "id": "agencia",
       "name": "Agência",
-      "background": "assets/ambientes/agencia_menu.png",
+      "background": "assets/ambientes/agencia_menu.svg",
       "hotspots": []
     },
     {
       "id": "cidade",
       "name": "Cidade noturna",
-      "background": "assets/ambientes/cidade_noturna.png",
+      "background": "assets/ambientes/cidade_noturna.svg",
       "hotspots": []
     },
     {
       "id": "loja_24h",
       "name": "Loja 24 horas",
-      "background": "assets/ambientes/loja_24_horas.png",
+      "background": "assets/ambientes/loja_24_horas.svg",
       "hotspots": [
         {
           "id": "caixa",
@@ -46,7 +46,7 @@
     {
       "id": "edificio_9",
       "name": "Edifício Residencial 9",
-      "background": "assets/ambientes/edificio_residencial.png",
+      "background": "assets/ambientes/edificio_residencial.svg",
       "hotspots": [
         {
           "id": "elevador",
@@ -64,7 +64,7 @@
     {
       "id": "cinema_vazio",
       "name": "Última Sessão",
-      "background": "assets/ambientes/cinema_ultima_sessao.png",
+      "background": "assets/ambientes/cinema_ultima_sessao.svg",
       "hotspots": [
         {
           "id": "tela",
@@ -93,7 +93,7 @@
     {
       "id": "laboratorio",
       "name": "Laboratório experimental",
-      "background": "assets/ambientes/laboratorio_experimental.png",
+      "background": "assets/ambientes/laboratorio_experimental.svg",
       "hotspots": [
         {
           "id": "terminal",
