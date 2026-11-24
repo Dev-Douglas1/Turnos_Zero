@@ -1,76 +1,78 @@
 # Roteiro de apresentação — Turnos Zero
 
-> Roteiro-base de 5 a 7 minutos. Ajustar a duração ao tempo definido pelo professor.
+> Roteiro-base de 5 a 7 minutos. Ajustar ao tempo definido pelo professor.
 
 ## 1. Abertura — 40 segundos
 
-**Turnos Zero** é um jogo narrativo de investigação e horror sobrenatural. O jogador trabalha para uma agência fictícia que envia funcionários a locais com ocorrências anômalas. Cada contrato exige observar o ambiente, interpretar protocolos e tomar decisões sob risco.
+**Turnos Zero** é um jogo 2D de investigação e horror sobrenatural. O jogador trabalha para uma agência fictícia que envia funcionários a locais com ocorrências anômalas. Cada contrato exige observar o ambiente, interpretar protocolos, manipular objetos e sobreviver à presença.
 
 ## 2. Problema e proposta — 50 segundos
 
-A proposta é transformar leitura de pistas e tomada de decisão em mecânicas de jogo. Em vez de apenas escolher uma resposta, o jogador pode investigar o cenário, registrar evidências e usar essas informações para justificar decisões ou desbloquear alternativas.
+A proposta é transformar observação e tomada de decisão em mecânicas. O jogador não apenas escolhe respostas: explora ambientes ilustrados, examina objetos independentes, registra evidências, consulta equipamentos e decide quando se esconder.
 
 ## 3. Tecnologias e arquitetura — 60 segundos
 
-- **Python:** regras, progressão, persistência e lógica das missões.
+- **Python:** regras de jogo, progressão, ameaças e persistência.
 - **Tkinter Canvas:** interface gráfica e interação por clique.
-- **JSON:** catálogo de cenas e armazenamento local da campanha e do histórico.
-- **SVG e PNG:** ilustrações editáveis e imagens carregadas pelo jogo.
-- **unittest e GitHub Actions:** testes automatizados e validação contínua.
+- **JSON:** catálogo de ambientes, camadas e armazenamento de campanha.
+- **SVG e PNG:** fundos e objetos editáveis.
+- **WAV:** paisagens sonoras originais por missão.
+- **unittest e GitHub Actions:** testes automatizados em Python 3.10, 3.11 e 3.12.
 
 Arquivos centrais:
-- `main.py`: interface gráfica e modo terminal.
-- `turnos_zero.py`: motor de jogo, decisões, dificuldade, pagamentos e salvamento.
-- `scene_manager.py`: validação das cenas e identificação dos hotspots.
-- `dados/cenas.json`: ambientes, áreas clicáveis e evidências.
+- `main.py`: interface gráfica, terminal, CCTV e equipamentos.
+- `turnos_zero.py`: economia, ocorrências, ameaças e salvamento.
+- `scene_manager.py`: cenas e hotspots.
+- `dados/objetos_cenas.json`: camadas, estados visuais e áreas clicáveis.
 
 ## 4. Demonstração — 2 a 3 minutos
 
 1. Abrir o menu e criar um contrato.
-2. Mostrar os três vínculos e explicar que estabilidade e tolerância a falhas variam.
-3. Mostrar a dívida, o primeiro pagamento e o fator de risco.
-4. Abrir a ordem de serviço e ler os protocolos.
-5. Entrar na investigação da Loja 24 horas e demonstrar a lanterna, rádio e câmera.
-6. Selecionar a geladeira, abrir a ficha de inspeção, examinar e manipular o objeto.
-7. Mostrar a alteração visual persistente, fotografar a evidência e abrir o dossiê de campo.
-8. Avançar para a ocorrência e demonstrar a influência da pista na decisão.
-9. Mostrar o relatório, a reputação e a consequência; se houver tempo, abrir o terminal CRT do laboratório.
+2. Mostrar dívida de R$ 1.000.000, pagamento de R$ 50 e risco x1.
+3. Ler o dossiê e os protocolos da Loja 24 horas.
+4. Entrar na investigação e apontar os objetos independentes no cenário.
+5. Examinar o balcão ou a geladeira; mostrar a ficha e a evidência.
+6. Manipular um segundo objeto até a pressão anômala ativar a presença.
+7. Mostrar a silhueta na borda do ambiente e abrir a central CCTV.
+8. Localizar o canal suspeito, armar a câmera e fotografar a evidência.
+9. Voltar ao ambiente, usar o abrigo atrás do balcão e resolver a ocorrência.
+10. Mostrar a consequência da ameaça, o relatório e a recompensa.
 
-**Rota reserva:** executar `python main.py --terminal` e demonstrar a investigação textual se a interface gráfica apresentar problema no computador da apresentação.
+**Rota reserva:** executar `python main.py --terminal` para demonstrar investigação textual, manipulação, rádio e abrigo se houver problema na interface gráfica.
 
 ## 5. Escopo do jogo — 40 segundos
 
-A campanha inicial possui quatro contratos:
+A campanha inicial possui quatro ambientes:
 1. Loja 24 horas.
 2. Edifício Residencial 9.
 3. Última Sessão.
 4. Protocolo de Contenção.
 
-Cada contrato possui três ocorrências, regras próprias e um desfecho narrativo.
+Cada missão possui objetos e protocolos próprios, três ocorrências, evidências e um abrigo específico.
 
 ## 6. Economia e progressão — 30 segundos
 
-A dívida começa em R$ 1.000.000. O primeiro contrato paga R$ 50 e os valores dobram a cada trabalho concluído. O risco também dobra, tornando cada expediente progressivamente mais perigoso.
+A dívida começa em R$ 1.000.000. O primeiro contrato paga R$ 50; os valores dobram a cada trabalho concluído. O risco também dobra, tornando cada expediente progressivamente mais perigoso.
 
 ## 7. Qualidade e validação — 40 segundos
 
-O projeto possui testes automatizados para progressão, salvamento, retomada, evidências, escolhas, dificuldade, pagamento, histórico e validação de cenas. O GitHub Actions compila os módulos, exporta os PNGs, executa os testes e valida os arquivos JSON.
+O projeto possui testes automatizados para progressão, salvamento, retomada, evidências, equipamentos, pressão anômala, abrigo e referências das cenas. O GitHub Actions exporta as artes, compila os módulos e executa a suíte em três versões do Python.
 
-Não apresentar o teste automatizado como substituto do teste manual da interface no Windows. Essa validação deve ser realizada no computador usado na apresentação.
+Não apresentar o CI como substituto de teste manual da interface e do áudio no Windows. Essa validação deve ser feita no computador da apresentação.
 
 ## 8. Encerramento — 20 segundos
 
-Turnos Zero demonstra a integração entre programação, interface gráfica, estruturas de dados, persistência JSON, testes e narrativa interativa. O projeto pode crescer com novos contratos, ferramentas, personagens e consequências entre missões.
+Turnos Zero integra programação, interface gráfica, estruturas de dados, persistência JSON, edição de assets, testes e narrativa interativa. O projeto pode crescer com novos contratos, eventos ambientais, funcionários recorrentes e finais alternativos.
 
 ---
 
 ## Checklist antes de apresentar
 
-- [ ] Executar `python main.py` no Windows e conferir a abertura do menu.
-- [ ] Testar clique em todos os hotspots dos quatro contratos.
-- [ ] Testar uma decisão alternativa com e sem a evidência necessária.
+- [ ] Executar `python main.py` no Windows e conferir o menu.
+- [ ] Conferir os fundos 16:9 e os objetos clicáveis nas quatro missões.
+- [ ] Testar exame e manipulação de objetos.
+- [ ] Testar ativação da presença, CCTV e uso único do abrigo.
+- [ ] Testar lanterna, rádio, câmera e reprodução de áudio.
 - [ ] Conferir salvamento e retomada da campanha.
-- [ ] Conferir resolução e escala da janela no computador da apresentação.
-- [ ] Deixar o repositório e este roteiro acessíveis.
-- [ ] Gravar um vídeo curto de reserva, caso a interface falhe.
-- [ ] Não usar um save com campanha concluída para a demonstração inicial; preparar um save de demonstração separado.
+- [ ] Preparar um save de demonstração separado.
+- [ ] Gravar um vídeo curto de reserva.
