@@ -47,6 +47,15 @@ class SceneManager:
             result[sid] = scene
         return result
 
+    @staticmethod
+    def map_bounds(bounds: list, viewport: tuple) -> tuple:
+        """Converte limites normalizados (0..1) para coordenadas do Canvas."""
+        x1, y1, x2, y2 = bounds
+        left, top, right, bottom = viewport
+        width, height = right - left, bottom - top
+        return (left + x1 * width, top + y1 * height,
+                left + x2 * width, top + y2 * height)
+
     def get(self, scene_id: str) -> dict:
         try:
             return self.scenes[scene_id]
