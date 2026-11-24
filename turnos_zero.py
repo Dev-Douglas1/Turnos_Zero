@@ -199,7 +199,9 @@ class ShiftGame:
         self.state["shift_index"] += 1
         if self.state["shift_index"] >= len(MISSIONS):
             self.state["shift_index"] = 0
-        return self.start_shift()
+        self.state["status"] = "between_shifts"
+        self.save()
+        return self.mission
 
     def abandon(self):
         if self.state:
