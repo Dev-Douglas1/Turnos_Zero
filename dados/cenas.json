@@ -23,25 +23,37 @@
           "id": "caixa",
           "label": "Balcão do caixa",
           "bounds": [
-            0.05,
-            0.55,
-            0.42,
-            0.96
+            0.02,
+            0.48,
+            0.41,
+            0.98
           ],
-          "action": "inspect_cashier",
+          "action": "inspect",
           "finding": "O livro-caixa registra vendas às 02:13 com o nome de um funcionário desaparecido."
+        },
+        {
+          "id": "porta",
+          "label": "Porta de vidro",
+          "bounds": [
+            0.43,
+            0.08,
+            0.63,
+            0.86
+          ],
+          "action": "inspect",
+          "finding": "Uma mão aparece pelo lado de dentro do vidro, embora a loja esteja vazia."
         },
         {
           "id": "geladeira",
           "label": "Geladeira",
           "bounds": [
-            0.58,
-            0.12,
-            0.94,
-            0.85
+            0.68,
+            0.04,
+            0.95,
+            0.95
           ],
-          "action": "inspect_fridge",
-          "finding": "A condensação na porta forma letras: NÃO ATENDA."
+          "action": "inspect",
+          "finding": "A condensação forma uma mensagem que muda quando você desvia o olhar: NÃO ATENDA."
         }
       ]
     },
@@ -51,16 +63,52 @@
       "background": "assets/ambientes/edificio_residencial.png",
       "hotspots": [
         {
+          "id": "porta",
+          "label": "Porta do apartamento 503",
+          "bounds": [
+            0.04,
+            0.12,
+            0.26,
+            0.92
+          ],
+          "action": "inspect",
+          "finding": "A placa indica 503, mas um segundo algarismo foi riscado por dentro do metal. Há marcas recentes na fechadura."
+        },
+        {
           "id": "elevador",
           "label": "Elevador",
           "bounds": [
             0.34,
-            0.08,
-            0.65,
+            0.04,
+            0.64,
             0.96
           ],
-          "action": "inspect_elevator",
-          "finding": "O painel tem um botão 0 instalado atrás da placa de manutenção."
+          "action": "inspect",
+          "finding": "O elevador abre para um corredor que não existe na planta do edifício."
+        },
+        {
+          "id": "presenca",
+          "label": "Presença",
+          "bounds": [
+            0.42,
+            0.25,
+            0.59,
+            0.9
+          ],
+          "action": "inspect",
+          "finding": "Uma figura permanece imóvel no elevador. O reflexo dela se move antes do corpo."
+        },
+        {
+          "id": "painel",
+          "label": "Painel",
+          "bounds": [
+            0.73,
+            0.3,
+            0.85,
+            0.85
+          ],
+          "action": "inspect",
+          "finding": "O botão 0 está aceso, embora o painel não tenha ligação elétrica."
         }
       ]
     },
@@ -70,28 +118,52 @@
       "background": "assets/ambientes/cinema_ultima_sessao.png",
       "hotspots": [
         {
+          "id": "projetor",
+          "label": "Projetor",
+          "bounds": [
+            0,
+            0.36,
+            0.27,
+            0.98
+          ],
+          "action": "inspect",
+          "finding": "O projetor continua funcionando, embora tenha sido desligado da tomada há anos."
+        },
+        {
           "id": "tela",
           "label": "Tela de projeção",
           "bounds": [
-            0.2,
-            0.05,
-            0.8,
+            0.26,
+            0.03,
+            0.75,
             0.65
           ],
-          "action": "inspect_screen",
-          "finding": "A película da tela contém marcas de dedos pelo lado de dentro."
+          "action": "inspect",
+          "finding": "As marcas de mãos estão no lado interno da tela, como se alguém tentasse sair por ela."
         },
         {
           "id": "poltronas",
           "label": "Poltronas",
           "bounds": [
-            0.05,
-            0.55,
-            0.95,
+            0.6,
+            0.5,
+            0.85,
             0.98
           ],
-          "action": "inspect_seats",
-          "finding": "Um bilhete de assento está marcado com o nome do funcionário."
+          "action": "inspect",
+          "finding": "Um assento está deformado pelo peso de alguém que não aparece na gravação."
+        },
+        {
+          "id": "espectador",
+          "label": "Espectador",
+          "bounds": [
+            0.42,
+            0.54,
+            0.62,
+            0.98
+          ],
+          "action": "inspect",
+          "finding": "O espectador não tem rosto. O ingresso em seu colo traz o nome do funcionário."
         }
       ]
     },
@@ -101,16 +173,52 @@
       "background": "assets/ambientes/laboratorio_experimental.png",
       "hotspots": [
         {
+          "id": "camara_vazia",
+          "label": "Câmara vazia",
+          "bounds": [
+            0.02,
+            0.08,
+            0.27,
+            0.96
+          ],
+          "action": "inspect",
+          "finding": "Os fechos estão intactos, mas o interior da câmara está molhado por dentro."
+        },
+        {
+          "id": "camara",
+          "label": "Câmara C-03",
+          "bounds": [
+            0.34,
+            0.02,
+            0.64,
+            0.96
+          ],
+          "action": "inspect",
+          "finding": "A figura dentro da câmara acompanha seus movimentos com atraso de alguns segundos."
+        },
+        {
           "id": "terminal",
           "label": "Terminal de controle",
           "bounds": [
-            0.35,
-            0.25,
-            0.72,
-            0.92
+            0.65,
+            0.37,
+            0.95,
+            0.97
           ],
-          "action": "inspect_terminal",
+          "action": "inspect",
           "finding": "O terminal registra uma sessão iniciada há onze anos e ainda ativa."
+        },
+        {
+          "id": "luz",
+          "label": "Luz de emergência",
+          "bounds": [
+            0.83,
+            0.01,
+            0.97,
+            0.29
+          ],
+          "action": "inspect",
+          "finding": "A luz pisca em código Morse, repetindo o número do seu contrato."
         }
       ]
     }
