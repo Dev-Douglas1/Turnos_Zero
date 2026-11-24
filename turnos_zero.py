@@ -154,7 +154,7 @@ class ShiftGame:
             return False
         if state.get("difficulty") not in DIFFICULTIES:
             return False
-        if type(state.get("shift_index")) is not int or not 0 <= state["shift_index"] <= len(MISSIONS):
+        if type(state.get("shift_index")) is not int or not 0 <= state["shift_index"] <= 60:
             return False
         if type(state.get("task_index")) is not int or not 0 <= state["task_index"] <= 3:
             return False
@@ -162,18 +162,15 @@ class ShiftGame:
         task_index = state["task_index"]
         status = state["status"]
         # Estados incompatíveis com a posição da campanha não podem ser retomados.
-        if status == "campaign_completed" and shift_index != len(MISSIONS):
+        if status == "campaign_completed" and shift_index < len(MISSIONS):
             return False
-        if status != "campaign_completed" and shift_index >= len(MISSIONS):
-            return False
-        if status == "on_shift" and (shift_index >= len(MISSIONS) or task_index >= len(MISSIONS[shift_index]["tasks"])):
+        if status == "on_shift" and task_index >= len(MISSIONS[shift_index % len(MISSIONS)]["tasks"]):
             return False
         if status == "between_shifts" and task_index not in (0, len(MISSIONS[shift_index]["tasks"])):
             return False
         if status == "ended" and task_index not in range(1, len(MISSIONS[shift_index]["tasks"]) + 1):
             return False
-        if status == "campaign_completed" and task_index != len(MISSIONS[shift_index - 1]["tasks"]):
-            return False
+        if status == "campaign_completed" and task_index != len(MISSIONS[(shift_index - 1) % len(MISSIONS)]["tasks"]):
         if not isinstance(state.get("player"), str) or not state["player"].strip() or len(state["player"]) > 24:
             return False
         if (type(state.get("cash")) is not int or
@@ -181,17 +178,10 @@ class ShiftGame:
             return False
         if type(state.get("initial_debt", 1_000_000)) is not int or state.get("initial_debt", 1_000_000) <= 0:
             return False
-        mission_ids = {m["id"] for m in MISSIONS}
-        if not isinstance(state.get("completed"), list) or not all(x in mission_ids for x in state["completed"]):
+        if not isinstance(state.get("completed"), list) or not all(isinstance(x, str) and x for x in state["completed"]):
             return False
-        if len(state["completed"]) != len(set(state["completed"])):
-            return False
-        valid_completed_counts = {shift_index}
-        if status == "between_shifts" and task_index == len(MISSIONS[shift_index]["tasks"]):
-            valid_completed_counts = {shift_index + 1} if shift_index == 0 else {shift_index, shift_index + 1}
-        if status == "campaign_completed":
-            valid_completed_counts = {len(MISSIONS)}
-        if len(state["completed"]) not in valid_completed_counts or state["completed"] != [m["id"] for m in MISSIONS[:len(state["completed"])]]:
+        expected_completed = shift_index + 1 if status == "between_shifts" and task_index == 3 else shift_index
+        if len(state["completed"]) != expected_completed:
             return False
         if not isinstance(state.get("evidence", []), list):
             return False
@@ -219,7 +209,15 @@ class ShiftGame:
 
     @property
     def mission(self):
-        return MISSIONS[self.state["shift_index"] % len(MISSIONS)]
+        index = self.state["shift_index"]
+        base = MISSIONS[index % len(MISSIONS)]
+        mission = dict(base)
+        mission["scene_id"] = base["id"]
+        mission["pay"] = 50 * (2 ** index)
+        if index >= len(MISSIONS):
+            mission["id"] = base["id"] + "#contrato-" + str(index + 1)
+            mission["title"] = base["title"] + " — CONTRATO " + str(index + 1)
+        return mission
 
     @property
     def task(self):
@@ -320,11 +318,6 @@ class ShiftGame:
         if self.state is None or self.state["status"] != "between_shifts":
             raise RuntimeError("Não é possível iniciar outro turno agora.")
         self.state["shift_index"] += 1
-        if self.state["shift_index"] >= len(MISSIONS):
-            self.state["status"] = "campaign_completed"
-            self.state["completed_at"] = datetime.now().isoformat(timespec="seconds")
-            self.save()
-            return None
         self.state.update(status="between_shifts", task_index=0)
         self.save()
         return self.mission
