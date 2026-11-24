@@ -938,7 +938,7 @@ class TurnosZeroApp:
             return
 
         outstanding = max(0, -int(state.get("cash", 0)))
-        credit = min(100_000, max(25_000, outstanding // 10)) if outstanding else 0
+        credit = min(outstanding, 100_000, max(25_000, outstanding // 10)) if outstanding else 0
         state["cash"] = int(state.get("cash", 0)) + credit
         state["loan_shark_accepted"] = True
         state["loan_shark_credit_total"] = int(state.get("loan_shark_credit_total", 0)) + credit
