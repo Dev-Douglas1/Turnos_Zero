@@ -116,8 +116,10 @@ class TurnosZeroApp:
         self.rect(100,220,924,490,self.PANEL,"#8b6b42",2)
         self.text(150,285,"PONTO DE INTERESSE IDENTIFICADO",14,self.GOLD,"nw")
         self.text(150,335,f"Referência: {hotspot.get('id')}",12,self.TEXT,"nw")
-        self.text(150,375,f"Ação configurada: {hotspot.get('action','inspect')}",12,self.MUTED,"nw")
-        self.text(150,430,"A análise detalhada deste objeto será ligada às evidências da missão.",11,self.MUTED,"nw",700)
+        self.text(150,375,f"Ação: {hotspot.get('action','inspect')}",12,self.MUTED,"nw")
+        finding = hotspot.get("finding", "Nenhuma evidência identificada.")
+        recorded = self.game.record_evidence(hotspot["id"], finding) if self.game.state and self.game.state.get("status") == "on_shift" else False
+        self.text(150,430,f"EVIDÊNCIA REGISTRADA: {finding}" if recorded else f"REGISTRO EXISTENTE: {finding}",12,self.TEXT,"nw",700)
         self.button(650,535,230,"VOLTAR À OCORRÊNCIA",self.show_task,44)
         self.bind_clicks()
 
