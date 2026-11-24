@@ -70,7 +70,8 @@
             0.41,
             0.98
           ],
-          "finding": "O livro-caixa registra vendas às 02:13 com o nome de um funcionário desaparecido."
+          "finding": "O livro-caixa registra vendas às 02:13 com o nome de um funcionário desaparecido.",
+          "object": "balcao"
         },
         {
           "id": "porta",
@@ -81,7 +82,8 @@
             0.63,
             0.86
           ],
-          "finding": "Uma mão aparece pelo lado de dentro do vidro, embora a loja esteja vazia."
+          "finding": "Uma mão aparece pelo lado de dentro do vidro, embora a loja esteja vazia.",
+          "object": "porta_fria"
         },
         {
           "id": "geladeira",
@@ -92,7 +94,8 @@
             0.95,
             0.95
           ],
-          "finding": "A condensação forma uma mensagem que muda quando você desvia o olhar: NÃO ATENDA."
+          "finding": "A condensação forma uma mensagem que muda quando você desvia o olhar: NÃO ATENDA.",
+          "object": "geladeira"
         }
       ]
     },
@@ -159,7 +162,8 @@
             0.26,
             0.92
           ],
-          "finding": "A porta está trancada por dentro, mas há marcas recentes no lado externo."
+          "finding": "A porta está trancada por dentro, mas há marcas recentes no lado externo.",
+          "object": "porta_apartamento"
         },
         {
           "id": "elevador",
@@ -170,7 +174,8 @@
             0.64,
             0.96
           ],
-          "finding": "O elevador abre para um corredor que não existe na planta do edifício."
+          "finding": "O elevador abre para um corredor que não existe na planta do edifício.",
+          "object": "elevador"
         },
         {
           "id": "presenca",
@@ -181,7 +186,8 @@
             0.59,
             0.9
           ],
-          "finding": "Uma figura permanece imóvel no elevador. O reflexo dela se move antes do corpo."
+          "finding": "Uma figura permanece imóvel no elevador. O reflexo dela se move antes do corpo.",
+          "object": "presenca"
         },
         {
           "id": "painel",
@@ -192,7 +198,8 @@
             0.85,
             0.85
           ],
-          "finding": "O botão 0 está aceso, embora o painel não tenha ligação elétrica."
+          "finding": "O botão 0 está aceso, embora o painel não tenha ligação elétrica.",
+          "object": "painel"
         }
       ]
     },
@@ -259,7 +266,8 @@
             0.27,
             0.98
           ],
-          "finding": "O projetor continua funcionando, embora tenha sido desligado da tomada há anos."
+          "finding": "O projetor continua funcionando, embora tenha sido desligado da tomada há anos.",
+          "object": "projetor"
         },
         {
           "id": "tela",
@@ -270,7 +278,8 @@
             0.75,
             0.65
           ],
-          "finding": "As marcas de mãos estão no lado interno da tela, como se alguém tentasse sair por ela."
+          "finding": "As marcas de mãos estão no lado interno da tela, como se alguém tentasse sair por ela.",
+          "object": "tela"
         },
         {
           "id": "poltronas",
@@ -281,7 +290,8 @@
             0.85,
             0.98
           ],
-          "finding": "Um assento está deformado pelo peso de alguém que não aparece na gravação."
+          "finding": "Um assento está deformado pelo peso de alguém que não aparece na gravação.",
+          "object": "poltrona"
         },
         {
           "id": "espectador",
@@ -292,7 +302,8 @@
             0.62,
             0.98
           ],
-          "finding": "O espectador não tem rosto. O ingresso em seu colo traz o nome do funcionário."
+          "finding": "O espectador não tem rosto. O ingresso em seu colo traz o nome do funcionário.",
+          "object": "espectador"
         }
       ]
     },
@@ -359,7 +370,8 @@
             0.27,
             0.96
           ],
-          "finding": "Os fechos estão intactos, mas o interior da câmara está molhado por dentro."
+          "finding": "Os fechos estão intactos, mas o interior da câmara está molhado por dentro.",
+          "object": "camara_vazia"
         },
         {
           "id": "camara",
@@ -370,7 +382,8 @@
             0.64,
             0.96
           ],
-          "finding": "A figura dentro da câmara acompanha seus movimentos com atraso de alguns segundos."
+          "finding": "A figura dentro da câmara acompanha seus movimentos com atraso de alguns segundos.",
+          "object": "camara_presenca"
         },
         {
           "id": "terminal",
@@ -381,7 +394,8 @@
             0.95,
             0.97
           ],
-          "finding": "O terminal registra uma sessão iniciada há onze anos e ainda ativa."
+          "finding": "O terminal registra uma sessão iniciada há onze anos e ainda ativa.",
+          "object": "terminal"
         },
         {
           "id": "luz",
@@ -392,7 +406,8 @@
             0.97,
             0.29
           ],
-          "finding": "A luz pisca em código Morse, repetindo o número do seu contrato."
+          "finding": "A luz pisca em código Morse, repetindo o número do seu contrato.",
+          "object": "luminaria"
         }
       ]
     }
