@@ -24,8 +24,8 @@ MISSIONS = [
         ],
         "tasks": [
             {"prompt": "02:13. A música para. Uma pessoa está parada diante da geladeira, imóvel. O que você faz?",
-             "choices": ["Apagar as luzes por dez segundos", "Perguntar se precisa de ajuda", "Ligar para a polícia"],
-             "correct": 0, "evidence_ids": ["geladeira"], "evidence_note": "A mensagem na geladeira confirma o protocolo: não interaja com o que aparece no corredor.", "success": "No escuro, a porta da geladeira abre e fecha sozinha. Quando a luz volta, o corredor está vazio.",
+             "choices": ["Apagar as luzes por dez segundos", "Perguntar se precisa de ajuda", "Seguir a mensagem da geladeira e ignorar a figura"],
+             "correct": 0, "evidence_ids": ["geladeira"], "evidence_choices": [2], "evidence_note": "A mensagem na geladeira confirma o protocolo: não interaja com o que aparece no corredor.", "success": "No escuro, a porta da geladeira abre e fecha sozinha. Quando a luz volta, o corredor está vazio.",
              "failure": "A pessoa vira o rosto devagar. O rádio chia com uma voz que repete seu nome."},
             {"prompt": "O telefone toca. Uma vez. Duas. Na terceira chamada, a tela mostra o seu próprio número.",
              "choices": ["Deixar tocar", "Atender e perguntar quem é", "Desligar a linha da parede"],
@@ -185,7 +185,8 @@ class ShiftGame:
         }
         matched_evidence = sorted(collected.intersection(task.get("evidence_ids", [])))
         evidence_used = bool(matched_evidence)
-        correct = choice_index == task["correct"]
+        correct = (choice_index == task["correct"] or
+                   (evidence_used and choice_index in task.get("evidence_choices", [])))
         if correct:
             result = {"correct": True, "message": task["success"]}
             self.state["reputation"] += 2 if evidence_used else 1
