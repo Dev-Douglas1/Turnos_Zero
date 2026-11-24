@@ -1183,7 +1183,9 @@ class TurnosZeroApp:
 
         remaining = self.game.get_tool_resource("camera")
         camera_active = self.game.get_tool_state("camera")
-        self.text(750, 390, f"FILME DISPONÍVEL: {remaining}", 10, "#d6ad70", "nw")
+        if (self.game.state or {}).get("threat_disrupted", False):
+            self.text(750, 375, "PRESENÇA INTERROMPIDA PELO FLASH", 8, "#8bc9a0", "nw")
+        self.text(750, 410, f"FILME DISPONÍVEL: {remaining}", 10, "#d6ad70", "nw")
         if camera_active:
             self.button(750, 430, 215, "DESARMAR CÂMERA", self.toggle_surveillance_camera, 34)
         else:
@@ -1234,13 +1236,14 @@ class TurnosZeroApp:
                 threat_hotspot_id is not None
                 and hotspot["id"] == threat_hotspot_id
             )
+            if captured_presence:
+                disruption_message = self.game.document_anomaly(hotspot["id"])
+                self.current_interaction_message = disruption_message
             prefix = "PRESENÇA ANÔMALA FOTOGRAFADA / CCTV. " if captured_presence else "FOTO CCTV / "
             self.game.record_evidence(
                 hotspot["id"],
                 prefix + hotspot.get("finding", "Anomalia registrada no circuito interno.")
             )
-            if captured_presence:
-                self.current_interaction_message = "A presença foi registrada no canal. A imagem foi anexada ao dossiê."
             self.play_effect("acerto.wav")
         except (RuntimeError, ValueError):
             self.play_effect("erro.wav")
