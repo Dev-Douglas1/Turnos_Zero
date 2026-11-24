@@ -22,6 +22,7 @@ class TurnosZeroApp:
         self.game = ShiftGame()
         self.scene_manager = SceneManager()
         self.scene_images = {}
+        self.active_scene = None
         self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -61,17 +62,57 @@ class TurnosZeroApp:
     def draw_scene(self, scene_id, center_x=512, center_y=390):
         try:
             scene = self.scene_manager.get(scene_id)
-            relative = scene.get("background")
-            if not relative:
-                return
-            path = Path(__file__).resolve().parent / relative
-            if not path.is_file():
-                return
-            if scene_id not in self.scene_images:
-                self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
-            self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
+            self.active_scene = scene_id
+            # SVG is kept as editable source art. Tkinter's Canvas has no native SVG
+            # renderer, so the scene is drawn with native primitives until an optional
+            # SVG rasterizer is available; gameplay remains dependency-free.
+            path = Path(__file__).resolve().parent / scene.get("background", "")
+            if path.suffix.lower() == ".png" and path.is_file():
+                if scene_id not in self.scene_images:
+                    self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
+                self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
+            else:
+                self.draw_scene_fallback(scene_id)
+            for hotspot in scene.get("hotspots", []):
+                x1,y1,x2,y2 = hotspot["bounds"]
+                self.targets.append(((x1*self.W,y1*self.H,x2*self.W,y2*self.H),
+                    lambda h=hotspot:self.inspect_hotspot(h)))
         except (SceneError, tk.TclError, OSError):
-            return
+            self.active_scene = None
+
+    def draw_scene_fallback(self, scene_id):
+        # Scene-specific geometry is intentionally native Canvas and editable.
+        if scene_id == "loja_24h":
+            self.rect(110,255,300,520,"#111c27","#81909a",3)
+            for y in (285,350,415,480): self.rect(125,y,285,y+35,"#344c5a")
+            self.rect(390,260,555,520,"#081521","#9db0ba",4)
+            self.rect(650,280,850,520,"#1d2b36","#a47c49",3)
+        elif scene_id == "edificio_9":
+            self.rect(160,245,360,520,"#111b27","#87919a",4)
+            self.rect(600,245,800,520,"#111b27","#87919a",4)
+            self.rect(410,240,550,520,"#080e16","#b59664",5)
+            self.text(480,360,"0",42,self.GOLD)
+        elif scene_id == "cinema_vazio":
+            self.rect(250,235,710,390,"#e9e6d9","#806647",4)
+            for x in (90,270,450,630,810): self.rect(x,430,x+120,520,"#442c35","#9b7854",3)
+        else:
+            self.rect(120,245,840,520,"#162632","#45606a",4)
+            self.rect(370,280,590,485,"#172833","#b39a66",5)
+            self.rect(400,310,560,395,"#08141d","#5c8e89",3)
+
+    def inspect_hotspot(self, hotspot):
+        self.screen = "inspection"
+        self.clear()
+        self.rect(0,0,self.W,self.H,self.BG)
+        self.header("INSPEÇÃO DE AMBIENTE", hotspot.get("label", hotspot["id"]),
+                    f"CENA: {self.active_scene or '—'}")
+        self.rect(100,220,924,490,self.PANEL,"#8b6b42",2)
+        self.text(150,285,"PONTO DE INTERESSE IDENTIFICADO",14,self.GOLD,"nw")
+        self.text(150,335,f"Referência: {hotspot.get('id')}",12,self.TEXT,"nw")
+        self.text(150,375,f"Ação configurada: {hotspot.get('action','inspect')}",12,self.MUTED,"nw")
+        self.text(150,430,"A análise detalhada deste objeto será ligada às evidências da missão.",11,self.MUTED,"nw",700)
+        self.button(650,535,230,"VOLTAR À OCORRÊNCIA",self.show_task,44)
+        self.bind_clicks()
 
     def click(self, event):
         logical_x = event.x * self.W / max(1, self.canvas.winfo_width())
