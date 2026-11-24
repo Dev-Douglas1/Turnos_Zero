@@ -13,7 +13,7 @@ class EditableSceneManifestTests(unittest.TestCase):
         cls.data = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     def test_manifest_viewport_matches_runtime_scene(self):
-        self.assertEqual(self.data["viewport"], [834, 315])
+        self.assertEqual(self.data["viewport"], [834, 469])
 
     def test_all_four_missions_have_independent_objects(self):
         scenes = self.data["scenes"]
@@ -33,6 +33,9 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertTrue(0 <= obj["y"] < 1)
                     self.assertTrue(0 < obj["w"] <= 1)
                     self.assertTrue(0 < obj["h"] <= 1)
+                    self.assertLessEqual(obj["x"] + obj["w"], 1)
+                    self.assertLessEqual(obj["y"] + obj["h"], 1)
+                    self.assertNotIn("..", Path(obj["asset"]).parts)
                     self.assertIsInstance(obj["z"], int)
                     self.assertIsInstance(obj["visible"], bool)
 
@@ -75,6 +78,17 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertEqual(len(interaction.get("states", [])), 2)
                     self.assertEqual(len(interaction.get("responses", [])), 2)
 
+
+    def test_background_pngs_preserve_16_9_ratio(self):
+        config = json.loads((ROOT / "dados" / "cenas.json").read_text(encoding="utf-8"))
+        for scene in config["scenes"]:
+            asset = scene.get("background")
+            if not asset:
+                continue
+            path = ROOT / asset
+            data = path.read_bytes()
+            self.assertEqual(data[:8], bytes.fromhex("89504e470d0a1a0a"))
+            self.assertEqual(struct.unpack(">II", data[16:24]), (834, 469))
 
 if __name__ == "__main__":
     unittest.main()
