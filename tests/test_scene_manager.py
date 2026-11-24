@@ -10,6 +10,11 @@ class SceneManagerTests(unittest.TestCase):
         path.write_text(json.dumps({"scenes": scenes}), encoding="utf-8")
         return path
 
+
+    def test_converte_hotspot_para_area_da_cena(self):
+        bounds = SceneManager.map_bounds([0.1, 0.2, 0.5, 0.8], (100, 200, 900, 600))
+        self.assertEqual(bounds, (180.0, 280.0, 500.0, 520.0))
+
     def test_carrega_catalogo_e_encontra_hotspot(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
