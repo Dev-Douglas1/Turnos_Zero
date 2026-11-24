@@ -165,5 +165,29 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertFalse(result["evidence_used"])
         self.assertEqual(self.game.state["reputation"], 1)
 
+    def test_rejeita_estado_com_tipos_invalidos(self):
+        state = fresh_state("Teste")
+        state["cash"] = True
+        self.assertFalse(ShiftGame._valid_state(state))
+
+    def test_rejeita_evidencia_malformada(self):
+        state = fresh_state("Teste")
+        state["evidence"] = [{"id": "pista", "mission": "inexistente", "description": "x", "task_index": 0}]
+        self.assertFalse(ShiftGame._valid_state(state))
+
+    def test_historico_nao_duplica_mesmo_turno(self):
+        self.game.start_shift()
+        for task in self.game.mission["tasks"]:
+            self.game.act(task["correct"])
+        self.assertEqual(len(self.game.history["shifts"]), 1)
+        self.game._finish_shift(True)
+        self.assertEqual(len(self.game.history["shifts"]), 1)
+
+    def test_save_antigo_em_andamento_sem_token_e_compativel(self):
+        state = fresh_state("Legado")
+        state.update(status="on_shift", task_index=1)
+        state.pop("shift_token", None)
+        self.assertTrue(ShiftGame._valid_state(state))
+
 if __name__ == "__main__":
     unittest.main()
