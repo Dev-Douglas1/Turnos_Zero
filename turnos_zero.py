@@ -313,7 +313,7 @@ class ShiftGame:
         resources = self.state.setdefault("tool_resources", dict(TOOL_RESOURCES))
         tool_states = self.state.setdefault("tool_states", {"lanterna": True, "radio": False, "camera": False})
         if tool_states.get("lanterna", True) and resources.get("lanterna", 0) > 0:
-            resources["lanterna"] = max(0, resources.get("lanterna", 0) - 10)
+            resources["lanterna"] = max(0, resources.get("lanterna", 0) - 35)
             if resources["lanterna"] == 0:
                 tool_states["lanterna"] = False
                 result["tool_warning"] = "A bateria da lanterna acabou. O ambiente ficou completamente escuro."
