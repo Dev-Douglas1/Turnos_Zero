@@ -242,10 +242,11 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(self.game.mission["id"], "laboratorio")
         self.game.start_shift()
         self.game.record_evidence("terminal", "Sessão antiga ainda ativa.")
+        reputation_before = self.game.state["reputation"]
         result = self.game.act(1)
         self.assertTrue(result["correct"])
         self.assertTrue(result["evidence_used"])
-        self.assertEqual(self.game.state["reputation"], 2)
+        self.assertEqual(self.game.state["reputation"], reputation_before + 2)
 
 if __name__ == "__main__":
     unittest.main()
