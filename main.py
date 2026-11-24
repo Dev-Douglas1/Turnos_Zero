@@ -312,6 +312,49 @@ class TurnosZeroApp:
                 )
                 self.text(left + 14, bottom - 18, "SEM ILUMINAÇÃO / LANTERNA DESLIGADA", 7, "#d07762", "sw")
 
+            # A presença entra no limite do campo visual quando a caça começa.
+            live_state = self.game.state or {}
+            if live_state.get("threat_active", False):
+                mission_id = (self.game.mission or {}).get("id")
+                threat_x_ratio = {
+                    "loja_24h": 0.80,
+                    "edificio_9": 0.52,
+                    "cinema_vazio": 0.84,
+                    "laboratorio": 0.70,
+                }.get(mission_id, 0.78)
+                ghost_x = left + view_w * threat_x_ratio
+                ghost_y = top + view_h * 0.62
+                self.canvas.create_oval(
+                    ghost_x - 18, ghost_y - 68, ghost_x + 18, ghost_y - 24,
+                    fill="#05070a", outline="#56312e", width=1,
+                    tags=("anomaly_presence",)
+                )
+                self.canvas.create_polygon(
+                    ghost_x - 13, ghost_y - 29,
+                    ghost_x + 13, ghost_y - 29,
+                    ghost_x + 34, ghost_y + 65,
+                    ghost_x - 35, ghost_y + 65,
+                    fill="#05070a", outline="#3d2928", width=1,
+                    tags=("anomaly_presence",)
+                )
+                if lantern_on:
+                    self.canvas.create_oval(
+                        ghost_x - 8, ghost_y - 52, ghost_x - 3, ghost_y - 47,
+                        fill="#bb554b", outline="", tags=("anomaly_presence",)
+                    )
+                    self.canvas.create_oval(
+                        ghost_x + 3, ghost_y - 52, ghost_x + 8, ghost_y - 47,
+                        fill="#bb554b", outline="", tags=("anomaly_presence",)
+                    )
+                self.text(left + 12, top + 16, "PRESENÇA DETECTADA", 8, "#d17870", "nw")
+            elif live_state.get("is_hidden", False):
+                self.canvas.create_rectangle(
+                    left, top, right, bottom, fill="#020406",
+                    outline="", stipple="gray50", tags=("hiding_overlay",)
+                )
+                self.text((left + right) / 2, top + 24, "NÃO SE MOVA", 10, "#b8c7b8")
+                self.text((left + right) / 2, top + 43, "RESPIRAÇÃO CONTIDA / AGUARDE", 7, "#8ca69a")
+
             # Modo câmera transforma a mesma cena em feed analógico de vigilância.
             if self.game.get_tool_state("camera"):
                 for scan_y in range(top + 3, bottom - 2, 6):
@@ -1317,7 +1360,8 @@ def terminal():
                 print(f"{i} - {hotspot.get('label', hotspot['id'])}{status}")
             print(
                 f"I - registrar pista | M - manipular objeto | R - consultar rádio ({game.get_tool_resource('radio')} transmissões) | "
-                + ("H - esconder-se | " if game.state.get("threat_active") else "")
+                + ("H - esconder-se | " if game.state.get("threat_active") and not game.state.get("is_hidden") else "")
+                + ("S - sair do esconderijo | " if game.state.get("is_hidden") else "")
                 + "ENTER - seguir"
             )
             command = input("> ").strip().lower()
@@ -1329,9 +1373,16 @@ def terminal():
                 except (RuntimeError, ValueError) as exc:
                     print("RÁDIO:", str(exc))
                 continue
-            if command == "h" and game.state.get("threat_active"):
+            if command == "h" and game.state.get("threat_active") and not game.state.get("is_hidden"):
                 try:
                     print("ABRIGO:", game.hide_from_anomaly())
+                except RuntimeError as exc:
+                    print("ABRIGO:", str(exc))
+                continue
+            if command == "s" and game.state.get("is_hidden"):
+                try:
+                    game.leave_hiding()
+                    print("Você saiu do esconderijo. A presença ainda está procurando por você.")
                 except RuntimeError as exc:
                     print("ABRIGO:", str(exc))
                 continue
