@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Instalar renderizador SVG
-        run: python -m pip install cairosvg
+        run: python -m pip install cairosvg pillow
       - name: Exportar cenários para PNG
         run: python tools/export_assets.py
       - name: Compilar módulos

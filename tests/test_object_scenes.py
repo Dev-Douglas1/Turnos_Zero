@@ -1,9 +1,11 @@
 import json
+import struct
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "dados" / "objetos_cenas.json"
+
 
 class EditableSceneManifestTests(unittest.TestCase):
     @classmethod
@@ -31,9 +33,19 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertIsInstance(obj["z"], int)
                     self.assertIsInstance(obj["visible"], bool)
 
-    def test_hotspots_are_inside_the_scene_and_have_findings(self):
+    def test_all_independent_object_pngs_are_exported(self):
         for scene_id, scene in self.data["scenes"].items():
-            object_ids = {obj["id"] for obj in scene["objects"]}
+            for obj in scene["objects"]:
+                path = ROOT / "assets" / "objetos" / obj["asset"]
+                with self.subTest(scene=scene_id, asset=obj["asset"]):
+                    self.assertTrue(path.is_file(), f"Sprite não exportado: {path}")
+                    data = path.read_bytes()
+                    self.assertEqual(data[:8], bytes.fromhex("89504e470d0a1a0a"))
+                    self.assertEqual(struct.unpack(">II", data[16:24]), (512, 512))
+
+    def test_hotspots_are_inside_the_scene_and_follow_their_objects(self):
+        for scene_id, scene in self.data["scenes"].items():
+            objects = {obj["id"]: obj for obj in scene["objects"]}
             hotspot_ids = [item["id"] for item in scene["hotspots"]]
             self.assertEqual(len(hotspot_ids), len(set(hotspot_ids)))
             for hotspot in scene["hotspots"]:
@@ -42,7 +54,13 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertTrue(0 <= x1 < x2 <= 1)
                     self.assertTrue(0 <= y1 < y2 <= 1)
                     self.assertTrue(hotspot["finding"])
-                    self.assertIn(hotspot.get("object"), object_ids)
+                    object_id = hotspot.get("object")
+                    self.assertIn(object_id, objects)
+                    obj = objects[object_id]
+                    expected = [obj["x"], obj["y"], obj["x"] + obj["w"], obj["y"] + obj["h"]]
+                    for actual, target in zip(hotspot["bounds"], expected):
+                        self.assertAlmostEqual(actual, target, places=6)
+
 
 if __name__ == "__main__":
     unittest.main()

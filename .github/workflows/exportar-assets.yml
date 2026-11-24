@@ -1,10 +1,10 @@
 name: Exportar cenários PNG
-
 on:
   push:
     branches: [main]
     paths:
       - "assets/ambientes/*.svg"
+      - "assets/objetos/*.svg"
       - "tools/export_assets.py"
       - ".github/workflows/exportar-assets.yml"
   workflow_dispatch:
@@ -24,33 +24,42 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Instalar CairoSVG
+      - name: Instalar renderizador SVG
         run: python -m pip install cairosvg
-      - name: Exportar PNGs
+      - name: Exportar fundos e objetos
         run: python tools/export_assets.py
-      - name: Validar arquivos PNG
+      - name: Validar PNGs exportados
         run: |
           python - <<'PY'
           from pathlib import Path
           import struct
-          for path in Path("assets/ambientes").glob("*.png"):
-              data = path.read_bytes()
-              if data[:8] != bytes.fromhex('89504e470d0a1a0a'):
-                  raise SystemExit(f"PNG inválido: {path}")
-              width, height = struct.unpack(">II", data[16:24])
-              if (width, height) != (834, 315):
-                  raise SystemExit(f"Dimensão incorreta em {path}: {width}x{height}")
-              print(f"OK: {path} — {width}x{height}")
+
+          collections = (
+              (Path("assets/ambientes"), (834, 315)),
+              (Path("assets/objetos"), (512, 512)),
+          )
+          for folder, expected in collections:
+              files = sorted(folder.glob("*.png"))
+              if not files:
+                  raise SystemExit(f"Nenhum PNG encontrado em {folder}")
+              for path in files:
+                  data = path.read_bytes()
+                  if data[:8] != bytes.fromhex("89504e470d0a1a0a"):
+                      raise SystemExit(f"PNG inválido: {path}")
+                  size = struct.unpack(">II", data[16:24])
+                  if size != expected:
+                      raise SystemExit(f"Dimensão incorreta em {path}: {size}")
+                  print(f"OK: {path} — {size[0]}x{size[1]}")
           PY
       - name: Publicar PNGs no repositório
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ambientes/*.png
+          git add assets/ambientes/*.png assets/objetos/*.png
           if git diff --cached --quiet; then
             echo "Os PNGs já estão atualizados."
           else
-            git commit -m "Exporta cenários do jogo para PNG"
+            git commit -m "Exporta fundos e objetos do jogo para PNG"
             git pull --rebase origin main
             git push
           fi

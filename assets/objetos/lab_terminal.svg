@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="case" x2="0" y2="1"><stop stop-color="#5b6259"/><stop offset=".25" stop-color="#242d2b"/><stop offset="1" stop-color="#090e10"/></linearGradient><linearGradient id="crt" x2="0" y2="1"><stop stop-color="#0b3e36"/><stop offset=".5" stop-color="#031d1a"/><stop offset="1" stop-color="#010908"/></linearGradient></defs>
+<ellipse cx="255" cy="476" rx="220" ry="18" fill="#000" opacity=".65"/>
+<path d="M76 180L432 180L461 405H48Z" fill="url(#case)" stroke="#a08a61" stroke-width="9"/>
+<rect x="72" y="36" width="368" height="250" rx="22" fill="url(#case)" stroke="#8e7b59" stroke-width="10"/>
+<rect x="100" y="63" width="312" height="196" rx="12" fill="#020908" stroke="#45635b" stroke-width="8"/>
+<rect x="116" y="80" width="280" height="162" fill="url(#crt)"/>
+<g stroke="#6be5ad" stroke-width="4" opacity=".75"><path d="M135 112H373M135 137H340M135 162H365M135 187H315M135 212H353"/></g>
+<path d="M135 98L170 98" stroke="#de9651" stroke-width="6"/>
+<text x="256" y="232" fill="#86ebbd" font-family="monospace" font-size="19" text-anchor="middle">SESSION ACTIVE</text>
+<path d="M90 309H421L411 375H100Z" fill="#111a1b" stroke="#52625b" stroke-width="5"/>
+<g fill="#7c9e8e"><rect x="121" y="326" width="22" height="12" rx="2"/><rect x="150" y="326" width="22" height="12" rx="2"/><rect x="179" y="326" width="22" height="12" rx="2"/><rect x="208" y="326" width="22" height="12" rx="2"/><rect x="237" y="326" width="22" height="12" rx="2"/><rect x="266" y="326" width="22" height="12" rx="2"/><rect x="295" y="326" width="22" height="12" rx="2"/></g>
+<circle cx="374" cy="347" r="13" fill="#c4513f"/><circle cx="414" cy="347" r="13" fill="#b9935d"/>
+<path d="M130 407H384" stroke="#a68a60" stroke-width="11"/>
+<path d="M120 445H390" stroke="#5e5547" stroke-width="20"/>
+</svg>

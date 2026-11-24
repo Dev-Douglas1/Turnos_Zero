@@ -22,7 +22,7 @@ Testes:
 python -m unittest discover -s tests -v
 ```
 
-Não são necessárias bibliotecas externas. A interface usa Canvas do Tkinter e o motor usa apenas a biblioteca padrão do Python.
+Dependência gráfica para redimensionar os objetos PNG: instale com `python -m pip install -r requirements.txt`. O jogo usa Tkinter/Canvas; a exportação das artes SVG é feita pelo GitHub Actions com CairoSVG.
 
 ## Como jogar
 
@@ -48,7 +48,8 @@ Não são necessárias bibliotecas externas. A interface usa Canvas do Tkinter e
 - turnos_zero.py — motor de jogo, missões, decisões, remuneração e salvamento.
 - scene_manager.py — carregamento e validação de cenas e hotspots.
 - dados/cenas.json — catálogo de ambientes e coordenadas normalizadas.
-- assets/ambientes/ — seis cenários PNG renderizados para o jogo; os SVGs originais permanecem como fontes editáveis.
+- assets/ambientes/ — fundos PNG e SVGs editáveis das missões.
+- assets/objetos/ — 16 objetos PNG independentes e seus SVGs-fonte; posição, escala, ordem e visibilidade são controladas por `dados/objetos_cenas.json`.
 - dados/turnos_zero_progresso.json — campanha nova.
 - dados/turnos_zero_historico.json — histórico dos expedientes.
 - tests/test_turnos_zero.py — testes automatizados do novo motor.
@@ -59,9 +60,9 @@ Os saves antigos da Mansão continuam preservados em seus arquivos originais. A 
 
 ## Estado do desenvolvimento
 
-A fundação jogável está implementada: menu, criação de contrato, quatro missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface gráfica e o modo terminal separam a fase de investigação da fase de decisão. O histórico usa identificador único por expediente para evitar duplicação em retomadas, e o carregamento valida a estrutura do progresso antes de aceitar um save. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera PNGs em 834×315 pixels para encaixe na área de jogo. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
+A fundação jogável está implementada: menu, criação de contrato, quatro missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface gráfica e o modo terminal separam a fase de investigação da fase de decisão. O histórico usa identificador único por expediente para evitar duplicação em retomadas, e o carregamento valida a estrutura do progresso antes de aceitar um save. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera fundos em 834×315 e objetos em 512×512. O renderizador redimensiona cada sprite conforme x/y/w/h, preserva a proporção do objeto e mantém hotspots ligados aos mesmos limites. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
 
-Ainda estão planejados: renderização direta dos SVGs ou exportação PNG otimizada, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
+Ainda estão planejados: interação manipulável por objeto (abrir, fechar, mover e usar), zoom de inspeção, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
 
 ## Identidade original
 

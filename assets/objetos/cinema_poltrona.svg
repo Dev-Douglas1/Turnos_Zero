@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="velvet" x2="0" y2="1"><stop stop-color="#8d3d42"/><stop offset=".5" stop-color="#4f1e29"/><stop offset="1" stop-color="#1a1118"/></linearGradient><linearGradient id="wood" x2="1"><stop stop-color="#33251e"/><stop offset=".5" stop-color="#97744d"/><stop offset="1" stop-color="#201914"/></linearGradient></defs>
+<ellipse cx="256" cy="480" rx="180" ry="17" fill="#000" opacity=".7"/>
+<path d="M105 175Q105 84 171 70H339Q407 85 407 175V300H105Z" fill="url(#velvet)" stroke="#9d7555" stroke-width="12"/>
+<path d="M86 283Q86 250 130 250H382Q426 250 426 293V393H86Z" fill="url(#velvet)" stroke="#8c694b" stroke-width="12"/>
+<path d="M91 304H421V360H91Z" fill="#a04b4e" opacity=".5"/>
+<path d="M107 392V455M402 392V455" stroke="url(#wood)" stroke-width="28"/>
+<path d="M75 235L103 206L140 206V399L86 405Z" fill="url(#wood)" stroke="#a17a53" stroke-width="9"/>
+<path d="M437 235L409 206L372 206V399L426 405Z" fill="url(#wood)" stroke="#a17a53" stroke-width="9"/>
+<path d="M154 110L194 86L236 112L211 147Z" fill="#c6a18a" opacity=".2"/>
+<path d="M280 296L314 265L341 291L311 332L288 338Z" fill="#d0bb8d" opacity=".45"/>
+<path d="M144 454H192M320 454H368" stroke="#8e704d" stroke-width="15"/>
+</svg>

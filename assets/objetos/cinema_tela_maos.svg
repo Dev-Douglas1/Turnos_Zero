@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="cloth" x2="0" y2="1"><stop stop-color="#a8a59b"/><stop offset=".6" stop-color="#5a5d5b"/><stop offset="1" stop-color="#171a1d"/></linearGradient></defs>
+<ellipse cx="256" cy="477" rx="220" ry="13" fill="#000" opacity=".55"/>
+<path d="M33 59L479 59L448 440L64 440Z" fill="#10161b" stroke="#9a7a53" stroke-width="12"/>
+<path d="M55 83L457 83L430 416L82 416Z" fill="url(#cloth)" stroke="#c0b69b" stroke-width="5"/>
+<path d="M55 90L457 90M80 405L430 405" stroke="#e0d8c5" stroke-width="3" opacity=".45"/>
+<g fill="#171b1c" opacity=".58">
+<path d="M180 244Q145 225 150 183L134 112Q131 99 142 95Q153 92 157 107L177 172L164 91Q162 76 176 73Q189 71 192 88L206 166L206 87Q205 73 218 74Q232 75 231 92L231 171L250 111Q257 96 269 103Q281 110 273 126L249 204Q238 247 205 266Z"/>
+<path d="M342 268Q310 250 316 210L302 151Q299 138 310 133Q322 129 326 145L341 202L333 131Q332 116 345 114Q358 114 360 130L369 199L374 128Q375 114 388 116Q401 118 398 134L391 207L413 159Q420 145 431 153Q442 160 434 175L405 242Q388 283 359 287Z"/>
+</g>
+<path d="M117 282L393 282M126 310L381 310" stroke="#777a76" stroke-width="3" opacity=".4"/>
+</svg>
