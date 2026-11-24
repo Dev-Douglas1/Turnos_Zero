@@ -65,6 +65,23 @@ class TurnosZeroApp:
         self.text(x+w/2,y+h/2,label,12,self.GOLD)
         self.targets.append(((x,y,x+w,y+h),callback))
 
+    def play_effect(self, filename):
+        """Toca um WAV curto sem bloquear a interface; fallback para o beep do Tk."""
+        path = Path(__file__).resolve().parent / "assets" / filename
+        if not path.is_file():
+            return
+        try:
+            import winsound
+            winsound.PlaySound(
+                str(path),
+                winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT,
+            )
+        except (ImportError, OSError):
+            try:
+                self.root.bell()
+            except tk.TclError:
+                pass
+
     def resize_canvas(self, event):
         """Redimensiona mantendo proporção e centralizando a área lógica 1024x700."""
         if event.width <= 1 or event.height <= 1:
@@ -584,6 +601,7 @@ class TurnosZeroApp:
 
     def choose(self,index):
         result=self.game.act(index)
+        self.play_effect("acerto.wav" if result["correct"] else "erro.wav")
         self.show_result(result)
 
     def show_result(self,result):
