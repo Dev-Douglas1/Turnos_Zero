@@ -35,7 +35,7 @@ jobs:
           import struct
 
           collections = (
-              (Path("assets/ambientes"), (834, 315)),
+              (Path("assets/ambientes"), (834, 469)),
               (Path("assets/objetos"), (512, 512)),
           )
           for folder, expected in collections:
