@@ -47,6 +47,8 @@ class TurnosZeroApp:
         self.current_radio_status = "READY"
         self.surveillance_images = {}
         self.ambience_active = False
+        self.ambience_path = None
+        self._ambience_after_id = None
         self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -80,37 +82,69 @@ class TurnosZeroApp:
         self.text(x+w/2,y+h/2,label,12,self.GOLD)
         self.targets.append(((x,y,x+w,y+h),callback))
 
+    def _ambience_file(self):
+        """Escolhe a paisagem sonora do local atual, com fallback silencioso."""
+        mission_id = (self.game.mission or {}).get("id")
+        if mission_id:
+            candidate = Path(__file__).resolve().parent / "assets" / "som" / f"{mission_id}.wav"
+            if candidate.is_file():
+                return candidate
+        legacy = Path(__file__).resolve().parent / "assets" / "ambiente.wav"
+        return legacy if legacy.is_file() else None
+
     def start_ambience(self):
-        """Mantém o som ambiente em loop durante a exploração, no Windows."""
-        path = Path(__file__).resolve().parent / "assets" / "ambiente.wav"
-        if self.ambience_active or not path.is_file():
+        """Reproduz em loop a paisagem sonora própria da missão atual (Windows)."""
+        path = self._ambience_file()
+        if path is None:
             return
+        path = str(path)
+        if self.ambience_active and self.ambience_path == path:
+            return
+        if self.ambience_active:
+            self.stop_ambience()
         try:
             import winsound
             winsound.PlaySound(
-                str(path),
+                path,
                 winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_LOOP | winsound.SND_NODEFAULT,
             )
             self.ambience_active = True
+            self.ambience_path = path
         except (ImportError, OSError):
             self.ambience_active = False
+            self.ambience_path = None
 
     def stop_ambience(self):
-        if not self.ambience_active:
-            return
-        try:
-            import winsound
-            winsound.PlaySound(None, winsound.SND_PURGE)
-        except (ImportError, OSError):
-            pass
+        """Interrompe o loop e cancela qualquer retomada agendada."""
+        if self._ambience_after_id is not None:
+            try:
+                self.root.after_cancel(self._ambience_after_id)
+            except tk.TclError:
+                pass
+            self._ambience_after_id = None
+        if self.ambience_active:
+            try:
+                import winsound
+                winsound.PlaySound(None, winsound.SND_PURGE)
+            except (ImportError, OSError):
+                pass
         self.ambience_active = False
+        self.ambience_path = None
 
     def play_effect(self, filename):
-        """Toca um WAV curto e retoma o ambiente após o efeito."""
+        """Toca um WAV curto e retoma a paisagem sonora atual após o efeito."""
         path = Path(__file__).resolve().parent / "assets" / filename
         if not path.is_file():
             return
         resume_ambience = self.ambience_active
+        self.ambience_active = False
+        self.ambience_path = None
+        if self._ambience_after_id is not None:
+            try:
+                self.root.after_cancel(self._ambience_after_id)
+            except tk.TclError:
+                pass
+            self._ambience_after_id = None
         try:
             import wave
             import winsound
@@ -120,18 +154,24 @@ class TurnosZeroApp:
                     duration_ms = int(audio.getnframes() / max(1, audio.getframerate()) * 1000) + 120
             except (wave.Error, OSError):
                 pass
-            self.ambience_active = False
             winsound.PlaySound(
                 str(path),
                 winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT,
             )
             if resume_ambience:
-                self.root.after(duration_ms, self.start_ambience)
+                self._ambience_after_id = self.root.after(duration_ms, self._resume_ambience)
         except (ImportError, OSError):
             try:
                 self.root.bell()
             except tk.TclError:
                 pass
+            if resume_ambience:
+                self._ambience_after_id = self.root.after(300, self._resume_ambience)
+
+    def _resume_ambience(self):
+        self._ambience_after_id = None
+        if self.screen in {"investigation", "inspection", "task", "surveillance", "radio"}:
+            self.start_ambience()
 
     def resize_canvas(self, event=None):
         """Adapta a interface ao espaço disponível sem deformar o layout."""
