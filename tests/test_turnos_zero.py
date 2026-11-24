@@ -399,6 +399,8 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertTrue(result["threat_hit"])
         self.assertFalse(result.get("threat_evaded", False))
         self.assertEqual(self.game.state["mistakes"], 1)
+        self.assertIn("\n\n", result["message"])
+        self.assertNotIn("\\n\\n", result["message"])
         self.assertEqual(self.game.state["sanity"], 4)
 
     def test_abrigo_persiste_e_evade_ameaca(self):
