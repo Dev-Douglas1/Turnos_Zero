@@ -2,115 +2,144 @@
 
 ## 1. Visão do produto
 
-Turnos Zero substitui o Escape Room da mansão por uma antologia narrativa de horror sobrenatural. O jogador é contratado por uma agência de serviços extraordinários e recebe ordens de serviço em locais com ocorrências inexplicáveis. O foco é cumprir tarefas, interpretar protocolos, decidir sob pressão e sobreviver ao expediente.
+Turnos Zero é um jogo 2D de horror sobrenatural e sobrevivência burocrática. O jogador é um funcionário de uma agência de serviços extraordinários, recebe contratos perigosos, lê protocolos, investiga locais anômalos e tenta quitar uma dívida de R$ 1.000.000.
 
-A inspiração é o formato de episódios de trabalhos perigosos e regras anômalas. O universo, nomes, locais, personagens, diálogos, regras, eventos e criaturas são originais; não reproduzem roteiros ou elementos protegidos de outra obra.
+A direção visual combina quatro princípios: documentos manipuláveis e decisões de inspeção (*Papers, Please*), ferramentas analógicas e terminais de sobrevivência (*Alien: Isolation*), equipamento diegético (*Dead Space*) e arquitetura institucional opressiva (*Control*). Essas obras são referências de linguagem e interação; os cenários, personagens, textos, objetos e acontecimentos de Turnos Zero são originais.
 
 ## 2. Loop principal
-1. Recrutamento: escolher nome de crachá e vínculo de trabalho.
-2. Ordem de serviço: ler local, remuneração, descrição e protocolos.
-3. Expediente: resolver três ocorrências por meio de escolhas.
-4. Consequências: decisões corretas elevam reputação; erros reduzem estabilidade e aumentam risco.
-5. Fechamento: funcionário recebe pagamento se concluir o turno; falha encerra o contrato.
-6. Progressão: liberar o próximo local, acumular saldo e descobrir a história oculta da agência.
 
-## 3. Arquitetura implementada nesta primeira etapa
-- main.py: interface Tkinter e modo terminal.
-- scene_manager.py: validação de catálogo de cenas e hotspots.
-- assets/ambientes/*.svg: seis ilustrações vetoriais editáveis dos ambientes.
-- dados/cenas.json: definição declarativa de ambientes, fundos e áreas interativas.
-- turnos_zero.py: regras do jogo, catálogo de missões, dificuldades, decisões, remuneração e persistência.
-- dados/turnos_zero_progresso.json: campanha nova, separada dos saves antigos.
-- dados/turnos_zero_historico.json: histórico dos expedientes.
-- tests/test_turnos_zero.py: testes unitários do novo motor.
-- sistemas.py e arquivos antigos de progresso permanecem no repositório para referência e recuperação, mas não são importados pelo novo launcher.
+1. **Admissão:** informar o nome do crachá e escolher o vínculo.
+2. **Dossiê:** consultar dívida, remuneração, risco, local e protocolos.
+3. **Preparação:** conferir o cinto de equipamentos.
+4. **Investigação:** explorar o cenário, selecionar objetos e examinar anomalias.
+5. **Manipulação:** abrir, acionar, tocar ou desligar objetos; o estado permanece salvo no contrato.
+6. **Ocorrências:** resolver três situações e tomar decisões apoiadas pelas evidências.
+7. **Sobrevivência:** erros reduzem estabilidade conforme o multiplicador de risco do contrato.
+8. **Pagamento:** concluir o trabalho reduz a dívida e libera o próximo contrato.
 
-## 4. Conteúdo jogável inicial
-- Loja 24 horas: protocolos de luz, telefone e cliente sem reflexo.
-- Edifício Residencial 9: elevador no andar zero, vizinho com guarda-chuva e apartamento inexistente.
-- Última Sessão: plateia imóvel, projetor autônomo e bilhete com data futura.
-- Protocolo de Contenção: laboratório interditado, terminal persistente e câmara fria.
+## 3. Economia e dificuldade
 
-Cada missão tem três ocorrências, escolhas, respostas narrativas e remuneração. A quarta missão reutiliza a cena de laboratório e conecta suas pistas às decisões de contenção. O contrato define estabilidade inicial e multiplicador salarial:
-- Estagiário: 5 pontos de estabilidade, pagamento padrão.
-- Efetivo: 4 pontos, adicional de 25%.
-- Terceirizado: 3 pontos, adicional de 60%.
+- Dívida inicial: **R$ 1.000.000**.
+- Pagamento do primeiro contrato: **R$ 50**.
+- Pagamento dobra a cada contrato: **R$ 50, R$ 100, R$ 200, R$ 400, R$ 800...**.
+- Multiplicador de risco também dobra: **x1, x2, x4, x8, x16...**.
+- A estabilidade inicial depende do vínculo. O dano de uma falha é multiplicado pelo risco atual; contratos posteriores ficam progressivamente mais difíceis de sobreviver.
+- O progresso continua em ciclos de quatro ambientes, com os contratos e riscos escalando até o limite técnico da campanha.
 
-Duas violações de protocolo encerram o turno. A estabilidade também pode chegar a zero.
+## 4. Arquitetura atual
 
-## 5. Persistência e compatibilidade
+- `main.py`: interface Tkinter Canvas, modo terminal, telas de investigação, inspeção e ocorrência.
+- `turnos_zero.py`: motor de missão, economia, dificuldade, equipamentos, evidências, estados de objetos e salvamento.
+- `scene_manager.py`: carregamento e validação de cenas, coordenadas e hotspots.
+- `dados/cenas.json`: catálogo de fundos e hotspots de fallback.
+- `dados/objetos_cenas.json`: posição, dimensão, camada, visibilidade, hotspot e sprite alternativo de cada objeto.
+- `assets/ambientes/`: fundos das missões e fontes SVG editáveis.
+- `assets/objetos/`: 16 objetos PNG independentes e fontes SVG; cinco objetos possuem variações visuais quando manipulados.
+- `tools/editor_cenas.py`: editor visual de objetos, com arrastar, redimensionar, ordenar, ocultar e substituir PNG.
+- `tools/export_assets.py`: exporta fundos em 834×315 e objetos em 512×512.
+- `dados/turnos_zero_progresso.json`: campanha e estados persistidos.
+- `dados/turnos_zero_historico.json`: histórico de contratos.
+- `tests/`: testes de motor, cenas, objetos, economia e persistência.
+- GitHub Actions: exportação e testes em Python 3.10, 3.11 e 3.12.
 
-A campanha nova utiliza arquivos próprios para não sobrescrever progresso.json e historico.json do projeto anterior. O salvamento é feito por arquivo temporário e substituição atômica. O histórico registra funcionário, missão, resultado, pagamento e data.
+## 5. Sistemas implementados
 
-## 6. Próximas etapas
-### Etapa A — Fundação (implementada)
-- Novo título, menu e identidade textual.
-- Motor de turnos e três missões jogáveis.
-- Vínculos de trabalho, estabilidade, reputação e pagamento.
-- Escolhas com sucesso/falha, finais de turno e histórico.
-- Salvamento e retomada.
-- Modo terminal com investigação de evidências e decisões.
-- Testes unitários.
+### Ambientes e objetos
+- Fundos de missão carregados em viewport proporcional 834×315.
+- 16 sprites independentes para loja, edifício, cinema e laboratório.
+- Cada objeto usa `x/y/w/h/z/visible`; o renderizador respeita a escala configurada e preserva a proporção do sprite.
+- Hotspots acompanham os limites configurados do objeto.
+- Editor usa o mesmo viewport que o jogo.
+- Variações de sprite existem para geladeira, elevador, projetor, terminal e luz de emergência.
 
-### Etapa B — Apresentação e atmosfera
-- Catálogo declarativo de cenas e coordenadas normalizadas: implementado.
-- Integração das seis artes em PNG no runtime e SVGs preservados como fontes editáveis: concluída.
-- Efeitos de luz, chuva, ruído, rádio e transições.
-- Animações e feedback visual para ocorrências.
+### Investigação e manipulação
+- Selecionar um hotspot abre ficha própria de inspeção.
+- Exame registra evidência explicitamente; a seleção do objeto não coleta pista automaticamente.
+- Interagir altera o estado do objeto e salva a mudança no contrato.
+- Evidências e estados não vazam para o próximo contrato.
 
-### Etapa C — Sistemas de jogo
-- Inventário de ferramentas, evidências e documentos.
-- Regras contraditórias e verificação de autenticidade.
-- Eventos dinâmicos, entidades com padrões de comportamento e encontros.
-- Loja, equipamentos, reputação, dívidas e melhorias persistentes.
+### Equipamentos
+- **Lanterna:** ativa um cone de iluminação no cenário.
+- **Rádio:** exibe orientação contextual da central para a missão atual.
+- **Câmera:** ativa visual de gravação/scanlines e permite fotografar uma evidência.
+- Inventário e estados de equipamentos são persistidos; saves antigos recebem os padrões sem perder progresso.
 
-### Etapa D — Campanha narrativa
-- Funcionários recorrentes e diálogos ramificados.
-- Arquivos secretos e revelação gradual da agência.
-- Mais contratos, finais alternativos e consequências entre missões.
+### Interface e áudio
+- Menu e documentos institucionais preservam a linguagem burocrática da agência.
+- Terminal do laboratório tem painel CRT com logs verdes e scanlines.
+- Sons de acerto e violação são executados de forma assíncrona no Windows, com fallback para beep do Tk em plataformas sem `winsound`.
+- Interface mantém proporção ao redimensionar a janela e converte cliques para o mesmo espaço lógico.
 
-### Etapa E — Qualidade
-- Testes de interface no Windows.
-- Testes de regressão de salvamento e migração.
-- Ajustes de acessibilidade, escala de janela e desempenho.
-- Empacotamento executável, se necessário.
+## 6. Missões atuais
 
-## 7. Limites conhecidos da versão atual
+1. **Loja 24 horas:** balcão, prateleiras, geladeira, porta de vidro e anomalia ligada ao telefone e ao corredor.
+2. **Edifício Residencial 9:** porta, elevador, presença e painel de andar 0.
+3. **Última Sessão:** projetor, tela com marcas, poltrona e espectador.
+4. **Protocolo de Contenção:** câmaras de contenção, terminal persistente e luz de emergência.
 
-Esta é a primeira base jogável da reconstrução, não a versão final. A arquitetura de cenas e hotspots está separada do motor. As seis artes vetoriais SVG permanecem como fontes editáveis e são exportadas para PNG no fluxo de CI. O histórico identifica cada expediente para impedir duplicação de pagamentos e registros em retomadas. O modo terminal também permite coletar evidências. Áudio direcional, entidades animadas, inventário e expansão de conteúdo continuam planejados. A interface gráfica precisa de validação manual em Windows.
-## 8. Fluxo de dados e estados
+Cada ambiente possui pontos de investigação, evidências, objetos manipuláveis e três ocorrências narrativas.
 
-### Fluxo de uma ocorrência
+## 7. Próximas etapas
+
+### Etapa 1 — Renderização e interação (base implementada)
+- [x] Corrigir proporção do viewport e dos sprites.
+- [x] Publicar os objetos independentes e o pipeline de exportação.
+- [x] Alinhar editor e jogo ao viewport 834×315.
+- [x] Inspeção e estados persistentes de objetos.
+- [x] Variantes visuais de objetos manipulados.
+- [ ] Melhorar qualidade e variedade dos fundos e das animações de ambiente.
+- [ ] Teste manual de escala, cliques e estados no Windows.
+
+### Etapa 2 — Interface diegética e equipamentos (base implementada)
+- [x] Cinto com lanterna, rádio e câmera.
+- [x] Terminal CRT específico do laboratório.
+- [x] Feedback sonoro de decisão.
+- [ ] Dossiê da agência com documentos e carimbos realmente manipuláveis.
+- [ ] Relatório fotográfico de evidências e arquivo de gravações.
+
+### Etapa 3 — Terror e sobrevivência (em desenvolvimento)
+- [ ] Áudio ambiente por missão, ruídos posicionais e eventos de rádio.
+- [ ] Eventos dinâmicos que mudam o ambiente durante o turno.
+- [ ] Ameaças com padrões de aproximação, perseguição e esconderijos.
+- [ ] Recursos limitados de lanterna, câmera e rádio.
+- [ ] Consequências visuais e sonoras mais fortes para violações.
+
+### Etapa 4 — Campanha e progressão
+- [x] Dívida de R$ 1.000.000, pagamento e risco dobrando por contrato.
+- [ ] Mais contratos originais e variações de cada local.
+- [ ] Funcionários recorrentes, arquivos secretos e consequências entre contratos.
+- [ ] Finais alternativos e formas diferentes de quitar ou renegociar a dívida.
+
+### Etapa 5 — Qualidade e entrega
+- [x] Testes automatizados em três versões do Python.
+- [x] Validação de PNGs, JSON, hotspots e sprites alternativos.
+- [ ] Teste visual de todas as telas no Windows.
+- [ ] Teste de campanha longa, falhas, retomada e migração com saves reais.
+- [ ] Empacotamento executável e roteiro final de apresentação.
+
+## 8. Fluxo de uma pista
 
 ```mermaid
 flowchart TD
-    A[Interface Tkinter] --> B[SceneManager]
-    B --> C[Hotspot selecionado]
-    C --> D[ShiftGame.record_evidence]
-    D --> E[Save JSON da campanha]
-    A --> F[Escolha do jogador]
-    E --> G[ShiftGame.act]
+    A[Ambiente da missão] --> B[Selecionar objeto]
+    B --> C[Ficha de inspeção]
+    C --> D{Ação do agente}
+    D -->|Examinar| E[Registrar evidência]
+    D -->|Manipular| F[Atualizar estado visual do objeto]
+    E --> G[Salvar campanha]
     F --> G
-    G --> H{Evidência compatível?}
-    H -->|Sim| I[Alternativa pode ser desbloqueada]
-    H -->|Não| J[Aplicar regra padrão]
-    I --> K[Atualizar reputação ou falhas]
-    J --> K
-    K --> L[Salvar progresso]
-    K --> M{Turno terminou?}
-    M -->|Sim| N[Registrar histórico e pagamento]
-    M -->|Não| A
+    G --> H[Decisão na ocorrência]
+    H --> I[Motor verifica evidências compatíveis]
+    I --> J[Reputação, estabilidade e consequência]
 ```
 
-### Estados persistidos
+## 9. Estados persistidos e qualidade
 
 - `between_shifts`: contrato aguardando início ou próximo contrato disponível.
-- `on_shift`: expediente em andamento; investigação e decisões permitidas.
-- `ended`: contrato encerrado por violação ou estabilidade zerada.
-- `campaign_completed`: todos os contratos concluídos.
+- `on_shift`: expediente em andamento; investigação, inspeção e equipamento permitidos.
+- `ended`: contrato encerrado por falha.
+- `campaign_completed`: limite técnico da campanha atingido.
 
-O motor valida os campos e a coerência entre estado, índice da missão e contratos concluídos antes de aceitar um save. O progresso é gravado por arquivo temporário e substituição. Cada expediente recebe um token único para impedir duplicação de pagamento e histórico caso o fechamento seja reprocessado.
+O motor valida posição da campanha, economia, evidências, estados de objetos e equipamentos. Saves antigos sem inventário recebem os equipamentos padrão. A gravação usa arquivo temporário e substituição.
 
-### Validação contínua
-
-O GitHub Actions executa a suíte em Python 3.10, 3.11 e 3.12. Em cada versão, compila os módulos, exporta os cenários PNG, executa os testes unitários e verifica JSON e referências dos assets.
+GitHub Actions compila os módulos, exporta fundos e sprites, executa os testes e valida os JSONs em Python 3.10, 3.11 e 3.12. **O CI não substitui a validação manual da interface no Windows**, ainda pendente.

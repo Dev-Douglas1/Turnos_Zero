@@ -27,13 +27,14 @@ Arquivos centrais:
 ## 4. Demonstração — 2 a 3 minutos
 
 1. Abrir o menu e criar um contrato.
-2. Mostrar os três vínculos e explicar que resistência, tolerância a falhas e remuneração variam.
-3. Abrir a ordem de serviço e ler os protocolos.
-4. Entrar na investigação da Loja 24 horas.
-5. Clicar na geladeira e registrar a pista “NÃO ATENDA”.
-6. Avançar para a ocorrência e mostrar que a evidência pode desbloquear uma decisão alternativa.
-7. Mostrar o relatório, a reputação e a consequência.
-8. Se houver tempo, demonstrar o contrato do laboratório e a pista do terminal.
+2. Mostrar os três vínculos e explicar que estabilidade e tolerância a falhas variam.
+3. Mostrar a dívida, o primeiro pagamento e o fator de risco.
+4. Abrir a ordem de serviço e ler os protocolos.
+5. Entrar na investigação da Loja 24 horas e demonstrar a lanterna, rádio e câmera.
+6. Selecionar a geladeira, abrir a ficha de inspeção, examinar e manipular o objeto.
+7. Mostrar a alteração visual persistente e o registro da evidência.
+8. Avançar para a ocorrência e demonstrar a influência da pista na decisão.
+9. Mostrar o relatório, a reputação e a consequência; se houver tempo, abrir o terminal CRT do laboratório.
 
 **Rota reserva:** executar `python main.py --terminal` e demonstrar a investigação textual se a interface gráfica apresentar problema no computador da apresentação.
 
@@ -47,13 +48,17 @@ A campanha inicial possui quatro contratos:
 
 Cada contrato possui três ocorrências, regras próprias e um desfecho narrativo.
 
-## 6. Qualidade e validação — 40 segundos
+## 6. Economia e progressão — 30 segundos
+
+A dívida começa em R$ 1.000.000. O primeiro contrato paga R$ 50 e os valores dobram a cada trabalho concluído. O risco também dobra, tornando cada expediente progressivamente mais perigoso.
+
+## 7. Qualidade e validação — 40 segundos
 
 O projeto possui testes automatizados para progressão, salvamento, retomada, evidências, escolhas, dificuldade, pagamento, histórico e validação de cenas. O GitHub Actions compila os módulos, exporta os PNGs, executa os testes e valida os arquivos JSON.
 
 Não apresentar o teste automatizado como substituto do teste manual da interface no Windows. Essa validação deve ser realizada no computador usado na apresentação.
 
-## 7. Encerramento — 20 segundos
+## 8. Encerramento — 20 segundos
 
 Turnos Zero demonstra a integração entre programação, interface gráfica, estruturas de dados, persistência JSON, testes e narrativa interativa. O projeto pode crescer com novos contratos, ferramentas, personagens e consequências entre missões.
 
