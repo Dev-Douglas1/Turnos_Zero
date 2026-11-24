@@ -233,7 +233,8 @@ class ShiftGame:
             result["evidence_ids"] = matched_evidence
         self.state["task_index"] += 1
         finished = self.state["task_index"] >= len(self.mission["tasks"])
-        if self.state["sanity"] <= 0 or self.state["mistakes"] >= 2:
+        max_mistakes = DIFFICULTIES[self.state["difficulty"]]["mistakes"]
+        if self.state["sanity"] <= 0 or self.state["mistakes"] >= max_mistakes:
             self._finish_shift(False)
             result["ending"] = "missing"
         elif finished:
