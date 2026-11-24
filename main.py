@@ -356,12 +356,32 @@ def terminal():
             game.start_shift()
         if game.state["status"]=="on_shift":
             t=game.task
+            scene_id={"loja_24h":"loja_24h","edificio_9":"edificio_9","cinema_vazio":"cinema_vazio"}.get(game.mission["id"])
+            scene = SceneManager().get(scene_id) if scene_id else {"hotspots": []}
+            collected = {item.get("id") for item in game.state.get("evidence", []) if item.get("mission") == game.mission["id"]}
+            print("\nINVESTIGAÇÃO — pistas disponíveis:")
+            for i, hotspot in enumerate(scene.get("hotspots", []), 1):
+                status = " [INVESTIGADA]" if hotspot["id"] in collected else ""
+                print(f"{i} - {hotspot.get('label', hotspot['id'])}{status}")
+            print("I - investigar ponto | ENTER - seguir para ocorrência")
+            command = input("> ").strip().lower()
+            if command == "i" and scene.get("hotspots"):
+                choice = input("Número do ponto para investigar: ").strip()
+                if choice.isdigit() and 1 <= int(choice) <= len(scene["hotspots"]):
+                    hotspot = scene["hotspots"][int(choice)-1]
+                    if game.record_evidence(hotspot["id"], hotspot.get("finding", "Pista sem descrição.")):
+                        print("EVIDÊNCIA REGISTRADA:", hotspot.get("finding", ""))
+                    else:
+                        print("Essa evidência já foi registrada neste contrato.")
+                continue
             print("\n"+t["prompt"])
             for i,c in enumerate(t["choices"],1): print(i,"-",c)
             raw=input("Decisão (1-3): ").strip()
             if raw not in ("1","2","3"): continue
             result=game.act(int(raw)-1)
             print(result["message"])
+            if result.get("evidence_used"):
+                print("PISTA APLICADA:", result.get("evidence_note", ""))
             if "ending" in result:
                 print("FIM DO TURNO:",result["ending"])
                 if result["ending"]=="missing": return
