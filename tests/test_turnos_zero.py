@@ -16,7 +16,7 @@ class TurnosZeroTests(unittest.TestCase):
     def test_nova_campanha_tem_estado_isolado(self):
         self.assertEqual(self.game.state["player"], "Teste")
         self.assertEqual(self.game.state["status"], "between_shifts")
-        self.assertEqual(self.game.state["cash"], 0)
+        self.assertEqual(self.game.state["cash"], -1_000_000)
 
     def test_tres_decisoes_corretas_concluem_turno(self):
         self.game.start_shift()
@@ -24,7 +24,7 @@ class TurnosZeroTests(unittest.TestCase):
             result = self.game.act(task["correct"])
         self.assertEqual(result["ending"], "survived")
         self.assertEqual(self.game.state["status"], "between_shifts")
-        self.assertGreater(self.game.state["cash"], 0)
+        self.assertEqual(self.game.state["cash"], -999_950)
         self.assertEqual(len(self.game.state["completed"]), 1)
 
     def test_duas_falhas_encerram_contrato(self):
@@ -56,20 +56,21 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertGreater(DIFFICULTIES["terceirizado"]["salary"], DIFFICULTIES["estagiario"]["salary"])
         self.assertEqual(len(MISSIONS), 4)
 
-    def test_campanha_termina_apos_terceiro_local(self):
-        for index, expected in enumerate(MISSIONS):
-            self.assertEqual(self.game.mission["id"], expected["id"])
+    def test_contratos_continuam_e_recompensas_dobram(self):
+        expected_rewards = [50, 100, 200, 400, 800]
+        expected_risks = [1, 2, 4, 8, 16]
+        for index, reward in enumerate(expected_rewards):
+            self.assertEqual(self.game.mission["pay"], reward)
             self.game.start_shift()
+            self.assertEqual(self.game.state["risk_multiplier"], expected_risks[index])
             for task in self.game.mission["tasks"]:
                 result = self.game.act(task["correct"])
             self.assertEqual(result["ending"], "survived")
-            if index < len(MISSIONS) - 1:
+            if index < len(expected_rewards) - 1:
                 self.game.next_shift()
-        self.assertIsNone(self.game.next_shift())
-        self.assertEqual(self.game.state["status"], "campaign_completed")
-        self.assertEqual(self.game.state["shift_index"], len(MISSIONS))
-        with self.assertRaises(RuntimeError):
-            self.game.start_shift()
+        self.assertEqual(self.game.state["shift_index"], 4)
+        self.assertEqual(self.game.state["cash"], -999_250)
+        self.assertEqual(self.game.state["status"], "between_shifts")
 
     def test_save_entre_contratos_e_valido_apos_turno_concluido(self):
         self.game.start_shift()
@@ -80,17 +81,16 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(reopened.state["status"], "between_shifts")
         self.assertEqual(reopened.state["task_index"], 3)
 
-    def test_campanha_concluida_persiste_apos_reabrir(self):
-        for index, mission in enumerate(MISSIONS):
+    def test_contrato_recorrente_persiste_apos_reabrir(self):
+        for _ in range(4):
             self.game.start_shift()
-            for task in mission["tasks"]:
+            for task in self.game.mission["tasks"]:
                 self.game.act(task["correct"])
-            if index < len(MISSIONS) - 1:
-                self.game.next_shift()
-        self.game.next_shift()
+            self.game.next_shift()
         reopened = ShiftGame(self.game.save_path, self.game.history_path)
         self.assertIsNotNone(reopened.state)
-        self.assertEqual(reopened.state["status"], "campaign_completed")
+        self.assertEqual(reopened.state["shift_index"], 4)
+        self.assertEqual(reopened.mission["pay"], 800)
 
     def test_save_corrompido_nao_quebra_abertura(self):
         self.game.save_path.write_text("{json inválido", encoding="utf-8")
