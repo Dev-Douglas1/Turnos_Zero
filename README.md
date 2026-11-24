@@ -46,7 +46,7 @@ Não são necessárias bibliotecas externas. A interface usa Canvas do Tkinter e
 - turnos_zero.py — motor de jogo, missões, decisões, remuneração e salvamento.
 - scene_manager.py — carregamento e validação de cenas e hotspots.
 - dados/cenas.json — catálogo de ambientes e coordenadas normalizadas.
-- assets/ambientes/ — fundos visuais dos locais (quando adicionados ao repositório).
+- assets/ambientes/ — seis artes vetoriais SVG editáveis dos ambientes.
 - dados/turnos_zero_progresso.json — campanha nova.
 - dados/turnos_zero_historico.json — histórico dos expedientes.
 - tests/test_turnos_zero.py — testes automatizados do novo motor.
@@ -56,9 +56,9 @@ Os saves antigos da Mansão continuam preservados em seus arquivos originais. A 
 
 ## Estado do desenvolvimento
 
-A fundação jogável está implementada: menu, criação de contrato, três missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface usa um catálogo declarativo de cenas; fundos visuais são carregados de `assets/ambientes/` quando disponíveis. Hotspots usam coordenadas normalizadas de 0 a 1.
+A fundação jogável está implementada: menu, criação de contrato, três missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface usa um catálogo declarativo de cenas e hotspots. As seis artes SVG estão versionadas em `assets/ambientes/`; como Tkinter não renderiza SVG nativamente, a interface usa desenhos Canvas equivalentes sem dependências externas. Hotspots usam coordenadas normalizadas de 0 a 1.
 
-Ainda estão planejados: artes originais por local, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
+Ainda estão planejados: renderização direta dos SVGs ou exportação PNG otimizada, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
 
 ## Identidade original
 
