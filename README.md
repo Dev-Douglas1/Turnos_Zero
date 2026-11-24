@@ -82,3 +82,14 @@ Turnos Zero utiliza o conceito geral de expedientes sobrenaturais e protocolos d
 ## Edição de cenários
 
 Execute `python tools/editor_cenas.py` para abrir o editor visual. Selecione a missão e uma camada para arrastar, ajustar x/y/largura/altura, aumentar ou diminuir, alterar a ordem, ocultar ou substituir a imagem. Os PNGs de objetos ficam em `assets/objetos/`; o manifesto `dados/objetos_cenas.json` guarda os parâmetros editáveis. Fundos exportados preservam a proporção 16:9.
+
+
+## Sistemas diegéticos de campo
+
+- **Cenários 16:9 por camadas:** fundos contêm a arquitetura; balcões, geladeiras, elevadores, projetores, telas, câmaras e terminais são sprites independentes em `assets/objetos/`.
+- **Objetos com estados visuais:** manipulações persistem no save e trocam o sprite pelo estado correspondente (por exemplo, fechado/aberto ou bloqueado/ativo).
+- **Editor de camadas:** `python tools/editor_cenas.py` permite selecionar, arrastar, redimensionar, ocultar, reordenar e substituir objetos. As áreas clicáveis acompanham as dimensões do objeto.
+- **Lanterna:** projeta o feixe no ambiente; a bateria diminui a cada decisão. Quando acaba ou é desligada, o cenário fica escuro.
+- **CFTV:** central de seis canais com recortes das áreas do cenário; o jogador seleciona um ponto e pode fotografá-lo usando filme limitado.
+- **Rádio:** três transmissões por contrato, com orientações específicas para cada ocorrência.
+- **Áudio:** ambiente em loop e efeitos curtos para interação, evidência e decisão, com fallback de som do sistema quando necessário.
