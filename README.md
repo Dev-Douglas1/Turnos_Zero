@@ -65,7 +65,7 @@ Os saves antigos da Mansão continuam preservados em seus arquivos originais. A 
 
 A fundação jogável está implementada: menu, criação de contrato, quatro missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface gráfica e o modo terminal separam a fase de investigação da fase de decisão. O histórico usa identificador único por expediente para evitar duplicação em retomadas, e o carregamento valida a estrutura do progresso antes de aceitar um save. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera fundos em 834×315 e objetos em 512×512. O renderizador redimensiona cada sprite conforme x/y/w/h, preserva a proporção do objeto e mantém hotspots ligados aos mesmos limites. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
 
-Já existem interação e estado persistente de objetos, ficha de inspeção, cinto de ferramentas com recursos limitados e feedback sonoro de acerto/falha. Ainda estão planejados: animações, áudio ambiente por missão, ameaças com padrões de comportamento, esconderijos, recursos limitados, funcionários recorrentes, mais missões e finais. O editor visual e o jogo usam a mesma área normalizada de 834×315. A interface gráfica ainda precisa de teste manual no Windows.
+Já existem interação e estado persistente de objetos, ficha de inspeção, cinto de ferramentas com recursos limitados e feedback sonoro de acerto/falha. Ainda estão planejados: animações, áudio ambiente por missão, ameaças com padrões de comportamento e perseguição dinâmica, funcionários recorrentes, mais missões e finais. O editor visual e o jogo usam a mesma área normalizada de 834×315. A interface gráfica ainda precisa de teste manual no Windows.
 
 ## Direção de arte e referências
 
@@ -92,6 +92,8 @@ Execute `python tools/editor_cenas.py` para abrir o editor visual. Selecione a m
 - **Lanterna:** projeta o feixe no ambiente; a bateria diminui a cada decisão. Quando acaba ou é desligada, o cenário fica escuro.
 - **CFTV:** central de seis canais com recortes das áreas do cenário; o jogador seleciona um ponto e pode fotografá-lo usando filme limitado.
 - **Rádio:** três transmissões por contrato, com orientações específicas para cada ocorrência.
+- **Pressão anômala:** cada objeto manipulável aumenta a atenção da presença; no limite, a anomalia começa a caçar o agente.
+- **Abrigos por missão:** balcão da loja, escadaria do edifício, cabine do cinema e armário de descontaminação. Esconder-se antes de decidir evita o ataque; avançar exposto gera uma penalidade adicional proporcional ao risco do contrato.
 - **Áudio:** quatro paisagens sonoras originais específicas por missão (loja, edifício, cinema e laboratório), em loop; efeitos curtos para interação, evidência e decisão; fallback para o beep do sistema quando a reprodução WAV não estiver disponível.
 
 
