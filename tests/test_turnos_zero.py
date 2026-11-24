@@ -297,7 +297,19 @@ class TurnosZeroTests(unittest.TestCase):
         self.game.start_shift()
         self.assertEqual(self.game.get_tool_resource("lanterna"), 100)
         self.game.act(self.game.task["correct"])
-        self.assertEqual(self.game.get_tool_resource("lanterna"), 90)
+        self.assertEqual(self.game.get_tool_resource("lanterna"), 65)
+
+    def test_equipamentos_sao_repostos_no_proximo_contrato(self):
+        self.game.start_shift()
+        self.game.toggle_tool("radio")
+        self.game.consume_tool_resource("camera", 2)
+        for task in self.game.mission["tasks"]:
+            self.game.act(task["correct"])
+        self.game.next_shift()
+        self.game.start_shift()
+        self.assertEqual(self.game.get_tool_resource("lanterna"), 100)
+        self.assertEqual(self.game.get_tool_resource("radio"), 3)
+        self.assertEqual(self.game.get_tool_resource("camera"), 3)
 
     def test_bateria_da_lanterna_desliga_o_item_ao_zerar(self):
         self.game.start_shift()
