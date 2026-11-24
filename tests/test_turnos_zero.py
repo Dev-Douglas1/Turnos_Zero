@@ -403,6 +403,40 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertNotIn("\\n\\n", result["message"])
         self.assertEqual(self.game.state["sanity"], 4)
 
+    def test_fotografia_do_canal_suspeito_interrompe_perseguicao(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        self.assertTrue(self.game.state["threat_active"])
+        self.game.toggle_tool("camera")
+        message = self.game.document_anomaly("geladeira")
+        self.assertTrue(message)
+        self.game.consume_tool_resource("camera", 1)
+        self.assertTrue(self.game.state["threat_disrupted"])
+        result = self.game.act(self.game.task["correct"])
+        self.assertTrue(result["threat_documented"])
+        self.assertFalse(result.get("threat_hit", False))
+        self.assertEqual(self.game.state["mistakes"], 0)
+        self.assertEqual(self.game.state["sanity"], 5)
+        self.assertFalse(self.game.state["threat_active"])
+        self.assertFalse(self.game.state["threat_disrupted"])
+
+    def test_fotografia_de_canal_incorreto_nao_interrompe_ameaca(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        self.game.toggle_tool("camera")
+        with self.assertRaises(ValueError):
+            self.game.document_anomaly("caixa")
+        self.assertFalse(self.game.state["threat_disrupted"])
+
+    def test_camera_desarmada_nao_interrompe_ameaca(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        with self.assertRaises(RuntimeError):
+            self.game.document_anomaly("geladeira")
+
     def test_abrigo_persiste_e_evade_ameaca(self):
         self.game.start_shift()
         self.game.interact_object("porta")
