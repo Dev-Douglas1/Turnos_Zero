@@ -141,7 +141,7 @@ class ShiftGame:
             return False
         if status == "on_shift" and task_index >= len(MISSIONS[shift_index]["tasks"]):
             return False
-        if status in {"between_shifts", "ended", "campaign_completed"} and task_index != 0 and status != "ended":
+        if status == "campaign_completed" and task_index != len(MISSIONS[shift_index - 1]["tasks"]):
             return False
         if not isinstance(state.get("player"), str) or not state["player"].strip():
             return False
