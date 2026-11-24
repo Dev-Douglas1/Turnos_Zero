@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="wood" x2="1"><stop stop-color="#121a20"/><stop offset=".18" stop-color="#514b3d"/><stop offset=".55" stop-color="#242a2c"/><stop offset=".85" stop-color="#5d4b36"/><stop offset="1" stop-color="#11171c"/></linearGradient></defs>
+<ellipse cx="257" cy="484" rx="160" ry="12" fill="#000" opacity=".6"/>
+<rect x="73" y="18" width="366" height="472" fill="#080d12" stroke="#9c8054" stroke-width="8"/>
+<rect x="94" y="39" width="324" height="430" fill="url(#wood)" stroke="#4e504a" stroke-width="5"/>
+<rect x="119" y="62" width="274" height="181" fill="#161e23" stroke="#917b58" stroke-width="8"/>
+<rect x="119" y="267" width="274" height="171" fill="#161e23" stroke="#917b58" stroke-width="8"/>
+<rect x="147" y="87" width="218" height="132" fill="#20282d" stroke="#413f36" stroke-width="5"/>
+<circle cx="352" cy="250" r="15" fill="#bd9861" stroke="#2a2119" stroke-width="5"/>
+<circle cx="256" cy="101" r="15" fill="#090e13" stroke="#b79c6c" stroke-width="4"/>
+<text x="256" y="150" fill="#c3a36a" font-family="monospace" font-size="34" text-anchor="middle">504</text>
+<path d="M116 455L398 455" stroke="#b48c53" stroke-width="7"/>
+<path d="M98 40L412 470" stroke="#a08d6d" stroke-width="2" opacity=".25"/>
+<!-- estado interativo: edificio_porta_tocada -->
+<path d="M130 90L390 430M390 90L130 430" stroke="#a64c42" stroke-width="5" opacity=".55"/><path d="M210 220Q190 180 214 166Q230 157 244 190L255 218L269 174Q283 154 299 171Q313 185 294 225L274 271Q254 297 231 271Z" fill="#9b4a43" opacity=".44"/><circle cx="352" cy="250" r="23" fill="#d34c41" opacity=".55"/>
+</svg>
