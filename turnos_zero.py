@@ -166,7 +166,7 @@ class ShiftGame:
             return False
         if status == "on_shift" and task_index >= len(MISSIONS[shift_index % len(MISSIONS)]["tasks"]):
             return False
-        if status == "between_shifts" and task_index not in (0, len(MISSIONS[shift_index]["tasks"])):
+        if status == "between_shifts" and task_index not in (0, len(MISSIONS[shift_index % len(MISSIONS)]["tasks"])):
             return False
         if status == "ended" and task_index not in range(1, len(MISSIONS[shift_index]["tasks"]) + 1):
             return False
