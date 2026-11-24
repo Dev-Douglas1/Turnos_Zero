@@ -944,10 +944,12 @@ class TurnosZeroApp:
             )
 
         self.button(728, 512, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 29)
-        if threat_active:
-            self.button(728, 548, 238, "ESCONDER-SE AGORA", self.hide_from_anomaly, 30)
-        elif is_hidden:
+        if threat_active and is_hidden:
             self.button(728, 548, 238, "SAIR DO ESCONDERIJO", self.leave_hiding, 30)
+        elif threat_active and not state.get("hide_used", False):
+            self.button(728, 548, 238, "ESCONDER-SE AGORA", self.hide_from_anomaly, 30)
+        elif threat_active and state.get("hide_used", False):
+            self.text(730, 562, "ABRIGO JÁ UTILIZADO NESTA PERSEGUIÇÃO", 7, "#e58d83", "nw", 230)
         else:
             self.text(730, 562, "NENHUMA PRESENÇA À CAÇA", 7, self.MUTED, "nw")
 
@@ -1360,7 +1362,7 @@ def terminal():
                 print(f"{i} - {hotspot.get('label', hotspot['id'])}{status}")
             print(
                 f"I - registrar pista | M - manipular objeto | R - consultar rádio ({game.get_tool_resource('radio')} transmissões) | "
-                + ("H - esconder-se | " if game.state.get("threat_active") and not game.state.get("is_hidden") else "")
+                + ("H - esconder-se | " if game.state.get("threat_active") and not game.state.get("is_hidden") and not game.state.get("hide_used", False) else "")
                 + ("S - sair do esconderijo | " if game.state.get("is_hidden") else "")
                 + "ENTER - seguir"
             )
@@ -1373,7 +1375,7 @@ def terminal():
                 except (RuntimeError, ValueError) as exc:
                     print("RÁDIO:", str(exc))
                 continue
-            if command == "h" and game.state.get("threat_active") and not game.state.get("is_hidden"):
+            if command == "h" and game.state.get("threat_active") and not game.state.get("is_hidden") and not game.state.get("hide_used", False):
                 try:
                     print("ABRIGO:", game.hide_from_anomaly())
                 except RuntimeError as exc:
