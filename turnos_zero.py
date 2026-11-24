@@ -159,7 +159,7 @@ class ShiftGame:
             return False
         valid_completed_counts = {shift_index}
         if status == "between_shifts" and task_index == len(MISSIONS[shift_index]["tasks"]):
-            valid_completed_counts.add(shift_index + 1)
+            valid_completed_counts = {shift_index + 1} if shift_index == 0 else {shift_index, shift_index + 1}
         if status == "campaign_completed":
             valid_completed_counts = {len(MISSIONS)}
         if len(state["completed"]) not in valid_completed_counts or state["completed"] != [m["id"] for m in MISSIONS[:len(state["completed"])]]:
