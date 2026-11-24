@@ -128,10 +128,12 @@ MISSIONS = [
     }
 ]
 
+# Os identificadores antigos são mantidos para preservar saves existentes.
+# Agora representam níveis de dificuldade, não vínculos empregatícios.
 DIFFICULTIES = {
-    "estagiario": {"label": "Estagiário", "sanity": 5, "mistakes": 2, "salary": 1.0},
-    "efetivo": {"label": "Efetivo", "sanity": 4, "mistakes": 1, "salary": 1.25},
-    "terceirizado": {"label": "Terceirizado", "sanity": 3, "mistakes": 1, "salary": 1.6},
+    "estagiario": {"label": "FÁCIL", "sanity": 5, "mistakes": 2, "salary": 1.0},
+    "efetivo": {"label": "MÉDIO", "sanity": 4, "mistakes": 1, "salary": 1.5},
+    "terceirizado": {"label": "DIFÍCIL", "sanity": 3, "mistakes": 1, "salary": 2.0},
 }
 
 TOOL_RESOURCES = {"lanterna": 100, "radio": 3, "camera": 3}
@@ -465,9 +467,10 @@ class ShiftGame:
             outcome = previous.get("outcome", "completed" if survived else "missing")
             paid = previous.get("payment", 0)
         elif survived:
-            # A remuneração dobra a cada contrato: R$ 50, 100, 200, 400...
-            # O adicional de vínculo foi removido para manter a progressão previsível.
-            paid = 50 * (2 ** self.state["shift_index"])
+            # A diária cresce por contrato e recebe multiplicador pela dificuldade.
+            base_daily = 50 * (2 ** self.state["shift_index"])
+            difficulty_multiplier = DIFFICULTIES[self.state["difficulty"]]["salary"]
+            paid = int(round(base_daily * difficulty_multiplier))
             advance_due = max(0, int(self.state.get("advance_payment_due", 0)))
             paid = max(0, paid - advance_due)
             self.state["cash"] += paid
