@@ -32,7 +32,7 @@ def main() -> None:
         export_svg(
             SCENE_DIR / f"{name}.svg",
             SCENE_DIR / f"{name}.png",
-            (834, 315),
+            (834, 469),
         )
 
     object_sources = sorted(OBJECT_DIR.glob("*.svg"))
