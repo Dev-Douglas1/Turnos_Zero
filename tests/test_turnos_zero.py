@@ -223,5 +223,15 @@ class TurnosZeroTests(unittest.TestCase):
         state["task_index"] = 3
         self.assertFalse(ShiftGame._valid_state(state))
 
+    def test_proximo_contrato_reinicia_indice_e_pode_ser_reaberto(self):
+        self.game.start_shift()
+        for task in self.game.mission["tasks"]:
+            self.game.act(task["correct"])
+        self.game.next_shift()
+        self.assertEqual(self.game.state["task_index"], 0)
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertEqual(reopened.state["shift_index"], 1)
+        self.assertEqual(reopened.state["task_index"], 0)
+
 if __name__ == "__main__":
     unittest.main()
