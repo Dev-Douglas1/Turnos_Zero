@@ -136,6 +136,13 @@ DIFFICULTIES = {
     "terceirizado": {"label": "DIFÍCIL", "sanity": 3, "mistakes": 1, "salary": 2.0},
 }
 
+# Cada nível começa em um local diferente. A ordem acompanha a campanha inteira.
+MISSION_ORDERS = {
+    "estagiario": ["loja_24h", "edificio_9", "cinema_vazio", "laboratorio"],
+    "efetivo": ["edificio_9", "cinema_vazio", "laboratorio", "loja_24h"],
+    "terceirizado": ["cinema_vazio", "laboratorio", "edificio_9", "loja_24h"],
+}
+
 TOOL_RESOURCES = {"lanterna": 100, "radio": 3, "camera": 3}
 
 ANOMALY_THRESHOLD = 3
@@ -179,7 +186,9 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         difficulty = "estagiario"
     return {
         "schema_version": 1, "player": player, "status": "between_shifts",
-        "difficulty": difficulty, "cash": -1_000_000, "initial_debt": 1_000_000,
+        "difficulty": difficulty,
+        "mission_order": list(MISSION_ORDERS[difficulty]),
+        "cash": -1_000_000, "initial_debt": 1_000_000,
         "contract_refused": False, "forced_contract_acceptance": False,
         "advance_payment_due": 0, "loan_shark_accepted": False,
         "reputation": 0, "shift_index": 0,
@@ -224,6 +233,11 @@ class ShiftGame:
                 if key not in self.state:
                     self.state[key] = default
                     migrated = True
+            # Saves antigos mantêm a ordem original; campanhas novas recebem
+            # a rota correspondente à dificuldade escolhida.
+            if "mission_order" not in self.state:
+                self.state["mission_order"] = [mission["id"] for mission in MISSIONS]
+                migrated = True
             if migrated:
                 self.save()
 
@@ -266,11 +280,16 @@ class ShiftGame:
         mission_ids = {m["id"] for m in MISSIONS}
         if not isinstance(state.get("completed"), list) or not all(isinstance(x, str) and x for x in state["completed"]):
             return False
+        mission_order = state.get("mission_order", [mission["id"] for mission in MISSIONS])
+        valid_mission_ids = {mission["id"] for mission in MISSIONS}
+        if (not isinstance(mission_order, list) or len(mission_order) != len(MISSIONS)
+                or set(mission_order) != valid_mission_ids):
+            return False
         expected_completed = shift_index + 1 if status == "between_shifts" and task_index == 3 else shift_index
         if len(state["completed"]) != expected_completed:
             return False
         for index, completed_id in enumerate(state["completed"]):
-            expected_id = MISSIONS[index % len(MISSIONS)]["id"]
+            expected_id = mission_order[index % len(mission_order)]
             if completed_id != expected_id and completed_id != expected_id + "#contrato-" + str(index + 1):
                 return False
         if not isinstance(state.get("evidence", []), list):
@@ -348,7 +367,11 @@ class ShiftGame:
     @property
     def mission(self):
         index = self.state["shift_index"]
-        base = MISSIONS[index % len(MISSIONS)]
+        order = self.state.get("mission_order") or MISSION_ORDERS.get(
+            self.state.get("difficulty"), [mission["id"] for mission in MISSIONS]
+        )
+        mission_id = order[index % len(order)]
+        base = next((item for item in MISSIONS if item["id"] == mission_id), MISSIONS[0])
         mission = dict(base)
         mission["scene_id"] = base["id"]
         mission["pay"] = 50 * (2 ** index)
