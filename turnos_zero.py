@@ -244,24 +244,29 @@ class ShiftGame:
 
     def _finish_shift(self, survived: bool):
         mission = self.mission
-        if survived:
-            factor = DIFFICULTIES[self.state["difficulty"]]["salary"]
-            paid = int(mission["pay"] * factor)
-            self.state["cash"] += paid
-            self.state["completed"].append(mission["id"])
-            outcome = "completed"
-        else:
-            paid = 0
-            outcome = "missing"
-        self.state.update(status="between_shifts" if survived else "ended",
-                          last_outcome=outcome, last_payment=paid,
-                          last_reveal=mission["reveal"])
         token = self.state.get("shift_token")
         if not token:
             token = f"legacy-{self.state.get('created_at', 'unknown')}-{self.state['shift_index']}"
             self.state["shift_token"] = token
         shifts = self.history.setdefault("shifts", [])
-        if not token or not any(item.get("shift_token") == token for item in shifts if isinstance(item, dict)):
+        previous = next((item for item in shifts if isinstance(item, dict) and item.get("shift_token") == token), None)
+        if previous:
+            outcome = previous.get("outcome", "completed" if survived else "missing")
+            paid = previous.get("payment", 0)
+        elif survived:
+            factor = DIFFICULTIES[self.state["difficulty"]]["salary"]
+            paid = int(mission["pay"] * factor)
+            self.state["cash"] += paid
+            if mission["id"] not in self.state["completed"]:
+                self.state["completed"].append(mission["id"])
+            outcome = "completed"
+        else:
+            paid = 0
+            outcome = "missing"
+        self.state.update(status="between_shifts" if outcome == "completed" else "ended",
+                          last_outcome=outcome, last_payment=paid,
+                          last_reveal=mission["reveal"])
+        if previous is None:
             shifts.append({
                 "shift_token": token, "player": self.state["player"], "mission": mission["title"],
                 "outcome": outcome, "payment": paid, "date": datetime.now().isoformat(timespec="seconds")
