@@ -558,8 +558,8 @@ class TurnosZeroApp:
         try:
             self.game.consume_tool_resource("camera", 1)
             self.game.record_evidence(hotspot["id"], "FOTO / " + finding)
-            if self.game.get_tool_state("camera"):
-                self.game.toggle_tool("camera")
+            # A câmera permanece armada para permitir até três registros por
+            # contrato. O motor a desarma automaticamente quando o filme acaba.
             self.play_effect("acerto.wav")
         except (RuntimeError, ValueError):
             self.play_effect("erro.wav")
@@ -780,8 +780,8 @@ class TurnosZeroApp:
         self.text(730, 372, mission["brief"], 9, self.TEXT, "nw", 230)
 
         self.text(730, 438, "PROTOCOLOS DE SEGURANÇA", 9, self.GOLD, "nw")
-        for index, rule in enumerate(mission["rules"][:3]):
-            self.text(733, 462 + index * 29, f"{index + 1:02d}  {rule}", 8, self.MUTED, "nw", 225)
+        for index, rule in enumerate(mission["rules"][:4]):
+            self.text(733, 458 + index * 24, f"{index + 1:02d}  {rule}", 8, self.MUTED, "nw", 225)
 
         self.text(55, 595, "ARQUIVO VISUAL DO LOCAL  ·  EXAMINE O AMBIENTE APÓS ASSINAR", 8, self.MUTED, "nw")
         self.text(55, 622, "A remuneração só é creditada se o agente concluir o expediente.", 8, "#c59a72", "nw")
@@ -834,7 +834,9 @@ class TurnosZeroApp:
         self.text(730, 340, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
 
         for index, hotspot in enumerate(hotspots[:4], 1):
-            y = 360 + (index - 1) * 45
+            # Quatro linhas compactas deixam a central CCTV livre inclusive
+            # no laboratório, que possui quatro pontos de inspeção.
+            y = 354 + (index - 1) * 39
             collected = hotspot["id"] in found_ids
             mark = "✓" if collected else f"{index:02d}"
             label = hotspot.get("label", hotspot["id"])
@@ -842,10 +844,10 @@ class TurnosZeroApp:
                 728, y, 238,
                 f"{mark}  {label[:24]}",
                 lambda h=hotspot: self.inspect_hotspot(h),
-                36
+                32
             )
 
-        self.button(728, 526, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 31)
+        self.button(728, 514, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 30)
 
         # Barra de equipamento fora do cenário: não obstrui os pontos clicáveis.
         tool_states = state.setdefault("tool_states", {})
