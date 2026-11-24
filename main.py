@@ -151,6 +151,7 @@ class TurnosZeroApp:
             self.rect(x+7,190+(i%4)*35,x+12,198+(i%4)*35,"#8b704a")
         self.rect(48,175,976,590,"#101a28","#705b40",2)
         self.rect(58,185,966,580,"#101a28","#2e3948",1)
+        self.draw_scene("agencia", 512, 380)
         self.text(512,245,"AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS",12,self.MUTED)
         self.text(512,315,"TURNOS ZERO",43,self.GOLD)
         self.text(512,365,"O expediente termina. Nem todos voltam para casa.",13,self.TEXT)
