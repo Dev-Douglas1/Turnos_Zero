@@ -43,6 +43,8 @@ class TurnosZeroApp:
         self.active_scene = None
         self.current_hotspot = None
         self.current_camera_hotspot = None
+        self.current_radio_message = None
+        self.current_radio_status = "READY"
         self.surveillance_images = {}
         self.ambience_active = False
         self._draw_w, self._draw_h = self.W, self.H
@@ -330,6 +332,53 @@ class TurnosZeroApp:
             self.rect(120,245,840,520,"#162632","#45606a",4)
             self.rect(370,280,590,485,"#172833","#b39a66",5)
             self.rect(400,310,560,395,"#08141d","#5c8e89",3)
+
+    def use_radio(self):
+        """Consome uma transmissão e abre um canal narrativo ligado à ocorrência atual."""
+        try:
+            self.game.consume_tool_resource("radio", 1)
+            self.current_radio_message = self.game.task.get(
+                "radio_hint",
+                "A transmissão chega cortada. Siga os protocolos impressos no dossiê."
+            )
+            self.current_radio_status = "SINAL RECEBIDO"
+            self.play_effect("porta.wav")
+        except (RuntimeError, ValueError):
+            self.current_radio_message = "A frequência está muda. Não restam transmissões neste contrato."
+            self.current_radio_status = "SEM SINAL"
+            self.play_effect("erro.wav")
+        self.show_radio_screen()
+
+    def show_radio_screen(self):
+        """Rádio de campo apresentado como equipamento analógico, não caixa de diálogo."""
+        self.screen = "radio"
+        self.start_ambience()
+        self.clear()
+        self.rect(0, 0, self.W, self.H, "#060d10")
+        self.header("COMUNICAÇÕES / CANAL DE CAMPO", "Rádio portátil", self.current_radio_status)
+        self.rect(70, 205, 954, 585, "#101a20", "#6c765f", 2)
+        self.rect(95, 230, 590, 548, "#08110f", "#54765f", 3)
+        self.text(120, 257, "RECEPTOR DE CURTO ALCANCE", 9, "#d7ad70", "nw")
+        self.text(120, 292, "FREQUÊNCIA  03.17  /  OPERAÇÕES", 8, "#85b99c", "nw")
+        # Dial analógico e barras de sintonia.
+        self.rect(120, 320, 565, 322, "#020907", "#315342", 1)
+        for x in range(145, 550, 24):
+            self.rect(x, 335, x + 2, 345 if x % 48 else 357, "#89b59a")
+        self.canvas.create_oval(290, 365, 425, 500, fill="#172322", outline="#9b8054", width=5)
+        self.canvas.create_oval(312, 387, 403, 478, fill="#050a0a", outline="#4c6958", width=2)
+        self.canvas.create_line(357, 433, 391, 400, fill="#d5af70", width=4)
+        self.text(357, 520, "TX / RX", 8, "#8bc9a0")
+        self.rect(620, 230, 930, 548, "#06100e", "#54765f", 2)
+        self.text(645, 257, "TRANSMISSÃO RECEBIDA", 9, "#d7ad70", "nw")
+        self.text(645, 294, self.current_radio_message or "Nenhuma transmissão.", 13, "#c8dfce", "nw", 250)
+        # Ruído de fita em pequenas linhas horizontais.
+        for i in range(18):
+            y = 458 + i * 3
+            self.rect(645, y, 910, y + 1, "#234c39" if i % 3 else "#6c9d79")
+        self.text(645, 530, "ARQUIVO DE ÁUDIO / VOLÁTIL", 7, "#77927e", "nw")
+        self.button(650, 610, 270, "VOLTAR AO AMBIENTE", self.show_investigation, 42)
+        self.text(95, 610, f"TRANSMISSÕES RESTANTES: {self.game.get_tool_resource('radio')}", 9, "#d6ad70", "nw")
+        self.bind_clicks()
 
     def toggle_field_tool(self, tool):
         try:
@@ -746,10 +795,10 @@ class TurnosZeroApp:
         radio_uses = self.game.get_tool_resource("radio")
         camera_film = self.game.get_tool_resource("camera")
         lantern_label = f"LANTERNA {'ON' if tool_states.get('lanterna', True) else 'OFF'}  {lantern_charge}%"
-        radio_label = f"RÁDIO {'ON' if tool_states.get('radio', False) else 'OFF'}  {radio_uses}"
+        radio_label = f"RÁDIO / {radio_uses} CHAMADAS" 
         camera_label = f"CÂMERA {'ON' if tool_states.get('camera', False) else 'OFF'}  {camera_film}"
         self.button(40, 610, 150, lantern_label, lambda: self.toggle_field_tool("lanterna"), 40)
-        self.button(200, 610, 150, radio_label, lambda: self.toggle_field_tool("radio"), 40)
+        self.button(200, 610, 150, radio_label, self.use_radio, 40)
         self.button(360, 610, 150, camera_label, lambda: self.toggle_field_tool("camera"), 40)
         self.button(520, 610, 150, "DOSSIÊ", self.show_evidence_report, 40)
         self.button(710, 610, 274, "AVANÇAR PARA A OCORRÊNCIA", self.show_task, 40)
