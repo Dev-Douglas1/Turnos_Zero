@@ -88,6 +88,31 @@ MISSIONS = [
              "failure": "A tinta se move e escreve: 'Assento reservado'. Uma poltrona range atrás de você."}
         ],
         "reveal": "O Cine Orfeu fechou há décadas. A sessão de hoje foi registrada como a primeira com público."
+    },
+    {
+        "id": "laboratorio", "title": "Protocolo de Contenção", "location": "Subsolo 03 · Centro de Pesquisa",
+        "pay": 1280, "brief": "Verifique o desligamento do laboratório, confirme o isolamento da câmara fria e encerre o expediente sem responder às chamadas internas.",
+        "rules": [
+            "O terminal pode exibir sessões antigas como se estivessem ativas. Não informe credenciais.",
+            "Se o alarme emitir dois pulsos âmbar, acione o isolamento manual.",
+            "Não abra a câmara fria depois das 03:00, mesmo que alguém peça ajuda.",
+            "Toda voz no intercomunicador deve ser conferida no registro de pessoal."
+        ],
+        "tasks": [
+            {"prompt": "O terminal informa uma sessão iniciada há onze anos. O cursor continua piscando e uma mensagem pede sua senha.",
+             "choices": ["Digitar a senha funcional", "Desligar o terminal pelo botão frontal", "Isolar a alimentação do terminal no quadro externo"],
+             "correct": 2, "evidence_ids": ["terminal"], "evidence_choices": [1], "evidence_note": "A sessão antiga continua ativa; desligar apenas a tela não encerra a conexão. Isole a alimentação no quadro externo.", "success": "O cursor para. Por um instante, a tela exibe uma lista de funcionários — inclusive o seu nome.",
+             "failure": "O terminal aceita a senha antes que você termine de digitá-la. Uma nova sessão é aberta em seu nome."},
+            {"prompt": "O alarme emite dois pulsos âmbar. Há condensação se formando do lado de dentro da câmara fria.",
+             "choices": ["Abrir a câmara para verificar", "Acionar o isolamento manual", "Pedir instruções pelo intercomunicador"],
+             "correct": 1, "evidence_ids": ["terminal"], "evidence_note": "O registro persistente indica que os sistemas não foram realmente encerrados. O protocolo exige isolamento manual.", "success": "As travas descem. Algo bate três vezes do outro lado, depois fica em silêncio.",
+             "failure": "A porta abre alguns centímetros. O ar que sai tem cheiro de chuva e ozônio."},
+            {"prompt": "O intercomunicador chama você pelo nome e solicita a liberação da câmara. O registro de pessoal está ao lado.",
+             "choices": ["Responder e confirmar a liberação", "Conferir o nome no registro antes de qualquer ação", "Seguir a voz até a câmara"],
+             "correct": 1, "success": "O registro não contém nenhum funcionário com seu nome. O intercomunicador desliga sozinho.",
+             "failure": "A voz agradece. No monitor, seu crachá muda de ATIVO para ENCERRADO."}
+        ],
+        "reveal": "O Centro de Pesquisa foi interditado há onze anos. O último registro de atividade foi assinado por um funcionário que ainda não havia sido contratado."
     }
 ]
 
