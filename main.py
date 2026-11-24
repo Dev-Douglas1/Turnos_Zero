@@ -317,15 +317,23 @@ class TurnosZeroApp:
         self.rect(0,0,self.W,self.H,self.BG)
         self.header(f"AO VIVO  /  {mission['location']}",mission["title"],
                     f"{state['player']}  |  ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
-        self.rect(70,195,954,575,"#101a28","#9a7848",2)
-        self.text(512,235,"REGISTRO DE OCORRÊNCIA",10,self.GOLD)
-        self.text(512,305,task["prompt"],17,self.TEXT,width=790)
+        self.rect(70,195,954,575,"#111b28","#786044",2)
+        self.rect(70,195,954,202,"#26343d")
+        self.text(100,220,f"OCORRÊNCIA {state['task_index']+1} / 3",9,"#d6ad70","nw")
+        self.text(100,252,"O QUE ESTÁ ACONTECENDO?",11,"#e7d9c5","nw")
+        self.text(100,292,task["prompt"],14,self.TEXT,"nw",820)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
-        self.text(512,365,f"PISTAS NESTE CONTRATO: {len(evidence)}  |  DECISÕES INFORMADAS POR PISTAS GERAM REPUTAÇÃO EXTRA",9,self.MUTED,width=820)
+        self.text(100,365,f"PISTAS NO RELATÓRIO: {len(evidence)}",9,"#82b9a7" if evidence else "#d6ad70","nw")
+        self.text(100,388,"Escolha uma ação. A decisão errada pode encerrar seu contrato.",9,self.MUTED,"nw")
         for i,choice in enumerate(task["choices"]):
-            self.button(130,405+i*48,764,f"{i+1}.  {choice}",lambda n=i:self.choose(n),40)
-        self.button(130,555,250,"REVISAR AMBIENTE",self.show_investigation,38)
-        self.text(512,635,f"OCORRÊNCIA {state['task_index']+1}/3     [ESC] MENU",9,self.MUTED)
+            y=420+i*48
+            self.rect(112,y,912,y+40,"#1b2934","#536777",1)
+            self.rect(112,y,118,y+40,"#a46e4c")
+            self.text(138,y+20,str(i+1),10,"#e7d9c5")
+            self.text(158,y+20,choice,10,self.TEXT,"nw")
+            self.targets.append(((112,y,912,y+40),lambda n=i:self.choose(n)))
+        self.button(112,570,250,"VOLTAR À INVESTIGAÇÃO",self.show_investigation,38)
+        self.text(920,589,"[ESC] MENU",8,self.MUTED,"ne")
         self.bind_clicks()
 
     def choose(self,index):
