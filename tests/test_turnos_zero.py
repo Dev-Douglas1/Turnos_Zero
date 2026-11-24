@@ -192,5 +192,25 @@ class TurnosZeroTests(unittest.TestCase):
         state.pop("shift_token", None)
         self.assertTrue(ShiftGame._valid_state(state))
 
+    def test_vinculo_efetivo_encerra_com_uma_violacao(self):
+        self.game.start_campaign("Teste", "efetivo")
+        self.game.start_shift()
+        result = self.game.act((self.game.task["correct"] + 1) % 3)
+        self.assertEqual(result["ending"], "missing")
+        self.assertEqual(self.game.state["status"], "ended")
+
+    def test_vinculo_terceirizado_encerra_com_uma_violacao(self):
+        self.game.start_campaign("Teste", "terceirizado")
+        self.game.start_shift()
+        result = self.game.act((self.game.task["correct"] + 1) % 3)
+        self.assertEqual(result["ending"], "missing")
+
+    def test_estagiario_suporta_duas_violacoes(self):
+        self.game.start_shift()
+        first = self.game.act((self.game.task["correct"] + 1) % 3)
+        self.assertNotIn("ending", first)
+        result = self.game.act((self.game.task["correct"] + 1) % 3)
+        self.assertEqual(result["ending"], "missing")
+
 if __name__ == "__main__":
     unittest.main()
