@@ -88,6 +88,19 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertIn("1", obj.get("asset_states", {}))
                     self.assertTrue(obj["asset_states"]["1"].endswith(".png"))
 
+    def test_each_mission_has_an_original_ambient_loop(self):
+        missions = {"loja_24h", "edificio_9", "cinema_vazio", "laboratorio"}
+        folder = ROOT / "assets" / "som"
+        for mission in missions:
+            path = folder / f"{mission}.wav"
+            with self.subTest(mission=mission):
+                self.assertTrue(path.is_file(), f"Áudio ausente: {path}")
+                with wave.open(str(path), "rb") as audio:
+                    self.assertEqual(audio.getnchannels(), 1)
+                    self.assertEqual(audio.getsampwidth(), 2)
+                    self.assertEqual(audio.getframerate(), 22050)
+                    self.assertGreaterEqual(audio.getnframes(), 22050 * 8)
+
     def test_background_pngs_preserve_16_9_ratio(self):
         config = json.loads((ROOT / "dados" / "cenas.json").read_text(encoding="utf-8"))
         for scene in config["scenes"]:
