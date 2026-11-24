@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "normalized_0_1",
+  "scenes": [
+    {
+      "id": "agencia",
+      "name": "Agência",
+      "background": "assets/ambientes/agencia_menu.png",
+      "hotspots": []
+    },
+    {
+      "id": "cidade",
+      "name": "Cidade noturna",
+      "background": "assets/ambientes/cidade_noturna.png",
+      "hotspots": []
+    },
+    {
+      "id": "loja_24h",
+      "name": "Loja 24 horas",
+      "background": "assets/ambientes/loja_24_horas.png",
+      "hotspots": [
+        {
+          "id": "caixa",
+          "label": "Balcão do caixa",
+          "bounds": [
+            0.05,
+            0.55,
+            0.42,
+            0.96
+          ],
+          "action": "inspect_cashier"
+        },
+        {
+          "id": "geladeira",
+          "label": "Geladeira",
+          "bounds": [
+            0.58,
+            0.12,
+            0.94,
+            0.85
+          ],
+          "action": "inspect_fridge"
+        }
+      ]
+    },
+    {
+      "id": "edificio_9",
+      "name": "Edifício Residencial 9",
+      "background": "assets/ambientes/edificio_residencial.png",
+      "hotspots": [
+        {
+          "id": "elevador",
+          "label": "Elevador",
+          "bounds": [
+            0.34,
+            0.08,
+            0.65,
+            0.96
+          ],
+          "action": "inspect_elevator"
+        }
+      ]
+    },
+    {
+      "id": "cinema_vazio",
+      "name": "Última Sessão",
+      "background": "assets/ambientes/cinema_ultima_sessao.png",
+      "hotspots": [
+        {
+          "id": "tela",
+          "label": "Tela de projeção",
+          "bounds": [
+            0.2,
+            0.05,
+            0.8,
+            0.65
+          ],
+          "action": "inspect_screen"
+        },
+        {
+          "id": "poltronas",
+          "label": "Poltronas",
+          "bounds": [
+            0.05,
+            0.55,
+            0.95,
+            0.98
+          ],
+          "action": "inspect_seats"
+        }
+      ]
+    },
+    {
+      "id": "laboratorio",
+      "name": "Laboratório experimental",
+      "background": "assets/ambientes/laboratorio_experimental.png",
+      "hotspots": [
+        {
+          "id": "terminal",
+          "label": "Terminal de controle",
+          "bounds": [
+            0.35,
+            0.25,
+            0.72,
+            0.92
+          ],
+          "action": "inspect_terminal"
+        }
+      ]
+    }
+  ]
+}
