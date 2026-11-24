@@ -248,5 +248,21 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertTrue(result["evidence_used"])
         self.assertEqual(self.game.state["reputation"], reputation_before + 2)
 
+    def test_estabilidade_zero_encerra_sem_pagamento(self):
+        self.game.start_shift()
+        self.game.state["sanity"] = 1
+        self.game.save()
+        result = self.game.act((self.game.task["correct"] + 1) % 3)
+        self.assertEqual(result["ending"], "missing")
+        self.assertEqual(self.game.state["last_payment"], 0)
+        self.assertEqual(self.game.state["status"], "ended")
+
+    def test_estado_encerrado_persiste_apos_reabrir(self):
+        self.game.start_campaign("Teste", "efetivo")
+        self.game.start_shift()
+        self.game.act((self.game.task["correct"] + 1) % 3)
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertEqual(reopened.state["status"], "ended")
+
 if __name__ == "__main__":
     unittest.main()
