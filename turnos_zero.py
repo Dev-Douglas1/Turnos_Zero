@@ -103,7 +103,7 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "schema_version": 1, "player": player, "status": "between_shifts",
         "difficulty": difficulty, "cash": 0, "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
-        "completed": [], "current_seed": None, "created_at": datetime.now().isoformat(timespec="seconds")
+        "completed": [], "evidence": [], "current_seed": None, "created_at": datetime.now().isoformat(timespec="seconds")
     }
 
 class ShiftGame:
@@ -131,7 +131,8 @@ class ShiftGame:
             return False
         if type(state.get("task_index")) is not int or not 0 <= state["task_index"] <= 3:
             return False
-        return all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")) and isinstance(state.get("completed"), list)
+        return (all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")) and
+                isinstance(state.get("completed"), list) and isinstance(state.get("evidence", []), list))
 
     @staticmethod
     def _read(path: Path, default):
@@ -229,6 +230,19 @@ class ShiftGame:
         self.state["status"] = "between_shifts"
         self.save()
         return self.mission
+
+    def record_evidence(self, evidence_id: str, description: str) -> bool:
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Só é possível registrar evidências durante um turno.")
+        if not isinstance(evidence_id, str) or not evidence_id.strip():
+            raise ValueError("Identificador de evidência inválido.")
+        evidence = self.state.setdefault("evidence", [])
+        if any(item.get("id") == evidence_id for item in evidence if isinstance(item, dict)):
+            return False
+        evidence.append({"id": evidence_id, "description": str(description)[:240],
+                         "mission": self.mission["id"], "task_index": self.state["task_index"]})
+        self.save()
+        return True
 
     def abandon(self):
         if self.state:
