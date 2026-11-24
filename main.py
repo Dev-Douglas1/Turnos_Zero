@@ -152,10 +152,17 @@ class TurnosZeroApp:
         self.canvas.config(cursor="hand2")
 
     def header(self, eyebrow, title, subtitle=""):
-        self.text(56,38,eyebrow,11,self.GOLD,"nw")
-        self.text(56,82,title,28,self.TEXT,"nw")
+        """Cabeçalho institucional compartilhado por todas as telas."""
+        self.rect(0, 0, self.W, 12, "#070b12")
+        self.rect(32, 22, self.W - 32, 23, "#8f7045")
+        self.text(42, 42, "AGÊNCIA  /  SERVIÇOS EXTRAORDINÁRIOS", 8, self.MUTED, "nw")
+        self.text(self.W - 42, 42, "ARQUIVO 00  ·  ACESSO RESTRITO", 8, self.MUTED, "ne")
+        self.text(56, 76, eyebrow.upper(), 9, self.GOLD, "nw")
+        self.text(56, 112, title, 25, self.TEXT, "nw")
         if subtitle:
-            self.text(56,132,subtitle,12,self.MUTED,"nw")
+            self.text(56, 151, subtitle, 10, self.MUTED, "nw", 900)
+        self.rect(56, 174, self.W - 56, 175, "#594a35")
+        self.rect(56, 178, 170, 179, "#a17c49")
 
     def menu(self):
         """Menu principal simétrico, com hierarquia tipográfica sem duplicação."""
@@ -216,7 +223,7 @@ class TurnosZeroApp:
         ]
         for i,(key,label,desc) in enumerate(descriptions):
             y=220+i*112
-            self.rect(80,y,944,y+88,self.PANEL,"#715b40",2)
+            self.rect(80,y,944,y+88,"#101a28","#9a7848",2)
             self.text(110,y+27,label,17,self.GOLD,"nw")
             self.text(110,y+58,desc,11,self.MUTED,"nw")
             self.button(735,y+20,170,"ASSINAR",lambda k=key,p=player:self.create_campaign(p,k),44)
@@ -243,7 +250,7 @@ class TurnosZeroApp:
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("ORDEM DE SERVIÇO  /  CONFIDENCIAL",mission["title"],mission["location"])
-        self.rect(55,190,969,575,self.PANEL,"#8b6b42",2)
+        self.rect(55,195,969,575,"#101a28","#9a7848",2)
         self.text(90,225,"DESCRIÇÃO DO SERVIÇO",11,self.GOLD,"nw")
         self.text(90,260,mission["brief"],14,self.TEXT,"nw",820)
         self.text(90,330,"PROTOCOLO DE SEGURANÇA",11,self.GOLD,"nw")
@@ -290,7 +297,7 @@ class TurnosZeroApp:
         self.rect(0,0,self.W,self.H,self.BG)
         self.header(f"AO VIVO  /  {mission['location']}",mission["title"],
                     f"{state['player']}  |  ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
-        self.rect(70,190,954,575,self.PANEL,"#66543e",2)
+        self.rect(70,195,954,575,"#101a28","#9a7848",2)
         self.text(512,235,"REGISTRO DE OCORRÊNCIA",10,self.GOLD)
         self.text(512,305,task["prompt"],17,self.TEXT,width=790)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
@@ -311,7 +318,7 @@ class TurnosZeroApp:
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("RELATÓRIO DE CAMPO","Ocorrência registrada",
                     "CONDUTA ACEITA" if result["correct"] else "VIOLAÇÃO DE PROTOCOLO")
-        self.rect(80,205,944,510,self.PANEL,"#8b6b42",2)
+        self.rect(80,205,944,520,"#101a28","#9a7848",2)
         color="#9bd1ad" if result["correct"] else "#e58d83"
         self.text(120,255,"✓" if result["correct"] else "!",34,color,"nw")
         self.text(180,265,result["message"],15,self.TEXT,"nw",700)
@@ -347,7 +354,7 @@ class TurnosZeroApp:
         title = "Campanha concluída" if completed else "Contrato encerrado"
         subtitle = "TODOS OS LOCAIS FORAM INSPECIONADOS" if completed else f"FUNCIONÁRIO: {state.get('player','—')}"
         self.header("ARQUIVO DE PESSOAL / STATUS", title, subtitle)
-        self.rect(100,220,924,520,self.PANEL,"#8b6b42",2)
+        self.rect(100,220,924,530,"#101a28","#9a7848",2)
         self.text(150,280,f"STATUS: {state.get('status','—').upper()}",18,self.GOLD,"nw")
         self.text(150,340,f"Saldo acumulado: R$ {state.get('cash',0):,}".replace(",", "."),15,self.TEXT,"nw")
         self.text(150,375,f"Reputação acumulada: {state.get('reputation',0)}",13,self.MUTED,"nw")
