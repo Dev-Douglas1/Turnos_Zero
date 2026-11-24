@@ -933,7 +933,8 @@ class TurnosZeroApp:
             self.text(125, 430, "A oferta parece pior do que o trabalho. A ameaça parece pior do que a oferta.", 10, "#d7ad70", "nw", 760)
         self.text(125, 475, "Você sente o estômago apertar. Ainda assim, precisa do dinheiro.", 10, self.MUTED, "nw", 760)
         self.button(125, 505, 350, accept_label, self.accept_loan_shark, 42)
-        self.button(520, 505, 350, "PAGAR UMA PARTE AMANHÃ", self.promise_payment, 42)
+        if acceptances < 2:
+            self.button(520, 505, 350, "PAGAR UMA PARTE AMANHÃ", self.promise_payment, 42)
         self.bind_clicks()
 
     def accept_loan_shark(self):
