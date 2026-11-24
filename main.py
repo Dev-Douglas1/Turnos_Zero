@@ -404,20 +404,8 @@ class TurnosZeroApp:
                     bounds = SceneManager.map_bounds(object_bounds or hotspot["bounds"], viewport)
                     x1, y1, x2, y2 = bounds
                     cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
-                    found = hotspot["id"] in evidence_ids
-                    marker = "#79c5a5" if found else "#e7b566"
-
-                    # Marcador pequeno; a área clicável cobre o objeto, não a moldura.
-                    self.canvas.create_oval(
-                        cx - 11, cy - 11, cx + 11, cy + 11,
-                        fill="#101923", outline=marker, width=2,
-                        tags=("hotspot_marker",)
-                    )
-                    self.canvas.create_text(
-                        cx, cy, text="✓" if found else str(index),
-                        fill=marker, font=("Consolas", 9, "bold"),
-                        tags=("hotspot_marker",)
-                    )
+                    # Os objetos permanecem clicáveis, mas sem círculos numerados
+                    # sobre a arte: a descoberta é indicada na lista lateral.
                     self.targets.append((bounds, lambda h=hotspot: self.inspect_hotspot(h)))
         except (SceneError, tk.TclError, OSError, KeyError, ValueError):
             self.active_scene = None
@@ -982,7 +970,8 @@ class TurnosZeroApp:
         # Painel lateral: instruções, estado das pistas e acesso por lista.
         self.rect(710, 195, 984, 590, "#0b141e", "#9a7848", 2)
         self.text(730, 218, "OBJETIVO DE CAMPO", 9, self.GOLD, "nw")
-        self.text(730, 244, "Investigue objetos, registre pistas e respeite os protocolos.", 8, self.TEXT, "nw", 230)
+        self.text(730, 242, "Investigue os objetos e registre pistas.", 8, self.TEXT, "nw", 230)
+        self.text(730, 258, "Respeite os protocolos para sobreviver.", 8, self.MUTED, "nw", 230)
         threat_level = state.get("threat_level", 0)
         threat_active = state.get("threat_active", False)
         is_hidden = state.get("is_hidden", False)
@@ -992,13 +981,13 @@ class TurnosZeroApp:
         elif is_hidden:
             threat_label += "  /  AGENTE OCULTO"
         threat_color = "#e58d83" if threat_active else ("#83c4a8" if is_hidden else "#d6ad70")
-        self.text(730, 275, threat_label, 8, threat_color, "nw")
+        self.text(730, 282, threat_label, 8, threat_color, "nw")
         if threat_active:
-            self.text(730, 291, "A presença vai atacar na próxima decisão. Esconda-se.", 7, "#e58d83", "nw", 230)
+            self.text(730, 299, "A presença vai atacar na próxima decisão. Esconda-se.", 7, "#e58d83", "nw", 230)
         elif is_hidden:
-            self.text(730, 291, "Você está fora do campo de visão da presença.", 7, "#83c4a8", "nw", 230)
+            self.text(730, 299, "Você está fora do campo de visão da presença.", 7, "#83c4a8", "nw", 230)
         else:
-            self.text(730, 291, "Evite interações desnecessárias: elas atraem a anomalia.", 7, self.MUTED, "nw", 230)
+            self.text(730, 299, "Evite interações desnecessárias: elas atraem a anomalia.", 7, self.MUTED, "nw", 230)
 
         scene_data = self.object_scene_data.get(scene_id, {})
         hotspots = scene_data.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", [])) if scene_id else []
@@ -1007,26 +996,23 @@ class TurnosZeroApp:
             if item.get("mission") == mission["id"]
         ]
         found_ids = {item.get("id") for item in evidence}
-        self.rect(728, 293, 966, 294, "#354657")
         found_count = sum(1 for hotspot in hotspots if hotspot["id"] in found_ids)
-        self.text(730, 320, f"PISTAS: {found_count}/{len(hotspots)}", 9, "#8bc9a0" if evidence else "#d6ad70", "nw")
-        self.text(730, 343, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
+        self.text(730, 326, f"PISTAS REGISTRADAS: {found_count}/{len(hotspots)}", 8, "#8bc9a0" if evidence else "#d6ad70", "nw")
+        self.text(730, 350, "OBJETOS INTERATIVOS", 8, self.MUTED, "nw")
 
-        for index, hotspot in enumerate(hotspots[:4], 1):
-            # Quatro linhas compactas deixam a central CCTV livre inclusive
-            # no laboratório, que possui quatro pontos de inspeção.
-            y = 357 + (index - 1) * 37
+        for index, hotspot in enumerate(hotspots[:4]):
+            y = 369 + index * 36
             collected = hotspot["id"] in found_ids
-            mark = "✓" if collected else f"{index:02d}"
             label = hotspot.get("label", hotspot["id"])
+            status = "REGISTRADO" if collected else "EXAMINAR"
             self.button(
                 728, y, 238,
-                f"{mark}  {label[:24]}",
+                f"{label[:19]}  ·  {status}",
                 lambda h=hotspot: self.inspect_hotspot(h),
-                30
+                29
             )
 
-        self.button(728, 512, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 29)
+        self.button(728, 525, 238, "ABRIR CENTRAL CCTV / 06 CANAIS", self.show_surveillance, 29)
         if threat_active and is_hidden:
             self.button(728, 548, 238, "SAIR DO ESCONDERIJO", self.leave_hiding, 30)
         elif threat_active and not state.get("hide_used", False):
