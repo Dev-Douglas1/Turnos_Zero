@@ -431,6 +431,15 @@ class TurnosZeroTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.game.interact_object("caixa")
 
+    def test_abrigo_so_pode_ser_usado_uma_vez_por_perseguicao(self):
+        self.game.start_shift()
+        self.game.interact_object("porta")
+        self.game.interact_object("geladeira")
+        self.game.hide_from_anomaly()
+        self.game.leave_hiding()
+        with self.assertRaises(RuntimeError):
+            self.game.hide_from_anomaly()
+
     def test_save_antigo_migra_estado_de_ameaca_padrao(self):
         self.game.state.pop("threat_level", None)
         self.game.state.pop("threat_active", None)
