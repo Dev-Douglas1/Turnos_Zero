@@ -42,6 +42,7 @@ class TurnosZeroApp:
             self.object_scene_data = {}
         self.active_scene = None
         self.current_hotspot = None
+        self.ambience_active = False
         self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -75,17 +76,53 @@ class TurnosZeroApp:
         self.text(x+w/2,y+h/2,label,12,self.GOLD)
         self.targets.append(((x,y,x+w,y+h),callback))
 
-    def play_effect(self, filename):
-        """Toca um WAV curto sem bloquear a interface; fallback para o beep do Tk."""
-        path = Path(__file__).resolve().parent / "assets" / filename
-        if not path.is_file():
+    def start_ambience(self):
+        """Mantém o som ambiente em loop durante a exploração, no Windows."""
+        path = Path(__file__).resolve().parent / "assets" / "ambiente.wav"
+        if self.ambience_active or not path.is_file():
             return
         try:
             import winsound
             winsound.PlaySound(
                 str(path),
+                winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_LOOP | winsound.SND_NODEFAULT,
+            )
+            self.ambience_active = True
+        except (ImportError, OSError):
+            self.ambience_active = False
+
+    def stop_ambience(self):
+        if not self.ambience_active:
+            return
+        try:
+            import winsound
+            winsound.PlaySound(None, winsound.SND_PURGE)
+        except (ImportError, OSError):
+            pass
+        self.ambience_active = False
+
+    def play_effect(self, filename):
+        """Toca um WAV curto e retoma o ambiente após o efeito."""
+        path = Path(__file__).resolve().parent / "assets" / filename
+        if not path.is_file():
+            return
+        resume_ambience = self.ambience_active
+        try:
+            import wave
+            import winsound
+            duration_ms = 900
+            try:
+                with wave.open(str(path), "rb") as audio:
+                    duration_ms = int(audio.getnframes() / max(1, audio.getframerate()) * 1000) + 120
+            except (wave.Error, OSError):
+                pass
+            self.ambience_active = False
+            winsound.PlaySound(
+                str(path),
                 winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT,
             )
+            if resume_ambience:
+                self.root.after(duration_ms, self.start_ambience)
         except (ImportError, OSError):
             try:
                 self.root.bell()
@@ -194,6 +231,36 @@ class TurnosZeroApp:
                     )
                 scene_hotspots = layered.get("hotspots", [])
 
+            # Luz diegética: feixe suave projetado a partir da posição do agente.
+            if self.game.get_tool_state("lanterna") and self.game.get_tool_resource("lanterna") > 0:
+                beam_x = left + view_w * 0.50
+                beam_y = bottom - 4
+                self.canvas.create_polygon(
+                    beam_x, beam_y,
+                    left + view_w * 0.22, top + 8,
+                    left + view_w * 0.78, top + 8,
+                    fill="#e6d4a6", outline="", stipple="gray75",
+                    tags=("flashlight_overlay",)
+                )
+                self.canvas.create_polygon(
+                    beam_x, beam_y,
+                    left + view_w * 0.36, top + 22,
+                    left + view_w * 0.64, top + 22,
+                    fill="#f0e2bd", outline="", stipple="gray75",
+                    tags=("flashlight_overlay",)
+                )
+
+            # Modo câmera transforma a mesma cena em feed analógico de vigilância.
+            if self.game.get_tool_state("camera"):
+                for scan_y in range(top + 3, bottom - 2, 6):
+                    self.canvas.create_line(left + 2, scan_y, right - 2, scan_y,
+                                            fill="#102b22", width=1, tags=("camera_scanline",))
+                self.rect(left + 12, top + 10, left + 156, top + 37, "#06140f", "#6caa8b", 1)
+                self.canvas.create_oval(left + 20, top + 17, left + 29, top + 26,
+                                        fill="#e35d4d", outline="")
+                self.text(left + 39, top + 23, "REC  /  CAM-01", 7, "#9ce2b5")
+                self.rect(left + 4, top + 4, right - 4, bottom - 4, "", "#70a98c", 1)
+
             evidence_ids = {
                 item.get("id") for item in (self.game.state or {}).get("evidence", [])
                 if item.get("mission") == (self.game.mission or {}).get("id")
@@ -262,6 +329,7 @@ class TurnosZeroApp:
         self.show_inspection()
 
     def show_inspection(self):
+        self.start_ambience()
         hotspot = self.current_hotspot
         if not hotspot:
             self.show_investigation()
@@ -381,6 +449,7 @@ class TurnosZeroApp:
         finding = hotspot.get("finding", "Evidência visual identificada.")
         try:
             self.game.record_evidence(hotspot["id"], finding)
+            self.play_effect("acerto.wav")
         except RuntimeError:
             pass
         self.show_inspection()
@@ -396,6 +465,7 @@ class TurnosZeroApp:
             return
         next_state = "0" if current == "1" else "1"
         self.game.set_object_state(hotspot["id"], next_state)
+        self.play_effect("porta.wav")
         self.show_inspection()
 
     def click(self, event):
@@ -431,6 +501,7 @@ class TurnosZeroApp:
 
     def menu(self):
         """Menu principal simétrico, com hierarquia tipográfica sem duplicação."""
+        self.stop_ambience()
         self.screen = "menu"
         self.clear()
         self.rect(0, 0, self.W, self.H, "#080e18")
@@ -545,6 +616,7 @@ class TurnosZeroApp:
 
     def show_contract(self):
         """Briefing em formato de dossiê, mantendo a arte do local visível em 16:9."""
+        self.stop_ambience()
         self.screen = "briefing"
         mission = self.game.mission
         self.clear()
@@ -601,6 +673,7 @@ class TurnosZeroApp:
     def show_investigation(self):
         """Tela de campo com cenário 16:9 e painel de objetos realmente examináveis."""
         self.screen = "investigation"
+        self.start_ambience()
         mission = self.game.mission
         state = self.game.state
         scene_id = scene_for_mission(mission["id"])
@@ -709,6 +782,7 @@ class TurnosZeroApp:
 
     def show_task(self):
         self.screen="task"
+        self.start_ambience()
         mission=self.game.mission
         task=self.game.task
         state=self.game.state
@@ -776,6 +850,7 @@ class TurnosZeroApp:
             self.show_contract()
 
     def show_ending(self):
+        self.stop_ambience()
         self.screen="ending"
         self.clear()
         state=self.game.state or {}
