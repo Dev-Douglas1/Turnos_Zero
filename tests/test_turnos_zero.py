@@ -283,6 +283,13 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertFalse(self.game.toggle_tool("radio"))
         self.assertEqual(self.game.get_tool_resource("radio"), 2)
 
+    def test_consulta_radio_consume_uma_transmissao(self):
+        self.game.start_shift()
+        self.assertEqual(self.game.get_tool_resource("radio"), 3)
+        self.game.consume_tool_resource("radio", 1)
+        self.assertEqual(self.game.get_tool_resource("radio"), 2)
+        self.assertTrue(self.game.task.get("radio_hint"))
+
     def test_camera_consume_filme_ao_fotografar(self):
         self.game.start_shift()
         self.game.toggle_tool("camera")
