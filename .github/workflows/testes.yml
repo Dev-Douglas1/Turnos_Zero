@@ -12,9 +12,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compilar módulos
-        run: python -m py_compile main.py turnos_zero.py sistemas.py
+        run: python -m py_compile main.py turnos_zero.py scene_manager.py sistemas.py
       - name: Executar testes
         run: python -m unittest discover -s tests -v
       - name: Validar JSON versionados
         run: |
-          python -c "import json; [json.load(open(p, encoding='utf-8')) for p in ['dados/enigmas.json','dados/progresso.json','dados/historico.json']]"
+          python -c "import json; [json.load(open(p, encoding='utf-8')) for p in ['dados/enigmas.json','dados/progresso.json','dados/historico.json','dados/cenas.json']]"
