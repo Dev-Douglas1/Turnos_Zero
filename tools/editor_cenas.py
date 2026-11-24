@@ -261,10 +261,24 @@ class SceneEditor:
                 break
 
     def save(self):
+        # Áreas clicáveis derivam das caixas editadas dos respectivos objetos.
+        for scene in self.data["scenes"].values():
+            hotspots_by_object = {
+                item.get("object"): item
+                for item in scene.get("hotspots", [])
+                if item.get("object")
+            }
+            for obj in scene.get("objects", []):
+                hotspot = hotspots_by_object.get(obj["id"])
+                if hotspot:
+                    hotspot["bounds"] = [
+                        obj["x"], obj["y"],
+                        obj["x"] + obj["w"], obj["y"] + obj["h"]
+                    ]
         temp = MANIFEST.with_suffix(".json.tmp")
         temp.write_text(json.dumps(self.data, ensure_ascii=False, indent=2), encoding="utf-8")
         temp.replace(MANIFEST)
-        messagebox.showinfo("Turnos Zero", "Camadas salvas em dados/objetos_cenas.json")
+        messagebox.showinfo("Turnos Zero", "Camadas e áreas clicáveis salvas em dados/objetos_cenas.json")
 
 if __name__ == "__main__":
     root = tk.Tk()
