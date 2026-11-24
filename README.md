@@ -93,7 +93,7 @@ Execute `python tools/editor_cenas.py` para abrir o editor visual. Selecione a m
 - **CFTV:** central de seis canais com recortes das áreas do cenário; o jogador seleciona um ponto e pode fotografá-lo usando filme limitado.
 - **Rádio:** três transmissões por contrato, com orientações específicas para cada ocorrência.
 - **Pressão anômala:** cada objeto manipulável aumenta a atenção da presença; no limite, a anomalia começa a caçar o agente.
-- **Abrigos por missão:** balcão da loja, escadaria do edifício, cabine do cinema e armário de descontaminação. Esconder-se antes de decidir evita o ataque; avançar exposto gera uma penalidade adicional proporcional ao risco do contrato.
+- **Abrigos por missão:** balcão da loja, escadaria do edifício, cabine do cinema e armário de descontaminação. Esconder-se antes de decidir evita o ataque; avançar exposto gera uma penalidade adicional proporcional ao risco do contrato. Cada perseguição permite um único uso do abrigo: sair dele deixa o agente exposto até a ameaça ser resolvida.
 - **Áudio:** quatro paisagens sonoras originais específicas por missão (loja, edifício, cinema e laboratório), em loop; efeitos curtos para interação, evidência e decisão; fallback para o beep do sistema quando a reprodução WAV não estiver disponível.
 
 
