@@ -53,6 +53,7 @@ Não são necessárias bibliotecas externas. A interface usa Canvas do Tkinter e
 - dados/turnos_zero_historico.json — histórico dos expedientes.
 - tests/test_turnos_zero.py — testes automatizados do novo motor.
 - docs/PLANO_TECNICO_TURNOS_ZERO.md — arquitetura, etapas e roadmap.
+- docs/ROTEIRO_APRESENTACAO.md — roteiro de demonstração e checklist para apresentação.
 
 Os saves antigos da Mansão continuam preservados em seus arquivos originais. A nova campanha usa arquivos separados e não os sobrescreve.
 
