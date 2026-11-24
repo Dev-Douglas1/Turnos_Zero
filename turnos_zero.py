@@ -157,12 +157,12 @@ class ShiftGame:
             return False
         if len(state["completed"]) != len(set(state["completed"])):
             return False
-        expected_completed = shift_index
+        valid_completed_counts = {shift_index}
         if status == "between_shifts" and task_index == len(MISSIONS[shift_index]["tasks"]):
-            expected_completed += 1
+            valid_completed_counts.add(shift_index + 1)
         if status == "campaign_completed":
-            expected_completed = len(MISSIONS)
-        if len(state["completed"]) != expected_completed or state["completed"] != [m["id"] for m in MISSIONS[:expected_completed]]:
+            valid_completed_counts = {len(MISSIONS)}
+        if len(state["completed"]) not in valid_completed_counts or state["completed"] != [m["id"] for m in MISSIONS[:len(state["completed"])]]:
             return False
         if not isinstance(state.get("evidence", []), list):
             return False
@@ -292,7 +292,7 @@ class ShiftGame:
             self.state["completed_at"] = datetime.now().isoformat(timespec="seconds")
             self.save()
             return None
-        self.state["status"] = "between_shifts"
+        self.state.update(status="between_shifts", task_index=0)
         self.save()
         return self.mission
 
