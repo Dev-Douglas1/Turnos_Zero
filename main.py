@@ -789,17 +789,18 @@ class TurnosZeroApp:
         self.text(82, 270, "Cada serviço concluído reduz sua dívida.", 8, self.TEXT, "nw", 365)
 
         descriptions = [
-            ("estagiario", "ESTAGIÁRIO", "5 estabilidade · suporta 2 violações"),
-            ("efetivo", "EFETIVO", "4 estabilidade · 1 violação encerra o contrato"),
-            ("terceirizado", "TERCEIRIZADO", "3 estabilidade · 1 violação encerra o contrato"),
+            ("estagiario", "FÁCIL", "5 estabilidade · suporta 2 falhas", "DIÁRIA: R$ 50"),
+            ("efetivo", "MÉDIO", "4 estabilidade · 1 falha encerra o turno", "DIÁRIA: R$ 75"),
+            ("terceirizado", "DIFÍCIL", "3 estabilidade · 1 falha encerra o turno", "DIÁRIA: R$ 100"),
         ]
-        for i, (key, label, desc) in enumerate(descriptions):
+        for i, (key, label, desc, daily) in enumerate(descriptions):
             y = 300 + i * 112
             self.rect(58, y, 480, y + 92, "#101a28", "#8b6b45", 1)
-            self.text(82, y + 28, label, 13, self.GOLD, "nw")
-            self.text(82, y + 55, desc, 8, self.MUTED, "nw", 340)
+            self.text(82, y + 20, label, 13, self.GOLD, "nw")
+            self.text(82, y + 45, desc, 8, self.MUTED, "nw", 340)
+            self.text(82, y + 66, daily, 8, "#8bc9a0", "nw")
             self.button(
-                300, y + 27, 155, "ASSINAR",
+                300, y + 25, 155, "ESCOLHER",
                 lambda k=key, p=player: self.create_campaign(p, k), 40
             )
         self.text(755, 610, "ARQUIVO INTERNO  ·  ACESSO RESTRITO", 8, self.MUTED)
@@ -850,7 +851,7 @@ class TurnosZeroApp:
 
         state = self.game.state
         debt = max(0, -state["cash"])
-        reward = 50 * (2 ** state["shift_index"])
+        reward = int(round(50 * (2 ** state["shift_index"]) * DIFFICULTIES[state["difficulty"]]["salary"]))
         risk = 2 ** state["shift_index"]
 
         self.text(730, 218, "DÍVIDA CONTRATUAL", 9, "#d6ad70", "nw")
@@ -932,7 +933,7 @@ class TurnosZeroApp:
 
     def promise_payment(self):
         state = self.game.state
-        next_reward = 50 * (2 ** state["shift_index"])
+        next_reward = int(round(50 * (2 ** state["shift_index"]) * DIFFICULTIES[state["difficulty"]]["salary"]))
         state["advance_payment_due"] = max(25, min(500, next_reward // 2))
         state["forced_contract_acceptance"] = True
         state["contract_refused"] = False
