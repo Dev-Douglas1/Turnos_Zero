@@ -29,7 +29,7 @@ Dependência gráfica para redimensionar os objetos PNG: instale com `python -m 
 1. Crie um contrato e informe o nome do crachá.
 2. Escolha o vínculo: Estagiário (duas falhas permitidas), Efetivo ou Terceirizado (uma falha permitida).
 3. Leia a ordem de serviço e os protocolos.
-4. Use o cinto de equipamentos: lanterna ilumina o cenário, rádio apresenta instruções da central e câmera ativa o modo de gravação.
+4. Use o cinto de equipamentos: lanterna (100% de carga, consome 35 por decisão), rádio (3 transmissões) e câmera (3 fotos); os recursos são repostos a cada contrato.
 5. Investigue o ambiente clicando nos objetos; a inspeção mostra a pista e permite manipular o objeto.
 6. As pistas ficam vinculadas ao contrato; fotografar ou examinar registra evidências que podem apoiar decisões.
 7. Resolva três ocorrências escolhendo uma das três ações. Violações reduzem estabilidade conforme o risco crescente.
@@ -64,7 +64,7 @@ Os saves antigos da Mansão continuam preservados em seus arquivos originais. A 
 
 A fundação jogável está implementada: menu, criação de contrato, quatro missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface gráfica e o modo terminal separam a fase de investigação da fase de decisão. O histórico usa identificador único por expediente para evitar duplicação em retomadas, e o carregamento valida a estrutura do progresso antes de aceitar um save. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera fundos em 834×315 e objetos em 512×512. O renderizador redimensiona cada sprite conforme x/y/w/h, preserva a proporção do objeto e mantém hotspots ligados aos mesmos limites. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
 
-Já existem interação e estado persistente de objetos, zoom/ficha de inspeção, cinto de ferramentas e feedback sonoro de acerto/falha. Ainda estão planejados: animações, áudio ambiente por missão, ameaças com padrões de comportamento, esconderijos, recursos limitados, funcionários recorrentes, mais missões e finais. O editor visual e o jogo usam a mesma área normalizada de 834×315. A interface gráfica ainda precisa de teste manual no Windows.
+Já existem interação e estado persistente de objetos, ficha de inspeção, cinto de ferramentas com recursos limitados e feedback sonoro de acerto/falha. Ainda estão planejados: animações, áudio ambiente por missão, ameaças com padrões de comportamento, esconderijos, recursos limitados, funcionários recorrentes, mais missões e finais. O editor visual e o jogo usam a mesma área normalizada de 834×315. A interface gráfica ainda precisa de teste manual no Windows.
 
 ## Direção de arte e referências
 

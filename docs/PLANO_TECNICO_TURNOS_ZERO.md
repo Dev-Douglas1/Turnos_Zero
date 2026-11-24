@@ -59,9 +59,10 @@ A direção visual combina quatro princípios: documentos manipuláveis e decis�
 - Evidências e estados não vazam para o próximo contrato.
 
 ### Equipamentos
-- **Lanterna:** ativa um cone de iluminação no cenário.
-- **Rádio:** exibe orientação contextual da central para a missão atual.
-- **Câmera:** ativa visual de gravação/scanlines e permite fotografar uma evidência.
+- **Lanterna:** ativa um cone de iluminação; começa com 100% e consome 35 pontos por decisão enquanto ligada.
+- **Rádio:** exibe orientação contextual da central; possui três transmissões por contrato.
+- **Câmera:** ativa visual de gravação/scanlines e permite fotografar evidências; possui três fotos por contrato.
+- Os recursos são repostos quando um novo contrato é iniciado; decisões e evidências não são apagadas.
 - Inventário e estados de equipamentos são persistidos; saves antigos recebem os padrões sem perder progresso.
 
 ### Interface e áudio
