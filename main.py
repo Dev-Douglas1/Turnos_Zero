@@ -1,5 +1,6 @@
 """Launcher de Turnos Zero. A campanha antiga permanece preservada nos arquivos legados."""
 import sys
+import json
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 from turnos_zero import ShiftGame, DIFFICULTIES, MISSIONS
@@ -22,6 +23,13 @@ class TurnosZeroApp:
         self.game = ShiftGame()
         self.scene_manager = SceneManager()
         self.scene_images = {}
+        self.object_images = {}
+        self.object_scene_data = {}
+        manifest_path = Path(__file__).resolve().parent / "dados" / "objetos_cenas.json"
+        try:
+            self.object_scene_data = json.loads(manifest_path.read_text(encoding="utf-8")).get("scenes", {})
+        except (OSError, json.JSONDecodeError):
+            self.object_scene_data = {}
         self.active_scene = None
         self._draw_w, self._draw_h = self.W, self.H
         self.canvas = tk.Canvas(root, bg=self.BG, highlightthickness=0)
@@ -63,35 +71,55 @@ class TurnosZeroApp:
         try:
             scene = self.scene_manager.get(scene_id)
             self.active_scene = scene_id
-            # SVG is kept as editable source art. Tkinter's Canvas has no native SVG
-            # renderer, so the scene is drawn with native primitives until an optional
-            # SVG rasterizer is available; gameplay remains dependency-free.
-            path = Path(__file__).resolve().parent / scene.get("background", "")
-            if path.suffix.lower() == ".png" and path.is_file():
-                try:
-                    if scene_id not in self.scene_images:
-                        self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
-                    self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
-                except tk.TclError:
-                    self.scene_images.pop(scene_id, None)
-                    self.draw_scene_fallback(scene_id)
-            else:
-                self.draw_scene_fallback(scene_id)
-            # Hotspots são normalizados em relação à área real da cena,
-            # não à janela inteira. Isso mantém os cliques alinhados ao cenário.
+            layered = self.object_scene_data.get(scene_id)
             viewport = (95, 235, 929, 510)
+            if layered:
+                # Cenário por camadas: cada objeto é um PNG independente e
+                # suas coordenadas/visibilidade ficam em dados/objetos_cenas.json.
+                left, top, right, bottom = viewport
+                backdrop = layered.get("backdrop", {})
+                self.rect(left, top, right, bottom, backdrop.get("wall", "#101923"))
+                self.rect(left, top + (bottom-top)*0.72, right, bottom, backdrop.get("floor", "#070b12"))
+                self.rect(left, top+8, right, top+10, backdrop.get("light", "#9a7848"))
+                self.rect(left+12, top+12, right-12, bottom-12, "", "#344657", 1)
+                for obj in sorted(layered.get("objects", []), key=lambda item: item.get("z", 0)):
+                    if not obj.get("visible", True):
+                        continue
+                    asset = Path(__file__).resolve().parent / "assets" / "objetos" / obj["asset"]
+                    if not asset.is_file():
+                        continue
+                    cache_key = (scene_id, obj["id"])
+                    if cache_key not in self.object_images:
+                        self.object_images[cache_key] = tk.PhotoImage(file=str(asset))
+                    x = left + (obj["x"] + obj["w"]/2) * (right-left)
+                    y = top + (obj["y"] + obj["h"]/2) * (bottom-top)
+                    self.canvas.create_image(x, y, image=self.object_images[cache_key], anchor="center",
+                                             tags=("scene_object", obj["id"]))
+                scene_hotspots = layered.get("hotspots", [])
+            else:
+                path = Path(__file__).resolve().parent / scene.get("background", "")
+                if path.suffix.lower() == ".png" and path.is_file():
+                    try:
+                        if scene_id not in self.scene_images:
+                            self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
+                        self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
+                    except tk.TclError:
+                        self.scene_images.pop(scene_id, None)
+                        self.draw_scene_fallback(scene_id)
+                else:
+                    self.draw_scene_fallback(scene_id)
+                scene_hotspots = scene.get("hotspots", [])
+
             evidence_ids = {
                 item.get("id") for item in (self.game.state or {}).get("evidence", [])
                 if item.get("mission") == (self.game.mission or {}).get("id")
             }
-            for index, hotspot in enumerate(scene.get("hotspots", []), 1):
+            for index, hotspot in enumerate(scene_hotspots, 1):
                 bounds = SceneManager.map_bounds(hotspot["bounds"], viewport)
                 x1, y1, x2, y2 = bounds
                 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
                 found = hotspot["id"] in evidence_ids
                 marker = "#75b9a5" if found else "#e0a65b"
-                # O alvo clicável continua amplo, mas a indicação visual vira um
-                # marcador compacto para não cobrir o cenário com retângulos.
                 self.canvas.create_oval(cx-13, cy-13, cx+13, cy+13,
                                         fill="#101923", outline=marker, width=3)
                 self.canvas.create_text(cx, cy, text="✓" if found else str(index),
@@ -102,7 +130,7 @@ class TurnosZeroApp:
                 self.rect(cx-tag_w/2, tag_y-10, cx+tag_w/2, tag_y+10, "#101923", marker, 1)
                 self.text(cx, tag_y, label, 7, marker)
                 self.targets.append((bounds, lambda h=hotspot:self.inspect_hotspot(h)))
-        except (SceneError, tk.TclError, OSError):
+        except (SceneError, tk.TclError, OSError, KeyError):
             self.active_scene = None
 
     def draw_scene_fallback(self, scene_id):
