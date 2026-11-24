@@ -1,39 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540">
 <defs>
- <linearGradient id="hall" y2="1"><stop stop-color="#28313a"/><stop offset=".45" stop-color="#121923"/><stop offset="1" stop-color="#05080e"/></linearGradient>
- <radialGradient id="lamp"><stop stop-color="#d6c18e" stop-opacity=".65"/><stop offset="1" stop-color="#d6c18e" stop-opacity="0"/></radialGradient>
- <linearGradient id="lift" x2="1"><stop stop-color="#090e15"/><stop offset=".5" stop-color="#202b33"/><stop offset="1" stop-color="#05080d"/></linearGradient>
- <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+ <linearGradient id="corridor" x2="0" y2="1"><stop stop-color="#30343a"/><stop offset=".48" stop-color="#161c24"/><stop offset="1" stop-color="#06090f"/></linearGradient>
+ <linearGradient id="floor" x2="0" y2="1"><stop stop-color="#30343a"/><stop offset="1" stop-color="#080b11"/></linearGradient>
+ <radialGradient id="red"><stop stop-color="#bd5144" stop-opacity=".7"/><stop offset="1" stop-color="#bd5144" stop-opacity="0"/></radialGradient>
+ <radialGradient id="cold"><stop stop-color="#9cb9ba" stop-opacity=".34"/><stop offset="1" stop-color="#9cb9ba" stop-opacity="0"/></radialGradient>
+ <pattern id="wallgrain" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M7 9h2M25 28h1M15 35h1" stroke="#b7b1a2" stroke-opacity=".15"/></pattern>
 </defs>
-<rect width="960" height="540" fill="#05080e"/>
-<path d="M0 0H960V470L480 540 0 470Z" fill="url(#hall)"/>
-<path d="M0 0L480 115 960 0M0 470L480 345 960 470" fill="none" stroke="#59636a" stroke-width="4" opacity=".55"/>
-<ellipse cx="480" cy="80" rx="210" ry="95" fill="url(#lamp)" filter="url(#soft)"/>
-<path d="M410 24H550L530 50H430Z" fill="#d9c99e" opacity=".72"/>
-<!-- corridor doors -->
-<g fill="#111a24" stroke="#65717a" stroke-width="5">
- <path d="M60 120L260 155V430L60 465Z"/><path d="M700 155L900 120V465L700 430Z"/>
-</g>
-<g stroke="#8a765b" stroke-width="3" fill="none">
- <path d="M95 155L235 178V405L95 432Z"/><path d="M725 178L865 155V432L725 405Z"/>
-</g>
-<g fill="#bd9c69"><circle cx="220" cy="300" r="5"/><circle cx="740" cy="300" r="5"/></g>
-<!-- elevator, open to impossible darkness -->
-<rect x="365" y="80" width="230" height="380" fill="#090e15" stroke="#a18a66" stroke-width="6"/>
-<rect x="382" y="96" width="196" height="350" fill="url(#lift)" stroke="#43515b" stroke-width="3"/>
-<path d="M480 98V445" stroke="#76818a" stroke-width="4"/>
-<path d="M385 100L455 125V440L385 420Z" fill="#111a24"/>
-<path d="M575 100L505 125V440L575 420Z" fill="#080b11"/>
-<!-- figure in elevator gap -->
-<ellipse cx="480" cy="245" rx="27" ry="40" fill="#020306"/>
-<path d="M438 420Q438 300 480 294Q523 300 522 420Z" fill="#020306"/>
-<circle cx="471" cy="245" r="3" fill="#d5c08c"/><circle cx="490" cy="245" r="3" fill="#d5c08c"/>
-<!-- floor indicator -->
-<rect x="615" y="175" width="62" height="130" fill="#0b1118" stroke="#8e7958" stroke-width="3"/>
-<text x="646" y="230" text-anchor="middle" fill="#c36b55" font-family="monospace" font-size="38">0</text>
-<text x="646" y="260" text-anchor="middle" fill="#a9b2b7" font-family="monospace" font-size="9">SUBSOLO</text>
-<!-- floor tiles -->
-<path d="M0 470L480 345 960 470M0 520L480 390 960 520M180 540L480 345 780 540" stroke="#38444e" stroke-width="2" opacity=".6" fill="none"/>
-<path d="M0 0H960V540H0Z" fill="none" stroke="#020407" stroke-width="42" opacity=".8"/>
-<text x="480" y="505" fill="#a79a83" font-family="monospace" font-size="13" text-anchor="middle" letter-spacing="4">EDIFÍCIO 9  ·  O ELEVADOR NÃO PARA NO TÉRREO</text>
+<rect width="960" height="540" fill="#05080d"/>
+<path d="M0 0H960V392L480 448 0 392Z" fill="url(#corridor)"/>
+<path d="M0 392L480 448 960 392V540H0Z" fill="url(#floor)"/>
+<!-- strong brutalist perspective lines -->
+<path d="M0 0L480 135 960 0M0 392L480 295 960 392" fill="none" stroke="#626a70" stroke-width="7" opacity=".4"/>
+<path d="M0 72L480 170 960 72M0 168L480 211 960 168M0 265L480 250 960 265" stroke="#3c4851" stroke-width="3" opacity=".38" fill="none"/>
+<path d="M0 0L160 0 414 398 0 392ZM960 0H800L546 398 960 392Z" fill="#090e15" opacity=".56"/>
+<!-- long empty corridor vanishing point -->
+<path d="M370 110H590V390L480 416 370 390Z" fill="#070b12"/>
+<path d="M395 130H565V378L480 396 395 378Z" fill="#0a1119" stroke="#46525b" stroke-width="4"/>
+<path d="M480 130V398" stroke="#323d45" stroke-width="4"/>
+<!-- lights -->
+<path d="M95 30H294L319 47H112Z" fill="#d8d1bb" opacity=".44"/>
+<path d="M130 39H278" stroke="#e0d9c5" stroke-width="7" opacity=".8"/>
+<path d="M668 39H830L849 53H685Z" fill="#c7c9bc" opacity=".18"/>
+<path d="M696 46H817" stroke="#a9b9b9" stroke-width="6" opacity=".22"/>
+<ellipse cx="155" cy="260" rx="180" ry="220" fill="url(#red)"/>
+<ellipse cx="820" cy="230" rx="200" ry="210" fill="url(#cold)"/>
+<!-- stained concrete panels and pipes -->
+<path d="M46 30V380M112 47V390M850 44V390M916 25V380" stroke="#626d74" stroke-width="5" opacity=".35"/>
+<path d="M35 90H215M745 90H925M20 315H320M640 315H940" stroke="#879097" stroke-width="2" opacity=".2"/>
+<path d="M22 122L55 135 49 194 12 180ZM914 230L947 218 952 282 919 294" fill="#4b3935" opacity=".38"/>
+<rect width="960" height="540" fill="url(#wallgrain)" opacity=".45"/>
+<!-- floor tile perspective -->
+<path d="M0 392L480 295 960 392M0 460L480 330 960 460M0 520L480 372 960 520" stroke="#7a8387" stroke-width="3" opacity=".23" fill="none"/>
+<path d="M160 540L430 302M330 540L465 305M630 540L495 305M800 540L530 305" stroke="#6b777e" stroke-width="2" opacity=".2"/>
+<!-- warning sign -->
+<rect x="67" y="210" width="102" height="70" fill="#121920" stroke="#795e4d" stroke-width="3"/>
+<text x="118" y="239" text-anchor="middle" fill="#cf8d6d" font-family="monospace" font-size="24">09</text>
+<text x="118" y="262" text-anchor="middle" fill="#aeb7b8" font-family="monospace" font-size="10" letter-spacing="2">BLOCO C</text>
+<path d="M0 0H960V540H0Z" fill="none" stroke="#020407" stroke-width="48" opacity=".77"/>
 </svg>
