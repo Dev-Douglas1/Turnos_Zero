@@ -42,5 +42,26 @@ class SceneManagerTests(unittest.TestCase):
             with self.assertRaises(SceneError):
                 SceneManager(path)
 
+    def test_rejeita_hotspots_duplicados(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            hotspot = {"id": "same", "bounds": [0.1, 0.1, 0.5, 0.5]}
+            path = self.write_config(Path(tmp), [{"id": "room", "hotspots": [hotspot, hotspot]}])
+            with self.assertRaises(SceneError):
+                SceneManager(path)
+
+    def test_rejeita_booleano_em_coordenadas(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_config(Path(tmp), [{"id": "room", "hotspots": [
+                {"id": "bad", "bounds": [False, 0.1, 0.5, 0.5]}
+            ]}])
+            with self.assertRaises(SceneError):
+                SceneManager(path)
+
+    def test_rejeita_background_com_tipo_invalido(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_config(Path(tmp), [{"id": "room", "background": 42}])
+            with self.assertRaises(SceneError):
+                SceneManager(path)
+
 if __name__ == "__main__":
     unittest.main()
