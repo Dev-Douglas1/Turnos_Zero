@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "coordinate_system": "normalized_0_1",
+  "viewport": [
+    834,
+    275
+  ],
+  "description": "Camadas editáveis: cada PNG é um objeto independente. Edite x/y/w/h/z/visible e troque asset sem redesenhar a missão.",
+  "scenes": {
+    "loja_24h": {
+      "title": "Loja 24 horas",
+      "backdrop": {
+        "wall": "#171c22",
+        "floor": "#080c12",
+        "light": "#c88743"
+      },
+      "objects": [
+        {
+          "id": "prateleiras",
+          "label": "Prateleiras",
+          "asset": "loja_prateleiras.png",
+          "x": 0.02,
+          "y": 0.05,
+          "w": 0.28,
+          "h": 0.84,
+          "z": 1,
+          "visible": true
+        },
+        {
+          "id": "balcao",
+          "label": "Balcão do caixa",
+          "asset": "loja_balcao_caixa.png",
+          "x": 0.02,
+          "y": 0.48,
+          "w": 0.39,
+          "h": 0.5,
+          "z": 2,
+          "visible": true
+        },
+        {
+          "id": "porta_fria",
+          "label": "Porta de vidro com marcas",
+          "asset": "loja_porta_maos.png",
+          "x": 0.43,
+          "y": 0.08,
+          "w": 0.2,
+          "h": 0.78,
+          "z": 3,
+          "visible": true
+        },
+        {
+          "id": "geladeira",
+          "label": "Geladeira",
+          "asset": "loja_geladeira.png",
+          "x": 0.68,
+          "y": 0.04,
+          "w": 0.27,
+          "h": 0.91,
+          "z": 4,
+          "visible": true
+        }
+      ],
+      "hotspots": [
+        {
+          "id": "caixa",
+          "label": "Balcão do caixa",
+          "bounds": [
+            0.02,
+            0.48,
+            0.41,
+            0.98
+          ],
+          "finding": "O livro-caixa registra vendas às 02:13 com o nome de um funcionário desaparecido."
+        },
+        {
+          "id": "porta",
+          "label": "Porta de vidro",
+          "bounds": [
+            0.43,
+            0.08,
+            0.63,
+            0.86
+          ],
+          "finding": "Uma mão aparece pelo lado de dentro do vidro, embora a loja esteja vazia."
+        },
+        {
+          "id": "geladeira",
+          "label": "Geladeira",
+          "bounds": [
+            0.68,
+            0.04,
+            0.95,
+            0.95
+          ],
+          "finding": "A condensação forma uma mensagem que muda quando você desvia o olhar: NÃO ATENDA."
+        }
+      ]
+    },
+    "edificio_9": {
+      "title": "Edifício 9",
+      "backdrop": {
+        "wall": "#111922",
+        "floor": "#05090f",
+        "light": "#b44b43"
+      },
+      "objects": [
+        {
+          "id": "porta_apartamento",
+          "label": "Porta do apartamento",
+          "asset": "edificio_porta.png",
+          "x": 0.04,
+          "y": 0.12,
+          "w": 0.22,
+          "h": 0.8,
+          "z": 1,
+          "visible": true
+        },
+        {
+          "id": "elevador",
+          "label": "Elevador",
+          "asset": "edificio_elevador.png",
+          "x": 0.34,
+          "y": 0.04,
+          "w": 0.3,
+          "h": 0.92,
+          "z": 2,
+          "visible": true
+        },
+        {
+          "id": "presenca",
+          "label": "Presença no elevador",
+          "asset": "edificio_presenca.png",
+          "x": 0.42,
+          "y": 0.25,
+          "w": 0.17,
+          "h": 0.65,
+          "z": 3,
+          "visible": true
+        },
+        {
+          "id": "painel",
+          "label": "Painel do elevador",
+          "asset": "edificio_painel.png",
+          "x": 0.73,
+          "y": 0.3,
+          "w": 0.12,
+          "h": 0.55,
+          "z": 4,
+          "visible": true
+        }
+      ],
+      "hotspots": [
+        {
+          "id": "porta",
+          "label": "Porta do apartamento",
+          "bounds": [
+            0.04,
+            0.12,
+            0.26,
+            0.92
+          ],
+          "finding": "A porta está trancada por dentro, mas há marcas recentes no lado externo."
+        },
+        {
+          "id": "elevador",
+          "label": "Elevador",
+          "bounds": [
+            0.34,
+            0.04,
+            0.64,
+            0.96
+          ],
+          "finding": "O elevador abre para um corredor que não existe na planta do edifício."
+        },
+        {
+          "id": "presenca",
+          "label": "Presença",
+          "bounds": [
+            0.42,
+            0.25,
+            0.59,
+            0.9
+          ],
+          "finding": "Uma figura permanece imóvel no elevador. O reflexo dela se move antes do corpo."
+        },
+        {
+          "id": "painel",
+          "label": "Painel",
+          "bounds": [
+            0.73,
+            0.3,
+            0.85,
+            0.85
+          ],
+          "finding": "O botão 0 está aceso, embora o painel não tenha ligação elétrica."
+        }
+      ]
+    },
+    "cinema_vazio": {
+      "title": "Última Sessão",
+      "backdrop": {
+        "wall": "#1b1118",
+        "floor": "#08070c",
+        "light": "#b45a36"
+      },
+      "objects": [
+        {
+          "id": "projetor",
+          "label": "Projetor",
+          "asset": "cinema_projetor.png",
+          "x": 0,
+          "y": 0.36,
+          "w": 0.27,
+          "h": 0.62,
+          "z": 1,
+          "visible": true
+        },
+        {
+          "id": "tela",
+          "label": "Tela de projeção",
+          "asset": "cinema_tela_maos.png",
+          "x": 0.26,
+          "y": 0.03,
+          "w": 0.49,
+          "h": 0.62,
+          "z": 2,
+          "visible": true
+        },
+        {
+          "id": "poltrona",
+          "label": "Poltrona",
+          "asset": "cinema_poltrona.png",
+          "x": 0.6,
+          "y": 0.5,
+          "w": 0.25,
+          "h": 0.48,
+          "z": 3,
+          "visible": true
+        },
+        {
+          "id": "espectador",
+          "label": "Espectador",
+          "asset": "cinema_espectador.png",
+          "x": 0.42,
+          "y": 0.54,
+          "w": 0.2,
+          "h": 0.44,
+          "z": 4,
+          "visible": true
+        }
+      ],
+      "hotspots": [
+        {
+          "id": "projetor",
+          "label": "Projetor",
+          "bounds": [
+            0,
+            0.36,
+            0.27,
+            0.98
+          ],
+          "finding": "O projetor continua funcionando, embora tenha sido desligado da tomada há anos."
+        },
+        {
+          "id": "tela",
+          "label": "Tela de projeção",
+          "bounds": [
+            0.26,
+            0.03,
+            0.75,
+            0.65
+          ],
+          "finding": "As marcas de mãos estão no lado interno da tela, como se alguém tentasse sair por ela."
+        },
+        {
+          "id": "poltronas",
+          "label": "Poltronas",
+          "bounds": [
+            0.6,
+            0.5,
+            0.85,
+            0.98
+          ],
+          "finding": "Um assento está deformado pelo peso de alguém que não aparece na gravação."
+        },
+        {
+          "id": "espectador",
+          "label": "Espectador",
+          "bounds": [
+            0.42,
+            0.54,
+            0.62,
+            0.98
+          ],
+          "finding": "O espectador não tem rosto. O ingresso em seu colo traz o nome do funcionário."
+        }
+      ]
+    },
+    "laboratorio": {
+      "title": "Laboratório de Contenção",
+      "backdrop": {
+        "wall": "#102329",
+        "floor": "#050b10",
+        "light": "#50a995"
+      },
+      "objects": [
+        {
+          "id": "camara_vazia",
+          "label": "Câmara de contenção",
+          "asset": "lab_camara_vazia.png",
+          "x": 0.02,
+          "y": 0.08,
+          "w": 0.25,
+          "h": 0.88,
+          "z": 1,
+          "visible": true
+        },
+        {
+          "id": "camara_presenca",
+          "label": "Câmara C-03",
+          "asset": "lab_camara_presenca.png",
+          "x": 0.34,
+          "y": 0.02,
+          "w": 0.3,
+          "h": 0.94,
+          "z": 2,
+          "visible": true
+        },
+        {
+          "id": "terminal",
+          "label": "Terminal de controle",
+          "asset": "lab_terminal.png",
+          "x": 0.65,
+          "y": 0.37,
+          "w": 0.3,
+          "h": 0.6,
+          "z": 3,
+          "visible": true
+        },
+        {
+          "id": "luminaria",
+          "label": "Luz de emergência",
+          "asset": "lab_luminaria_emergencia.png",
+          "x": 0.83,
+          "y": 0.01,
+          "w": 0.14,
+          "h": 0.28,
+          "z": 4,
+          "visible": true
+        }
+      ],
+      "hotspots": [
+        {
+          "id": "camara_vazia",
+          "label": "Câmara vazia",
+          "bounds": [
+            0.02,
+            0.08,
+            0.27,
+            0.96
+          ],
+          "finding": "Os fechos estão intactos, mas o interior da câmara está molhado por dentro."
+        },
+        {
+          "id": "camara",
+          "label": "Câmara C-03",
+          "bounds": [
+            0.34,
+            0.02,
+            0.64,
+            0.96
+          ],
+          "finding": "A figura dentro da câmara acompanha seus movimentos com atraso de alguns segundos."
+        },
+        {
+          "id": "terminal",
+          "label": "Terminal de controle",
+          "bounds": [
+            0.65,
+            0.37,
+            0.95,
+            0.97
+          ],
+          "finding": "O terminal registra uma sessão iniciada há onze anos e ainda ativa."
+        },
+        {
+          "id": "luz",
+          "label": "Luz de emergência",
+          "bounds": [
+            0.83,
+            0.01,
+            0.97,
+            0.29
+          ],
+          "finding": "A luz pisca em código Morse, repetindo o número do seu contrato."
+        }
+      ]
+    }
+  }
+}
