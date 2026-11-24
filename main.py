@@ -569,7 +569,7 @@ class TurnosZeroApp:
         self.text(78,586,mission["brief"],8,self.TEXT,"nw",570)
         rules="   •   ".join(mission["rules"][:3])
         self.text(78,615,"PROTOCOLOS: "+rules,7,self.MUTED,"nw",570)
-        self.text(78,651,"KIT DO AGENTE: LANTERNA  ·  RÁDIO  ·  CÂMERA",8,"#8bc9a0","nw")
+        self.text(78,651,"KIT REPOSTO: LANTERNA 100%  ·  RÁDIO 3  ·  CÂMERA 3 FOTOS",8,"#8bc9a0","nw")
         self.button(690,625,250,"ACEITAR CONTRATO  [ENTER]",self.start_shift,42)
         self.bind_clicks()
     def start_shift(self):
@@ -679,6 +679,8 @@ class TurnosZeroApp:
         if result.get("evidence_used"):
             self.text(120,325,"PISTA APLICADA À DECISÃO",11,self.GOLD,"nw")
             self.text(120,350,result.get("evidence_note",""),10,self.MUTED,"nw",760)
+        if result.get("tool_warning"):
+            self.text(120,485,"AVISO DE EQUIPAMENTO: "+result["tool_warning"],9,"#e58d83","nw",760)
         ending=result.get("ending")
         if ending=="survived":
             self.text(120,370,"TURNO CONCLUÍDO",18,self.GOLD,"nw")
