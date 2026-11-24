@@ -41,6 +41,10 @@ def main() -> None:
     for source in object_sources:
         export_svg(source, source.with_suffix(".png"), (512, 512))
 
+    # Gera quatro loops ambientes originais, sem bibliotecas externas.
+    from generate_audio import generate
+    generate()
+
 
 if __name__ == "__main__":
     main()
