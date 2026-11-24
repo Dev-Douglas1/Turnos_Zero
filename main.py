@@ -347,7 +347,7 @@ class TurnosZeroApp:
         self.clear()
         self.rect(0,0,self.W,self.H,self.BG)
         self.header("INVESTIGAÇÃO DE CAMPO",mission["title"],
-                    f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  SALDO: R$ {state['cash']:,}".replace(",", "."))
+                    f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  DÍVIDA: R$ {max(0,-state['cash']):,}  |  RISCO x{state.get('risk_multiplier',2**state['shift_index'])}".replace(",", "."))
         self.rect(55,190,969,575,"#101723","#786044",2)
         self.rect(70,205,954,555,"#131e2b","#35485a",1)
         self.text(512,220,"INVESTIGUE OS MARCADORES NUMERADOS — CLIQUE PARA EXAMINAR AS PISTAS",8,"#d6ad70")
@@ -440,8 +440,9 @@ class TurnosZeroApp:
         self.header("ARQUIVO DE PESSOAL / STATUS", title, subtitle)
         self.rect(100,220,924,530,"#101a28","#9a7848",2)
         self.text(150,280,f"STATUS: {state.get('status','—').upper()}",18,self.GOLD,"nw")
-        self.text(150,340,f"Saldo acumulado: R$ {state.get('cash',0):,}".replace(",", "."),15,self.TEXT,"nw")
-        self.text(150,375,f"Reputação acumulada: {state.get('reputation',0)}",13,self.MUTED,"nw")
+        self.text(150,340,f"Dívida restante: R$ {max(0,-state.get('cash',0)):,}".replace(",", "."),15,self.TEXT,"nw")
+        self.text(150,375,f"Valor quitado: R$ {state.get('cash',0)+state.get('initial_debt',1000000):,}".replace(",", "."),13,self.MUTED,"nw")
+        self.text(150,405,f"Reputação acumulada: {state.get('reputation',0)}",13,self.MUTED,"nw")
         if completed:
             self.text(150,415,f"Locais concluídos: {len(state.get('completed', []))}/{len(MISSIONS)}",13,self.MUTED,"nw")
             self.text(150,455,"Seu expediente terminou. O arquivo permanece aberto.",12,self.MUTED,"nw")
