@@ -158,28 +158,44 @@ class TurnosZeroApp:
             self.text(56,132,subtitle,12,self.MUTED,"nw")
 
     def menu(self):
+        """Menu principal com hierarquia clara e sem sobrepor o texto da arte."""
         self.screen = "menu"
         self.clear()
-        self.rect(0,0,self.W,self.H,self.BG)
-        # Abstract night skyline / office windows: intentionally generated in Tkinter,
-        # so the game does not depend on optional image packages or external assets.
-        for x in range(0,self.W,64):
-            self.rect(x,0,x+1,self.H,"#111a28")
-        self.rect(0,475,self.W,self.H,"#0d1420")
-        for i in range(18):
-            x=25+i*58
-            self.rect(x,180+(i%4)*35,x+27,245+(i%4)*35,"#18283a")
-            self.rect(x+7,190+(i%4)*35,x+12,198+(i%4)*35,"#8b704a")
-        self.rect(48,175,976,590,"#101a28","#705b40",2)
-        self.rect(58,185,966,580,"#101a28","#2e3948",1)
-        self.draw_scene("agencia", 512, 380)
-        self.text(512,245,"AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS",12,self.MUTED)
-        self.text(512,315,"TURNOS ZERO",43,self.GOLD)
-        self.text(512,365,"O expediente termina. Nem todos voltam para casa.",13,self.TEXT)
-        self.button(355,420,314,"NOVO CONTRATO",self.new_campaign)
+        self.rect(0, 0, self.W, self.H, self.BG)
+
+        # Cidade noturna como arte de fundo: a ilustração da agência já contém
+        # lettering próprio e, por isso, não deve ser reutilizada atrás do título.
+        for x in range(0, self.W, 64):
+            self.rect(x, 0, x + 1, self.H, "#111a28")
+        self.rect(0, 560, self.W, self.H, "#080d15")
+        self.draw_scene("cidade", 470, 360)
+
+        # Vinheta lateral e painel de operações separados da área de arte.
+        self.rect(0, 0, 250, self.H, "#090e17")
+        self.rect(50, 95, 585, 590, "#0d1622", "#4d4639", 1)
+        self.rect(62, 107, 573, 578, "#0d1622", "#263648", 1)
+
+        self.text(92, 145, "AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS", 10, self.GOLD, "nw")
+        self.text(90, 235, "TURNOS", 42, self.TEXT, "nw")
+        self.text(90, 285, "ZERO", 58, self.GOLD, "nw")
+        self.rect(92, 365, 210, 368, self.GOLD)
+        self.text(92, 405, "O EXPEDIENTE TERMINA.", 12, self.TEXT, "nw")
+        self.text(92, 432, "NEM TODOS VOLTAM PARA CASA.", 10, self.MUTED, "nw")
+        self.text(92, 535, "ARQUIVO INTERNO  /  ACESSO RESTRITO", 8, self.MUTED, "nw")
+
+        self.rect(650, 175, 955, 545, "#0b121d", "#8b6b42", 2)
+        self.rect(660, 185, 945, 535, "#0b121d", "#2b3a4b", 1)
+        self.text(690, 220, "TERMINAL DE OPERAÇÕES", 10, self.GOLD, "nw")
+        self.text(690, 258, "SELECIONE UMA AÇÃO", 17, self.TEXT, "nw")
+        self.text(690, 295, "NOVOS contratos exigem leitura dos protocolos.", 9, self.MUTED, "nw", 245)
+        self.button(690, 355, 225, "NOVO CONTRATO", self.new_campaign, 48)
         if self.game.state:
-            self.button(355,480,314,"CONTINUAR / VER CONTRATO",self.continue_campaign)
-        self.text(512,635,"ARQUIVO INTERNO  ·  ACESSO RESTRITO  ·  V. 1.0",9,self.MUTED)
+            self.button(690, 420, 225, "CONTINUAR CAMPANHA", self.continue_campaign, 48)
+            status = self.game.state.get("status", "—").replace("_", " ").upper()
+            self.text(690, 495, f"ARQUIVO: {status}", 9, self.GOLD, "nw")
+        else:
+            self.text(690, 445, "NENHUM CONTRATO ATIVO", 9, self.MUTED, "nw")
+        self.text(512, 660, "TURNOS ZERO  ·  SISTEMA DE CONTROLE  ·  V. 1.1", 9, self.MUTED)
         self.bind_clicks()
 
     def new_campaign(self):
