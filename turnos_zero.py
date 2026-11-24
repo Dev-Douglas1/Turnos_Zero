@@ -127,7 +127,8 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         difficulty = "estagiario"
     return {
         "schema_version": 1, "player": player, "status": "between_shifts",
-        "difficulty": difficulty, "cash": 0, "reputation": 0, "shift_index": 0,
+        "difficulty": difficulty, "cash": -1_000_000, "initial_debt": 1_000_000,
+        "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
         "completed": [], "evidence": [], "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
     }
@@ -175,7 +176,10 @@ class ShiftGame:
             return False
         if not isinstance(state.get("player"), str) or not state["player"].strip() or len(state["player"]) > 24:
             return False
-        if not all(type(state.get(k)) is int and state[k] >= 0 for k in ("cash", "sanity", "mistakes", "reputation")):
+        if (type(state.get("cash")) is not int or
+            not all(type(state.get(k)) is int and state[k] >= 0 for k in ("sanity", "mistakes", "reputation"))):
+            return False
+        if type(state.get("initial_debt", 1_000_000)) is not int or state.get("initial_debt", 1_000_000) <= 0:
             return False
         mission_ids = {m["id"] for m in MISSIONS}
         if not isinstance(state.get("completed"), list) or not all(x in mission_ids for x in state["completed"]):
@@ -232,7 +236,9 @@ class ShiftGame:
             raise RuntimeError("O contrato não está aguardando início de turno.")
         if self.state["shift_index"] >= len(MISSIONS):
             raise RuntimeError("A campanha já foi concluída.")
+        risk_multiplier = 2 ** self.state["shift_index"]
         self.state.update(status="on_shift", task_index=0, mistakes=0,
+                          risk_multiplier=risk_multiplier,
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
                           current_seed=random.randrange(1, 2**31), shift_token=uuid.uuid4().hex)
         self.save()
@@ -257,7 +263,8 @@ class ShiftGame:
             self.state["reputation"] += 2 if evidence_used else 1
         else:
             result = {"correct": False, "message": task["failure"]}
-            self.state["sanity"] = max(0, self.state["sanity"] - 1)
+            risk_multiplier = self.state.get("risk_multiplier", 2 ** self.state["shift_index"])
+            self.state["sanity"] = max(0, self.state["sanity"] - risk_multiplier)
             self.state["mistakes"] += 1
         result["evidence_used"] = evidence_used
         if evidence_used:
@@ -287,8 +294,9 @@ class ShiftGame:
             outcome = previous.get("outcome", "completed" if survived else "missing")
             paid = previous.get("payment", 0)
         elif survived:
-            factor = DIFFICULTIES[self.state["difficulty"]]["salary"]
-            paid = int(mission["pay"] * factor)
+            # A remuneração dobra a cada contrato: R$ 50, 100, 200, 400...
+            # O adicional de vínculo foi removido para manter a progressão previsível.
+            paid = 50 * (2 ** self.state["shift_index"])
             self.state["cash"] += paid
             if mission["id"] not in self.state["completed"]:
                 self.state["completed"].append(mission["id"])
