@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="metal" x2="1"><stop stop-color="#1b3137"/><stop offset=".18" stop-color="#83928b"/><stop offset=".45" stop-color="#1c343a"/><stop offset=".8" stop-color="#71877c"/><stop offset="1" stop-color="#0c191f"/></linearGradient><linearGradient id="glass" x2="0" y2="1"><stop stop-color="#6fc9b7" stop-opacity=".28"/><stop offset=".5" stop-color="#0a4a4b" stop-opacity=".42"/><stop offset="1" stop-color="#09202a" stop-opacity=".8"/></linearGradient></defs>
+<ellipse cx="256" cy="484" rx="150" ry="14" fill="#000" opacity=".65"/>
+<rect x="89" y="24" width="334" height="462" rx="83" fill="url(#metal)" stroke="#93aa9b" stroke-width="10"/>
+<rect x="119" y="55" width="274" height="402" rx="64" fill="url(#glass)" stroke="#365c5b" stroke-width="8"/>
+<rect x="142" y="79" width="228" height="352" rx="52" fill="#0a3538" fill-opacity=".38" stroke="#84bcaa" stroke-width="4"/>
+<path d="M135 115H377M135 388H377" stroke="#9ccdb7" stroke-width="5" opacity=".6"/>
+<g stroke="#b5c6ad" stroke-width="8"><path d="M99 120V175M99 330V385M413 120V175M413 330V385"/></g>
+<g fill="#e8bb6b"><circle cx="112" cy="75" r="8"/><circle cx="400" cy="75" r="8"/><circle cx="112" cy="434" r="8"/><circle cx="400" cy="434" r="8"/></g>
+<path d="M180 214Q256 245 332 214M180 286Q256 255 332 286" stroke="#98d5c0" stroke-width="3" opacity=".2" fill="none"/>
+<!-- estado interativo: lab_camara_vazia_acionada -->
+<path d="M96 180L150 180L150 330L96 330Z" fill="#061216" stroke="#df7959" stroke-width="7"/><path d="M150 180L205 210L205 340L150 330Z" fill="#0d292b" stroke="#8c5b47" stroke-width="5"/><path d="M108 205L178 315M178 205L108 315" stroke="#e2785a" stroke-width="6" opacity=".65"/><circle cx="116" cy="145" r="18" fill="#e24d3f" opacity=".8"/>
+</svg>
