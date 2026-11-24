@@ -79,6 +79,15 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertEqual(len(interaction.get("responses", [])), 2)
 
 
+    def test_every_interactive_object_has_a_visual_state_variant(self):
+        for scene_id, scene in self.data["scenes"].items():
+            objects = {obj["id"]: obj for obj in scene["objects"]}
+            for hotspot in scene["hotspots"]:
+                obj = objects[hotspot["object"]]
+                with self.subTest(scene=scene_id, object=obj["id"]):
+                    self.assertIn("1", obj.get("asset_states", {}))
+                    self.assertTrue(obj["asset_states"]["1"].endswith(".png"))
+
     def test_background_pngs_preserve_16_9_ratio(self):
         config = json.loads((ROOT / "dados" / "cenas.json").read_text(encoding="utf-8"))
         for scene in config["scenes"]:
