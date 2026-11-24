@@ -268,7 +268,21 @@ class TurnosZeroApp:
                 if item.get("mission") == (self.game.mission or {}).get("id")
             }
             for index, hotspot in enumerate(scene_hotspots, 1):
-                bounds = SceneManager.map_bounds(hotspot["bounds"], viewport)
+                # Quando o ponto pertence a um sprite, a área clicável acompanha
+                # diretamente x/y/w/h do objeto, mesmo antes de salvar o editor.
+                object_bounds = None
+                if layered and hotspot.get("object"):
+                    layer_obj = next(
+                        (item for item in layered.get("objects", []) if item.get("id") == hotspot["object"]),
+                        None
+                    )
+                    if layer_obj:
+                        object_bounds = [
+                            layer_obj["x"], layer_obj["y"],
+                            layer_obj["x"] + layer_obj["w"],
+                            layer_obj["y"] + layer_obj["h"]
+                        ]
+                bounds = SceneManager.map_bounds(object_bounds or hotspot["bounds"], viewport)
                 x1, y1, x2, y2 = bounds
                 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
                 found = hotspot["id"] in evidence_ids
@@ -750,7 +764,10 @@ class TurnosZeroApp:
         scene = self.scene_manager.get(scene_id)
         scene_data = self.object_scene_data.get(scene_id, {})
         hotspots = scene_data.get("hotspots", scene.get("hotspots", []))
-        if hotspots and not self.current_camera_hotspot:
+        if hotspots and (
+            not self.current_camera_hotspot
+            or not any(item["id"] == self.current_camera_hotspot.get("id") for item in hotspots)
+        ):
             self.current_camera_hotspot = hotspots[0]
 
         self.clear()
@@ -851,9 +868,9 @@ class TurnosZeroApp:
         camera_active = self.game.get_tool_state("camera")
         self.text(750, 390, f"FILME DISPONÍVEL: {remaining}", 10, "#d6ad70", "nw")
         if camera_active:
-            self.text(750, 418, "CÂMERA ARMADA", 9, "#8bc9a0", "nw")
+            self.button(750, 430, 215, "DESARMAR CÂMERA", self.toggle_surveillance_camera, 34)
         else:
-            self.text(750, 418, "CÂMERA EM ESPERA", 9, self.MUTED, "nw")
+            self.button(750, 430, 215, "ARMAR CÂMERA", self.toggle_surveillance_camera, 34)
 
         if self.current_camera_hotspot:
             evidence_found = any(
@@ -862,14 +879,24 @@ class TurnosZeroApp:
                 for item in self.game.state.get("evidence", [])
             )
             if evidence_found:
-                self.text(750, 455, "EVIDÊNCIA JÁ ARQUIVADA", 8, "#8bc9a0", "nw")
-            elif remaining > 0:
-                self.button(750, 470, 215, "FOTOGRAFAR CANAL", self.capture_surveillance_feed, 36)
+                self.text(750, 480, "EVIDÊNCIA JÁ ARQUIVADA", 8, "#8bc9a0", "nw")
+            elif camera_active and remaining > 0:
+                self.button(750, 475, 215, "FOTOGRAFAR CANAL", self.capture_surveillance_feed, 36)
+            elif camera_active:
+                self.text(750, 482, "SEM FILME. USE A OBSERVAÇÃO MANUAL.", 8, "#d07762", "nw", 210)
             else:
-                self.text(750, 480, "SEM FILME. USE A OBSERVAÇÃO MANUAL.", 8, "#d07762", "nw", 210)
+                self.text(750, 482, "ARME A CÂMERA PARA REGISTRAR ESTE CANAL.", 8, self.MUTED, "nw", 210)
 
         self.button(750, 520, 215, "VOLTAR À INVESTIGAÇÃO", self.show_investigation, 36)
         self.bind_clicks()
+
+    def toggle_surveillance_camera(self):
+        try:
+            self.game.toggle_tool("camera")
+            self.play_effect("acerto.wav")
+        except (RuntimeError, ValueError):
+            self.play_effect("erro.wav")
+        self.show_surveillance()
 
     def select_surveillance_feed(self, hotspot):
         self.current_camera_hotspot = hotspot
