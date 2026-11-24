@@ -398,7 +398,7 @@ class ShiftGame:
             self.state["threat_active"] = False
             self.state["is_hidden"] = False
             self.state["threat_level"] = max(0, self.state.get("threat_level", 0) - 2)
-            result["message"] += "\\n\\n" + result["threat_message"]
+            result["message"] += "\n\n" + result["threat_message"]
 
         resources = self.state.setdefault("tool_resources", dict(TOOL_RESOURCES))
         tool_states = self.state.setdefault("tool_states", {"lanterna": True, "radio": False, "camera": False})
