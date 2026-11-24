@@ -76,11 +76,26 @@ class TurnosZeroApp:
         self.canvas.create_text(x,y,text=value,fill=color or self.TEXT,
             font=("Consolas",size,"bold"),anchor=anchor,width=width,justify="left")
 
+    def wrapped_text(self, x, y, value, size=9, color=None, width=220, spacing=2):
+        """Desenha texto com quebra automática e retorna o Y após a última linha."""
+        item = self.canvas.create_text(
+            x, y, text=value, fill=color or self.TEXT,
+            font=("Consolas", size, "bold"), anchor="nw",
+            width=max(40, int(width)), justify="left", spacing2=spacing
+        )
+        bounds = self.canvas.bbox(item)
+        return bounds[3] if bounds else y
+
     def button(self, x, y, w, label, callback, h=48):
         self.rect(x+3,y+4,x+w+3,y+h+4,"#05070c")
         self.rect(x,y,x+w,y+h,self.PANEL,"#9b7444",2)
         self.rect(x+4,y+4,x+w-4,y+h-4,self.PANEL,"#d7ad68",1)
-        self.text(x+w/2,y+h/2,label,12,self.GOLD)
+        # A largura explícita impede que rótulos longos ultrapassem a moldura.
+        self.canvas.create_text(
+            x+w/2, y+h/2, text=label, fill=self.GOLD,
+            font=("Consolas", 10, "bold"), anchor="center",
+            width=max(40, w-18), justify="center"
+        )
         self.targets.append(((x,y,x+w,y+h),callback))
 
     def _ambience_file(self):
@@ -780,10 +795,10 @@ class TurnosZeroApp:
         # A mesa/ambiente da agência fica à direita; os documentos ocupam uma
         # coluna à esquerda e deixam a arte visível, em vez de cobri-la inteira.
         self.draw_backdrop("agencia_menu.png", y=435, x=755, width=520, height=293)
-        self.rect(58, 190, 480, 278, "#0d1521", "#9a7848", 1)
-        self.text(82, 216, "DÍVIDA CONTRATUAL", 10, "#d98b75", "nw")
-        self.text(82, 247, "− R$ 1.000.000", 22, "#e58d83", "nw")
-        self.text(82, 273, "Cada serviço concluído reduz sua dívida.", 9, self.TEXT, "nw", 365)
+        self.rect(58, 190, 480, 288, "#0d1521", "#9a7848", 1)
+        self.text(82, 211, "DÍVIDA CONTRATUAL", 10, "#d98b75", "nw")
+        self.text(82, 239, "− R$ 1.000.000", 19, "#e58d83", "nw")
+        self.text(82, 270, "Cada serviço concluído reduz sua dívida.", 8, self.TEXT, "nw", 365)
 
         descriptions = [
             ("estagiario", "ESTAGIÁRIO", "5 estabilidade · suporta 2 violações"),
@@ -837,7 +852,7 @@ class TurnosZeroApp:
         if background:
             self.draw_backdrop(background, y=378, x=365, width=650, height=366)
         self.rect(40, 195, 690, 561, "", "#a47c4b", 2)
-        self.rect(710, 195, 984, 561, "#0b141e", "#9a7848", 2)
+        self.rect(710, 195, 984, 590, "#0b141e", "#9a7848", 2)
 
         self.header(
             "ORDEM DE SERVIÇO / CONFIDENCIAL",
@@ -857,11 +872,16 @@ class TurnosZeroApp:
         self.text(730, 312, f"NÍVEL DE RISCO: x{risk}", 9, "#db8875", "nw")
 
         self.text(730, 348, "OBJETIVO DO SERVIÇO", 9, self.GOLD, "nw")
-        self.text(730, 372, mission["brief"], 9, self.TEXT, "nw", 230)
-
-        self.text(730, 438, "PROTOCOLOS DE SEGURANÇA", 9, self.GOLD, "nw")
+        brief_bottom = self.wrapped_text(730, 372, mission["brief"], 8, self.TEXT, 238, 1)
+        protocol_heading_y = max(432, brief_bottom + 18)
+        self.text(730, protocol_heading_y, "PROTOCOLOS DE SEGURANÇA", 9, self.GOLD, "nw")
+        rule_y = protocol_heading_y + 21
         for index, rule in enumerate(mission["rules"][:4]):
-            self.text(733, 458 + index * 24, f"{index + 1:02d}  {rule}", 8, self.MUTED, "nw", 225)
+            rule_bottom = self.wrapped_text(
+                733, rule_y, f"{index + 1:02d}  {rule}",
+                7, self.MUTED, 238, 1
+            )
+            rule_y = rule_bottom + 5
 
         self.text(55, 595, "ARQUIVO VISUAL DO LOCAL  ·  EXAMINE O AMBIENTE APÓS ASSINAR", 8, self.MUTED, "nw")
         self.text(55, 622, "A remuneração só é creditada se o agente concluir o expediente.", 8, "#c59a72", "nw")
@@ -1361,20 +1381,31 @@ class TurnosZeroApp:
         self.rect(80,205,944,520,"#101a28","#9a7848",2)
         color="#9bd1ad" if result["correct"] else "#e58d83"
         self.text(120,255,"✓" if result["correct"] else "!",34,color,"nw")
-        self.text(180,265,result["message"],15,self.TEXT,"nw",700)
+        content_y = self.wrapped_text(180, 265, result["message"], 13, self.TEXT, 720, 2) + 18
         if result.get("evidence_used"):
-            self.text(120,325,"PISTA APLICADA À DECISÃO",11,self.GOLD,"nw")
-            self.text(120,350,result.get("evidence_note",""),10,self.MUTED,"nw",760)
+            self.text(120, content_y, "PISTA APLICADA À DECISÃO", 10, self.GOLD, "nw")
+            content_y = self.wrapped_text(
+                120, content_y + 22, result.get("evidence_note", ""),
+                9, self.MUTED, 760, 2
+            ) + 16
         if result.get("tool_warning"):
-            self.text(120,485,"AVISO DE EQUIPAMENTO: "+result["tool_warning"],9,"#e58d83","nw",760)
-        ending=result.get("ending")
-        if ending=="survived":
-            self.text(120,370,"TURNO CONCLUÍDO",18,self.GOLD,"nw")
-            self.text(120,410,f"Pagamento recebido: R$ {self.game.state['last_payment']:,}".replace(",", "."),13,self.TEXT,"nw")
+            content_y = self.wrapped_text(
+                120, content_y, "AVISO DE EQUIPAMENTO: " + result["tool_warning"],
+                8, "#e58d83", 760, 2
+            ) + 14
+        ending = result.get("ending")
+        if ending == "survived":
+            self.text(120, content_y, "TURNO CONCLUÍDO", 16, self.GOLD, "nw")
+            self.text(120, content_y + 30,
+                      f"Pagamento recebido: R$ {self.game.state['last_payment']:,}".replace(",", "."),
+                      11, self.TEXT, "nw")
             self.button(650,535,230,"PRÓXIMO CONTRATO",self.advance_contract,44)
-        elif ending=="missing":
-            self.text(120,370,"FUNCIONÁRIO NÃO LOCALIZADO",18,"#e58d83","nw")
-            self.text(120,415,self.game.state.get("last_reveal",""),12,self.MUTED,"nw",720)
+        elif ending == "missing":
+            self.text(120, content_y, "FUNCIONÁRIO NÃO LOCALIZADO", 15, "#e58d83", "nw")
+            self.wrapped_text(
+                120, content_y + 30, self.game.state.get("last_reveal", ""),
+                10, self.MUTED, 720, 2
+            )
             self.button(650,535,230,"ENCERRAR ARQUIVO",self.show_ending,44)
         else:
             self.button(650,535,230,"CONTINUAR",self.show_investigation,44)
