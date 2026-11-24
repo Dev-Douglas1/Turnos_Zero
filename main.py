@@ -73,7 +73,9 @@ class TurnosZeroApp:
             self.active_scene = scene_id
             layered = self.object_scene_data.get(scene_id)
             viewport = (95, 235, 929, 510)
-            if layered:
+            object_root = Path(__file__).resolve().parent / "assets" / "objetos"
+            layers_ready = bool(layered) and all((object_root / item.get("asset", "")).is_file() for item in layered.get("objects", []))
+            if layers_ready:
                 # Cenário por camadas: cada objeto é um PNG independente e
                 # suas coordenadas/visibilidade ficam em dados/objetos_cenas.json.
                 left, top, right, bottom = viewport
@@ -328,7 +330,8 @@ class TurnosZeroApp:
         if scene_id:
             self.draw_scene(scene_id,512,372)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
-        total_hotspots = len(self.scene_manager.get(scene_id).get("hotspots", [])) if scene_id else 0
+        scene_layers = self.object_scene_data.get(scene_id, {})
+        total_hotspots = len(scene_layers.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", []))) if scene_id else 0
         self.text(512,548,f"RELATÓRIO DE CAMPO: {len(evidence)}/{total_hotspots} PISTAS ENCONTRADAS",10,"#82b9a7" if evidence else "#d6ad70")
         if evidence:
             labels = "  ·  ".join(item.get("description", item.get("id", "Pista"))[:48] for item in evidence[-2:])
