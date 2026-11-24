@@ -179,9 +179,12 @@ class TurnosZeroTests(unittest.TestCase):
         self.game.start_shift()
         for task in self.game.mission["tasks"]:
             self.game.act(task["correct"])
-        self.assertEqual(len(self.game.history["shifts"]), 1)
+        cash_before = self.game.state["cash"]
+        completed_before = list(self.game.state["completed"])
         self.game._finish_shift(True)
         self.assertEqual(len(self.game.history["shifts"]), 1)
+        self.assertEqual(self.game.state["cash"], cash_before)
+        self.assertEqual(self.game.state["completed"], completed_before)
 
     def test_save_antigo_em_andamento_sem_token_e_compativel(self):
         state = fresh_state("Legado")
