@@ -3,6 +3,7 @@ import struct
 import wave
 import unittest
 from pathlib import Path
+from turnos_zero import ANOMALY_PROFILES
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "dados" / "objetos_cenas.json"
@@ -101,6 +102,18 @@ class EditableSceneManifestTests(unittest.TestCase):
                     self.assertEqual(audio.getsampwidth(), 2)
                     self.assertEqual(audio.getframerate(), 22050)
                     self.assertGreaterEqual(audio.getnframes(), 22050 * 8)
+
+    def test_todos_os_hotspots_tem_perfil_de_pressao_anomala(self):
+        for scene_id, scene in self.data["scenes"].items():
+            profile = ANOMALY_PROFILES[scene_id]
+            for hotspot in scene["hotspots"]:
+                with self.subTest(scene=scene_id, hotspot=hotspot["id"]):
+                    self.assertIn(hotspot["id"], profile["triggers"])
+                    self.assertGreater(profile["triggers"][hotspot["id"]], 0)
+            self.assertTrue(profile["hiding_spot"])
+            self.assertTrue(profile["alert"])
+            self.assertTrue(profile["caught"])
+            self.assertTrue(profile["evaded"])
 
     def test_background_pngs_preserve_16_9_ratio(self):
         config = json.loads((ROOT / "dados" / "cenas.json").read_text(encoding="utf-8"))
