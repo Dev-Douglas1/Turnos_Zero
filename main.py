@@ -1226,7 +1226,6 @@ class TurnosZeroApp:
         if not hotspot:
             return
         try:
-            self.game.consume_tool_resource("camera", 1)
             threat_state = self.game.state or {}
             threat_hotspot_id = (
                 (threat_state.get("threat_triggered") or [None])[-1]
@@ -1236,9 +1235,11 @@ class TurnosZeroApp:
                 threat_hotspot_id is not None
                 and hotspot["id"] == threat_hotspot_id
             )
+            # Fotografa primeiro: o último fotograma também pode interromper a presença.
             if captured_presence:
                 disruption_message = self.game.document_anomaly(hotspot["id"])
                 self.current_interaction_message = disruption_message
+            self.game.consume_tool_resource("camera", 1)
             prefix = "PRESENÇA ANÔMALA FOTOGRAFADA / CCTV. " if captured_presence else "FOTO CCTV / "
             self.game.record_evidence(
                 hotspot["id"],
