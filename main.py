@@ -2,6 +2,7 @@
 import sys
 import json
 import tkinter as tk
+from PIL import Image, ImageOps, ImageTk
 from tkinter import messagebox, simpledialog
 from turnos_zero import ShiftGame, DIFFICULTIES, MISSIONS
 from scene_manager import SceneManager, SceneError, scene_for_mission
@@ -24,6 +25,10 @@ class TurnosZeroApp:
         self.scene_manager = SceneManager()
         self.scene_images = {}
         self.object_images = {}
+        self._view_scale = 1.0
+        self._view_x = 0.0
+        self._view_y = 0.0
+        self._has_canvas_transform = False
         self.object_scene_data = {}
         manifest_path = Path(__file__).resolve().parent / "dados" / "objetos_cenas.json"
         try:
@@ -60,57 +65,93 @@ class TurnosZeroApp:
         self.targets.append(((x,y,x+w,y+h),callback))
 
     def resize_canvas(self, event):
+        """Redimensiona mantendo proporção e centralizando a área lógica 1024x700."""
         if event.width <= 1 or event.height <= 1:
             return
-        sx, sy = event.width / self._draw_w, event.height / self._draw_h
-        if abs(sx - 1) > 0.001 or abs(sy - 1) > 0.001:
-            self.canvas.scale("all", 0, 0, sx, sy)
-            self._draw_w, self._draw_h = event.width, event.height
+        scale = min(event.width / self.W, event.height / self.H)
+        offset_x = (event.width - self.W * scale) / 2
+        offset_y = (event.height - self.H * scale) / 2
 
-    def draw_scene(self, scene_id, center_x=512, center_y=390):
+        if self._has_canvas_transform:
+            factor = scale / self._view_scale
+            self.canvas.scale("all", 0, 0, factor, factor)
+            self.canvas.move(
+                "all",
+                offset_x - self._view_x * factor,
+                offset_y - self._view_y * factor,
+            )
+        else:
+            self.canvas.scale("all", 0, 0, scale, scale)
+            self.canvas.move("all", offset_x, offset_y)
+
+        self._view_scale = scale
+        self._view_x = offset_x
+        self._view_y = offset_y
+        self._has_canvas_transform = True
+
+    def scaled_photo(self, path, size, cache, contain=False):
+        """Carrega e redimensiona PNG mantendo transparência e referência Tk viva."""
+        width, height = max(1, int(size[0])), max(1, int(size[1]))
+        cache_key = (str(path), width, height, bool(contain))
+        if cache_key not in cache:
+            with Image.open(path) as source:
+                image = source.convert("RGBA")
+                if contain:
+                    image = ImageOps.contain(
+                        image, (width, height), method=Image.Resampling.LANCZOS
+                    )
+                else:
+                    image = image.resize(
+                        (width, height), Image.Resampling.LANCZOS
+                    )
+            cache[cache_key] = ImageTk.PhotoImage(image, master=self.root)
+        return cache[cache_key]
+
+    def draw_scene(self, scene_id, center_x=512, center_y=372):
+        """Renderiza fundo cinematográfico, objetos independentes e hotspots clicáveis."""
         try:
             scene = self.scene_manager.get(scene_id)
             self.active_scene = scene_id
             layered = self.object_scene_data.get(scene_id)
-            viewport = (95, 235, 929, 510)
-            object_root = Path(__file__).resolve().parent / "assets" / "objetos"
-            layers_ready = bool(layered) and all((object_root / item.get("asset", "")).is_file() for item in layered.get("objects", []))
-            if layers_ready:
-                # Cenário por camadas: cada objeto é um PNG independente e
-                # suas coordenadas/visibilidade ficam em dados/objetos_cenas.json.
-                left, top, right, bottom = viewport
-                backdrop = layered.get("backdrop", {})
-                self.rect(left, top, right, bottom, backdrop.get("wall", "#101923"))
-                self.rect(left, top + (bottom-top)*0.72, right, bottom, backdrop.get("floor", "#070b12"))
-                self.rect(left, top+8, right, top+10, backdrop.get("light", "#9a7848"))
-                self.rect(left+12, top+12, right-12, bottom-12, "", "#344657", 1)
+            viewport = (95, 220, 929, 535)
+            left, top, right, bottom = viewport
+            view_w, view_h = right - left, bottom - top
+
+            # O fundo ilustrado permanece visível; as camadas independentes são
+            # desenhadas por cima e podem ser movidas/redimensionadas no manifesto.
+            background = Path(__file__).resolve().parent / scene.get("background", "")
+            if background.is_file():
+                photo = self.scaled_photo(background, (view_w, view_h), self.scene_images)
+                self.canvas.create_image(
+                    (left + right) / 2, (top + bottom) / 2,
+                    image=photo, anchor="center", tags=("scene_background",)
+                )
+            else:
+                self.draw_scene_fallback(scene_id)
+
+            if not layered:
+                scene_hotspots = scene.get("hotspots", [])
+            else:
+                object_root = Path(__file__).resolve().parent / "assets" / "objetos"
                 for obj in sorted(layered.get("objects", []), key=lambda item: item.get("z", 0)):
                     if not obj.get("visible", True):
                         continue
-                    asset = Path(__file__).resolve().parent / "assets" / "objetos" / obj["asset"]
+                    asset = object_root / obj.get("asset", "")
                     if not asset.is_file():
                         continue
-                    cache_key = (scene_id, obj["id"])
-                    if cache_key not in self.object_images:
-                        self.object_images[cache_key] = tk.PhotoImage(file=str(asset))
-                    x = left + (obj["x"] + obj["w"]/2) * (right-left)
-                    y = top + (obj["y"] + obj["h"]/2) * (bottom-top)
-                    self.canvas.create_image(x, y, image=self.object_images[cache_key], anchor="center",
-                                             tags=("scene_object", obj["id"]))
+
+                    # x/y/w/h são frações do viewport. O sprite preserva sua
+                    # proporção original dentro da caixa configurada pelo editor.
+                    box_w = max(1, round(obj["w"] * view_w))
+                    box_h = max(1, round(obj["h"] * view_h))
+                    photo = self.scaled_photo(asset, (box_w, box_h), self.object_images, contain=True)
+                    x = left + (obj["x"] + obj["w"] / 2) * view_w
+                    y = top + (obj["y"] + obj["h"] / 2) * view_h
+                    self.canvas.create_image(
+                        x, y, image=photo, anchor="center",
+                        tags=("scene_object", f"object:{obj['id']}")
+                    )
                 scene_hotspots = layered.get("hotspots", [])
-            else:
-                path = Path(__file__).resolve().parent / scene.get("background", "")
-                if path.suffix.lower() == ".png" and path.is_file():
-                    try:
-                        if scene_id not in self.scene_images:
-                            self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
-                        self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
-                    except tk.TclError:
-                        self.scene_images.pop(scene_id, None)
-                        self.draw_scene_fallback(scene_id)
-                else:
-                    self.draw_scene_fallback(scene_id)
-                scene_hotspots = scene.get("hotspots", [])
 
             evidence_ids = {
                 item.get("id") for item in (self.game.state or {}).get("evidence", [])
@@ -121,19 +162,23 @@ class TurnosZeroApp:
                 x1, y1, x2, y2 = bounds
                 cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
                 found = hotspot["id"] in evidence_ids
-                marker = "#75b9a5" if found else "#e0a65b"
-                self.canvas.create_oval(cx-13, cy-13, cx+13, cy+13,
-                                        fill="#101923", outline=marker, width=3)
-                self.canvas.create_text(cx, cy, text="✓" if found else str(index),
-                                        fill=marker, font=("Consolas", 10, "bold"))
-                label = hotspot.get("label", hotspot["id"]).upper()
-                tag_w = min(190, max(76, len(label) * 7 + 18))
-                tag_y = max(238, cy - 34)
-                self.rect(cx-tag_w/2, tag_y-10, cx+tag_w/2, tag_y+10, "#101923", marker, 1)
-                self.text(cx, tag_y, label, 7, marker)
-                self.targets.append((bounds, lambda h=hotspot:self.inspect_hotspot(h)))
-        except (SceneError, tk.TclError, OSError, KeyError):
+                marker = "#79c5a5" if found else "#e7b566"
+
+                # Marcador pequeno; a área clicável cobre o objeto, não a moldura.
+                self.canvas.create_oval(
+                    cx - 11, cy - 11, cx + 11, cy + 11,
+                    fill="#101923", outline=marker, width=2,
+                    tags=("hotspot_marker",)
+                )
+                self.canvas.create_text(
+                    cx, cy, text="✓" if found else str(index),
+                    fill=marker, font=("Consolas", 9, "bold"),
+                    tags=("hotspot_marker",)
+                )
+                self.targets.append((bounds, lambda h=hotspot: self.inspect_hotspot(h)))
+        except (SceneError, tk.TclError, OSError, KeyError, ValueError):
             self.active_scene = None
+            self.draw_scene_fallback(scene_id)
 
     def draw_scene_fallback(self, scene_id):
         # Scene-specific geometry is intentionally native Canvas and editable.
@@ -184,9 +229,13 @@ class TurnosZeroApp:
         self.bind_clicks()
 
     def click(self, event):
-        logical_x = event.x * self.W / max(1, self.canvas.winfo_width())
-        logical_y = event.y * self.H / max(1, self.canvas.winfo_height())
-        for (x1,y1,x2,y2), callback in reversed(self.targets):
+        if self._view_scale <= 0:
+            return
+        logical_x = (event.x - self._view_x) / self._view_scale
+        logical_y = (event.y - self._view_y) / self._view_scale
+        if not (0 <= logical_x <= self.W and 0 <= logical_y <= self.H):
+            return
+        for (x1, y1, x2, y2), callback in reversed(self.targets):
             if x1 <= logical_x <= x2 and y1 <= logical_y <= y2:
                 callback()
                 return
@@ -194,8 +243,20 @@ class TurnosZeroApp:
     def bind_clicks(self):
         width = max(1, self.canvas.winfo_width())
         height = max(1, self.canvas.winfo_height())
-        self.canvas.scale("all", 0, 0, width / self.W, height / self.H)
-        self._draw_w, self._draw_h = width, height
+        if width < 100 or height < 100:
+            self.canvas.bind("<Button-1>", self.click)
+            return
+        scale = min(width / self.W, height / self.H)
+        offset_x = (width - self.W * scale) / 2
+        offset_y = (height - self.H * scale) / 2
+        # As telas são desenhadas em coordenadas lógicas; aplica uma transformação
+        # uniforme para impedir distorção em monitores ultrawide ou janelas altas.
+        self.canvas.scale("all", 0, 0, scale, scale)
+        self.canvas.move("all", offset_x, offset_y)
+        self._view_scale = scale
+        self._view_x = offset_x
+        self._view_y = offset_y
+        self._has_canvas_transform = True
         self.canvas.bind("<Button-1>", self.click)
         self.canvas.config(cursor="hand2")
 
@@ -256,43 +317,59 @@ class TurnosZeroApp:
         self.text(cx, 660, "ARQUIVO INTERNO  ·  ACESSO RESTRITO  ·  V. 1.2", 9, self.MUTED)
         self.bind_clicks()
 
-    def draw_backdrop(self, filename, y=390):
+    def draw_backdrop(self, filename, y=390, x=None, width=None, height=None):
         path = Path(__file__).resolve().parent / "assets" / "ambientes" / filename
         if not path.is_file():
             return False
         try:
-            key = "backdrop:" + filename
-            if key not in self.scene_images:
-                self.scene_images[key] = tk.PhotoImage(file=str(path))
-            self.canvas.create_image(self.W//2, y, image=self.scene_images[key], anchor="center")
+            with Image.open(path) as source:
+                native_w, native_h = source.size
+            target_w = width or native_w
+            target_h = height or native_h
+            photo = self.scaled_photo(path, (target_w, target_h), self.scene_images)
+            self.canvas.create_image(
+                x if x is not None else self.W // 2, y,
+                image=photo, anchor="center"
+            )
             return True
-        except tk.TclError:
+        except (OSError, tk.TclError, ValueError):
             return False
 
     def new_campaign(self):
-        player = simpledialog.askstring("Novo contrato","Nome para o crachá:",parent=self.root)
+        player = simpledialog.askstring("Novo contrato", "Nome para o crachá:", parent=self.root)
         if player is None:
             return
-        self.screen="difficulty"
+        self.screen = "difficulty"
         self.clear()
-        self.rect(0,0,self.W,self.H,self.BG)
-        self.draw_backdrop("agencia_menu.png", 385)
-        self.header("RECURSOS HUMANOS / ADMISSÃO","Escolha seu vínculo","A agência oferece proteção limitada. A dívida permanece sob sua responsabilidade.")
-        self.rect(58,190,966,305,"#101a28","#9a7848",2)
-        self.text(86,220,"DÍVIDA CONTRATUAL",10,"#d98b75","nw")
-        self.text(86,255,"− R$ 1.000.000",24,"#e58d83","nw")
-        self.text(86,286,"Cada serviço concluído reduz sua dívida. A remuneração dobra a cada contrato.",10,self.TEXT,"nw",820)
+        self.rect(0, 0, self.W, self.H, self.BG)
+        self.header(
+            "RECURSOS HUMANOS / ADMISSÃO", "Escolha seu vínculo",
+            "A agência oferece proteção limitada. A dívida permanece sob sua responsabilidade."
+        )
+
+        # A mesa/ambiente da agência fica à direita; os documentos ocupam uma
+        # coluna à esquerda e deixam a arte visível, em vez de cobri-la inteira.
+        self.draw_backdrop("cidade_noturna.png", y=420, x=755, width=520, height=310)
+        self.rect(58, 190, 480, 278, "#0d1521", "#9a7848", 1)
+        self.text(82, 216, "DÍVIDA CONTRATUAL", 10, "#d98b75", "nw")
+        self.text(82, 247, "− R$ 1.000.000", 22, "#e58d83", "nw")
+        self.text(82, 273, "Cada serviço concluído reduz sua dívida.", 9, self.TEXT, "nw", 365)
+
         descriptions = [
-            ("estagiario","ESTAGIÁRIO","5 estabilidade · suporta 2 violações"),
-            ("efetivo","EFETIVO","4 estabilidade · 1 violação encerra o contrato"),
-            ("terceirizado","TERCEIRIZADO","3 estabilidade · 1 violação encerra o contrato")
+            ("estagiario", "ESTAGIÁRIO", "5 estabilidade · suporta 2 violações"),
+            ("efetivo", "EFETIVO", "4 estabilidade · 1 violação encerra o contrato"),
+            ("terceirizado", "TERCEIRIZADO", "3 estabilidade · 1 violação encerra o contrato"),
         ]
-        for i,(key,label,desc) in enumerate(descriptions):
-            y=320+i*58
-            self.rect(82,y,942,y+50,"#14202d","#8b6b45",1)
-            self.text(108,y+20,label,13,self.GOLD,"nw")
-            self.text(108,y+36,desc,9,self.MUTED,"nw")
-            self.button(750,y+4,165,"ASSINAR",lambda k=key,p=player:self.create_campaign(p,k),42)
+        for i, (key, label, desc) in enumerate(descriptions):
+            y = 300 + i * 112
+            self.rect(58, y, 480, y + 92, "#101a28", "#8b6b45", 1)
+            self.text(82, y + 28, label, 13, self.GOLD, "nw")
+            self.text(82, y + 55, desc, 8, self.MUTED, "nw", 340)
+            self.button(
+                300, y + 27, 155, "ASSINAR",
+                lambda k=key, p=player: self.create_campaign(p, k), 40
+            )
+        self.text(755, 610, "ARQUIVO INTERNO  ·  ACESSO RESTRITO", 8, self.MUTED)
         self.bind_clicks()
 
     def create_campaign(self, player, difficulty):
@@ -324,6 +401,8 @@ class TurnosZeroApp:
         debt=max(0,-state["cash"])
         reward=50*(2**state["shift_index"])
         risk=2**state["shift_index"]
+        # Dossiê superior estreito e relatório inferior; a imagem de missão fica
+        # exposta no centro sem um cartão opaco cobrindo o ambiente.
         self.rect(55,185,969,226,"#0d1521","#9a7848",1)
         self.text(78,204,"OBJETIVO: QUITAR A DÍVIDA CONTRATUAL",10,self.GOLD,"nw")
         self.text(78,222,f"DÍVIDA R$ {debt:,}  |  PAGAMENTO R$ {reward:,}  |  RISCO x{risk}".replace(",", "."),10,self.TEXT,"nw")
@@ -350,10 +429,9 @@ class TurnosZeroApp:
                     f"ESTABILIDADE: {state['sanity']}  |  FALHAS: {state['mistakes']}  |  REPUTAÇÃO: {state['reputation']}  |  DÍVIDA: R$ {max(0,-state['cash']):,}  |  RISCO x{state.get('risk_multiplier',2**state['shift_index'])}".replace(",", "."))
         self.rect(55,190,969,575,"#101723","#786044",2)
         self.rect(70,205,954,555,"#131e2b","#35485a",1)
-        self.text(512,220,"INVESTIGUE OS MARCADORES NUMERADOS — CLIQUE PARA EXAMINAR AS PISTAS",8,"#d6ad70")
-        self.rect(95,235,929,510,"#080e17")
+        self.text(512,207,"CLIQUE NOS MARCADORES SOBRE OS OBJETOS PARA INVESTIGAR",8,"#d6ad70")
         if scene_id:
-            self.draw_scene(scene_id,512,372)
+            self.draw_scene(scene_id,512,377)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
         scene_layers = self.object_scene_data.get(scene_id, {})
         total_hotspots = len(scene_layers.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", []))) if scene_id else 0
