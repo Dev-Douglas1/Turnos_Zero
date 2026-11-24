@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="frame" x2="1"><stop stop-color="#11191f"/><stop offset=".5" stop-color="#77878a"/><stop offset="1" stop-color="#151d22"/></linearGradient><linearGradient id="pane" x2="0" y2="1"><stop stop-color="#8ea6a8" stop-opacity=".34"/><stop offset=".5" stop-color="#14242b" stop-opacity=".8"/><stop offset="1" stop-color="#050b11"/></linearGradient></defs>
+<ellipse cx="250" cy="480" rx="170" ry="14" fill="#000" opacity=".55"/>
+<rect x="88" y="22" width="336" height="462" rx="4" fill="url(#frame)" stroke="#9b875f" stroke-width="8"/>
+<rect x="108" y="42" width="296" height="420" fill="url(#pane)" stroke="#546b72" stroke-width="5"/>
+<path d="M119 54L391 54M119 451L391 451" stroke="#b5c5bc" stroke-width="3" opacity=".35"/>
+<path d="M364 190V282" stroke="#b0bba9" stroke-width="8" stroke-linecap="round"/>
+<path d="M165 455L216 72" stroke="#d7e7e2" stroke-width="3" opacity=".18"/>
+<g fill="#020609" opacity=".75">
+<ellipse cx="244" cy="249" rx="39" ry="48"/>
+<path d="M207 246L188 165Q185 150 196 145Q208 142 212 158L229 213L224 133Q223 116 236 116Q249 117 248 134L249 210L268 142Q273 127 285 134Q296 141 287 157L266 218L302 178Q314 167 323 178Q331 189 318 201L280 260Q262 285 234 279Z"/>
+</g>
+<path d="M117 290Q150 305 184 296M318 330Q354 313 390 337" stroke="#b9d2cd" stroke-width="3" opacity=".25" fill="none"/>
+<!-- estado interativo: loja_porta_tocada -->
+<ellipse cx="244" cy="248" rx="76" ry="96" fill="#9fe3d7" opacity=".13"/><path d="M221 255L197 196Q192 184 204 180Q215 178 222 192L242 232L232 174Q230 160 243 158Q256 157 259 172L267 230L278 185Q283 172 295 178Q307 184 300 199L280 251L313 218Q325 208 333 220Q340 231 327 243L287 285Q258 311 230 288Z" fill="#8ec8b5" opacity=".82" stroke="#d7ead8" stroke-width="4"/><path d="M170 315L205 350M320 130L351 105" stroke="#d4e7da" stroke-width="5" opacity=".55"/>
+</svg>
