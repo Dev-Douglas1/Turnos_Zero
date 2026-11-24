@@ -165,8 +165,6 @@ class ShiftGame:
                 not isinstance(item.get("description"), str) or type(item.get("task_index")) is not int or
                 item["task_index"] not in (0, 1, 2)):
                 return False
-        if status == "on_shift" and not isinstance(state.get("shift_token"), str):
-            return False
         return True
 
     @staticmethod
@@ -259,6 +257,9 @@ class ShiftGame:
                           last_outcome=outcome, last_payment=paid,
                           last_reveal=mission["reveal"])
         token = self.state.get("shift_token")
+        if not token:
+            token = f"legacy-{self.state.get('created_at', 'unknown')}-{self.state['shift_index']}"
+            self.state["shift_token"] = token
         shifts = self.history.setdefault("shifts", [])
         if not token or not any(item.get("shift_token") == token for item in shifts if isinstance(item, dict)):
             shifts.append({
