@@ -134,10 +134,21 @@ class TurnosZeroApp:
                 scene_hotspots = scene.get("hotspots", [])
             else:
                 object_root = Path(__file__).resolve().parent / "assets" / "objetos"
+                hotspot_by_object = {
+                    item.get("object"): item.get("id")
+                    for item in layered.get("hotspots", [])
+                    if item.get("object")
+                }
                 for obj in sorted(layered.get("objects", []), key=lambda item: item.get("z", 0)):
                     if not obj.get("visible", True):
                         continue
-                    asset = object_root / obj.get("asset", "")
+                    hotspot_id = hotspot_by_object.get(obj["id"])
+                    object_state = self.game.get_object_state(hotspot_id) if hotspot_id else "0"
+                    asset_name = obj.get("asset_states", {}).get(object_state, obj.get("asset", ""))
+                    asset = object_root / asset_name
+                    if not asset.is_file():
+                        # Variante ausente? Mantém o sprite-base para não sumir com o objeto.
+                        asset = object_root / obj.get("asset", "")
                     if not asset.is_file():
                         continue
 
@@ -237,7 +248,11 @@ class TurnosZeroApp:
             (item for item in scene_data.get("objects", []) if item.get("id") == object_id),
             None
         )
-        asset = (Path(__file__).resolve().parent / "assets" / "objetos" / obj["asset"]) if obj else None
+        state = self.game.get_object_state(hotspot["id"])
+        asset_name = obj.get("asset_states", {}).get(state, obj["asset"]) if obj else None
+        asset = (Path(__file__).resolve().parent / "assets" / "objetos" / asset_name) if asset_name else None
+        if asset and not asset.is_file() and obj:
+            asset = Path(__file__).resolve().parent / "assets" / "objetos" / obj["asset"]
         if asset and asset.is_file():
             photo = self.scaled_photo(asset, (300, 365), self.object_images, contain=True)
             self.canvas.create_image(245, 425, image=photo, anchor="center")
@@ -252,7 +267,6 @@ class TurnosZeroApp:
             11, self.TEXT, "nw", 435
         )
 
-        state = self.game.get_object_state(hotspot["id"])
         interaction = hotspot.get("interaction", {})
         states = interaction.get("states", ["intacto", "alterado"])
         responses = interaction.get("responses", ["Nada muda.", "O objeto reage de forma anormal."])

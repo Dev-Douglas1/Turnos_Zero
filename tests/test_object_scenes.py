@@ -45,6 +45,12 @@ class EditableSceneManifestTests(unittest.TestCase):
                     data = path.read_bytes()
                     self.assertEqual(data[:8], bytes.fromhex("89504e470d0a1a0a"))
                     self.assertEqual(struct.unpack(">II", data[16:24]), (512, 512))
+                    for state, variant in obj.get("asset_states", {}).items():
+                        variant_path = ROOT / "assets" / "objetos" / variant
+                        self.assertTrue(variant_path.is_file(), f"Sprite alternativo ausente: {variant_path}")
+                        variant_data = variant_path.read_bytes()
+                        self.assertEqual(variant_data[:8], bytes.fromhex("89504e470d0a1a0a"))
+                        self.assertEqual(struct.unpack(">II", variant_data[16:24]), (512, 512))
 
     def test_hotspots_are_inside_the_scene_and_follow_their_objects(self):
         for scene_id, scene in self.data["scenes"].items():

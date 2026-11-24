@@ -57,7 +57,10 @@
           "w": 0.27,
           "h": 0.91,
           "z": 4,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "loja_geladeira_aberta.png"
+          }
         }
       ],
       "hotspots": [
@@ -163,7 +166,10 @@
           "w": 0.3,
           "h": 0.92,
           "z": 2,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "edificio_elevador_aberto.png"
+          }
         },
         {
           "id": "presenca",
@@ -304,7 +310,10 @@
           "w": 0.27,
           "h": 0.62,
           "z": 1,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "cinema_projetor_desligado.png"
+          }
         },
         {
           "id": "tela",
@@ -478,7 +487,10 @@
           "w": 0.3,
           "h": 0.6,
           "z": 3,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "lab_terminal_acesso.png"
+          }
         },
         {
           "id": "luminaria",
@@ -489,7 +501,10 @@
           "w": 0.14,
           "h": 0.28,
           "z": 4,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "lab_luminaria_apagada.png"
+          }
         }
       ],
       "hotspots": [
