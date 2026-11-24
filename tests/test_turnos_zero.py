@@ -233,5 +233,19 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(reopened.state["shift_index"], 1)
         self.assertEqual(reopened.state["task_index"], 0)
 
+    def test_laboratorio_usa_evidencia_para_desbloquear_alternativa(self):
+        for index, mission in enumerate(MISSIONS[:-1]):
+            self.game.start_shift()
+            for task in mission["tasks"]:
+                self.game.act(task["correct"])
+            self.game.next_shift()
+        self.assertEqual(self.game.mission["id"], "laboratorio")
+        self.game.start_shift()
+        self.game.record_evidence("terminal", "Sessão antiga ainda ativa.")
+        result = self.game.act(1)
+        self.assertTrue(result["correct"])
+        self.assertTrue(result["evidence_used"])
+        self.assertEqual(self.game.state["reputation"], 2)
+
 if __name__ == "__main__":
     unittest.main()
