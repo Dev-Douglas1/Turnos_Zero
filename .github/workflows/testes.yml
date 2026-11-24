@@ -20,7 +20,7 @@ jobs:
       - name: Exportar cenários para PNG
         run: python tools/export_assets.py
       - name: Compilar módulos
-        run: python -m py_compile main.py turnos_zero.py scene_manager.py sistemas.py tools/editor_cenas.py tools/export_assets.py
+        run: python -m py_compile main.py turnos_zero.py scene_manager.py sistemas.py tools/editor_cenas.py tools/export_assets.py tools/editor_cenas.py tools/export_assets.py
       - name: Executar testes
         run: python -m unittest discover -s tests -v
       - name: Validar JSON e referências de cenas
