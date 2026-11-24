@@ -212,24 +212,24 @@
       "hotspots": [
         {
           "id": "porta",
-          "label": "Porta do apartamento",
+          "label": "Porta do apartamento 503",
           "bounds": [
             0.04,
             0.12,
             0.26,
             0.92
           ],
-          "finding": "A porta está trancada por dentro, mas há marcas recentes no lado externo.",
+          "finding": "A placa indica 503, mas um segundo algarismo foi riscado por dentro do metal. Há marcas recentes na fechadura.",
           "object": "porta_apartamento",
           "interaction": {
-            "label": "TOCAR NO VIDRO",
+            "label": "BATER NA PORTA",
             "states": [
-              "intacto",
-              "tocado"
+              "silenciosa",
+              "respondeu"
             ],
             "responses": [
-              "O vidro está gelado. Há uma sombra imóvel do outro lado.",
-              "A mão do outro lado encosta exatamente onde você tocou. O vidro fica morno."
+              "A madeira está fria. Há marcas recentes na altura da fechadura.",
+              "Duas batidas vêm de dentro. A placa 503 vibra e um risco revela que alguém tentou transformá-la em 504."
             ],
             "repeatable": false
           }
