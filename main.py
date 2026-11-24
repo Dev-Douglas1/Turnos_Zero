@@ -73,10 +73,12 @@ class TurnosZeroApp:
                 self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
             else:
                 self.draw_scene_fallback(scene_id)
+            # Hotspots são normalizados em relação à área real da cena,
+            # não à janela inteira. Isso mantém os cliques alinhados ao cenário.
+            viewport = (95, 220, 929, 535)
             for hotspot in scene.get("hotspots", []):
-                x1,y1,x2,y2 = hotspot["bounds"]
-                self.targets.append(((x1*self.W,y1*self.H,x2*self.W,y2*self.H),
-                    lambda h=hotspot:self.inspect_hotspot(h)))
+                bounds = SceneManager.map_bounds(hotspot["bounds"], viewport)
+                self.targets.append((bounds, lambda h=hotspot:self.inspect_hotspot(h)))
         except (SceneError, tk.TclError, OSError):
             self.active_scene = None
 
