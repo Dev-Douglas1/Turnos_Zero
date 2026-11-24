@@ -212,5 +212,16 @@ class TurnosZeroTests(unittest.TestCase):
         result = self.game.act((self.game.task["correct"] + 1) % 3)
         self.assertEqual(result["ending"], "missing")
 
+    def test_rejeita_progresso_com_contratos_fora_de_ordem(self):
+        state = fresh_state("Teste")
+        state["shift_index"] = 1
+        state["completed"] = ["cinema_vazio"]
+        self.assertFalse(ShiftGame._valid_state(state))
+
+    def test_rejeita_contrato_concluido_sem_registro_de_conclusao(self):
+        state = fresh_state("Teste")
+        state["task_index"] = 3
+        self.assertFalse(ShiftGame._valid_state(state))
+
 if __name__ == "__main__":
     unittest.main()
