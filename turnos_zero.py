@@ -302,6 +302,8 @@ class ShiftGame:
             return False
         if state.get("is_hidden", False) and not state.get("threat_active", False):
             return False
+        if state.get("hide_used", False) and not state.get("threat_active", False):
+            return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
                 not isinstance(item.get("mission"), str) or
