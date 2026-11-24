@@ -68,9 +68,13 @@ class TurnosZeroApp:
             # SVG rasterizer is available; gameplay remains dependency-free.
             path = Path(__file__).resolve().parent / scene.get("background", "")
             if path.suffix.lower() == ".png" and path.is_file():
-                if scene_id not in self.scene_images:
-                    self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
-                self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
+                try:
+                    if scene_id not in self.scene_images:
+                        self.scene_images[scene_id] = tk.PhotoImage(file=str(path))
+                    self.canvas.create_image(center_x, center_y, image=self.scene_images[scene_id], anchor="center")
+                except tk.TclError:
+                    self.scene_images.pop(scene_id, None)
+                    self.draw_scene_fallback(scene_id)
             else:
                 self.draw_scene_fallback(scene_id)
             # Hotspots são normalizados em relação à área real da cena,
