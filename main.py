@@ -235,24 +235,41 @@ class TurnosZeroApp:
                     )
                 scene_hotspots = layered.get("hotspots", [])
 
-            # Luz diegética: feixe suave projetado a partir da posição do agente.
-            if self.game.get_tool_state("lanterna") and self.game.get_tool_resource("lanterna") > 0:
+            # Luz diegética: quando a lanterna acaba ou é desligada,
+            # o ambiente escurece de verdade; os marcadores continuam legíveis.
+            lantern_on = self.game.get_tool_state("lanterna") and self.game.get_tool_resource("lanterna") > 0
+            if lantern_on:
+                battery = self.game.get_tool_resource("lanterna")
+                beam_width = 0.24 if battery <= 30 else 0.31
                 beam_x = left + view_w * 0.50
                 beam_y = bottom - 4
                 self.canvas.create_polygon(
                     beam_x, beam_y,
-                    left + view_w * 0.22, top + 8,
-                    left + view_w * 0.78, top + 8,
+                    left + view_w * (0.50 - beam_width), top + 8,
+                    left + view_w * (0.50 + beam_width), top + 8,
                     fill="#e6d4a6", outline="", stipple="gray75",
                     tags=("flashlight_overlay",)
                 )
                 self.canvas.create_polygon(
                     beam_x, beam_y,
-                    left + view_w * 0.36, top + 22,
-                    left + view_w * 0.64, top + 22,
+                    left + view_w * (0.50 - beam_width * 0.42), top + 22,
+                    left + view_w * (0.50 + beam_width * 0.42), top + 22,
                     fill="#f0e2bd", outline="", stipple="gray75",
                     tags=("flashlight_overlay",)
                 )
+                if battery <= 30:
+                    self.canvas.create_oval(
+                        left + view_w * .47, top + 8,
+                        left + view_w * .53, top + 24,
+                        outline="#c49a60", width=1, tags=("flashlight_overlay",)
+                    )
+            else:
+                self.canvas.create_rectangle(
+                    left, top, right, bottom,
+                    fill="#000000", outline="", stipple="gray50",
+                    tags=("flashlight_overlay",)
+                )
+                self.text(left + 14, bottom - 18, "SEM ILUMINAÇÃO / LANTERNA DESLIGADA", 7, "#d07762", "sw")
 
             # Modo câmera transforma a mesma cena em feed analógico de vigilância.
             if self.game.get_tool_state("camera"):
