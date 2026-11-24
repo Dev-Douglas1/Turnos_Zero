@@ -82,6 +82,10 @@ class TurnosZeroApp:
                 return
 
     def bind_clicks(self):
+        width = max(1, self.canvas.winfo_width())
+        height = max(1, self.canvas.winfo_height())
+        self.canvas.scale("all", 0, 0, width / self.W, height / self.H)
+        self._draw_w, self._draw_h = width, height
         self.canvas.bind("<Button-1>", self.click)
         self.canvas.config(cursor="hand2")
 
