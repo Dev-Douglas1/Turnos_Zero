@@ -501,7 +501,7 @@ class TurnosZeroApp:
 
         # A mesa/ambiente da agência fica à direita; os documentos ocupam uma
         # coluna à esquerda e deixam a arte visível, em vez de cobri-la inteira.
-        self.draw_backdrop("cidade_noturna.png", y=410, x=755, width=520, height=196)
+        self.draw_backdrop("agencia_menu.png", y=435, x=755, width=520, height=293)
         self.rect(58, 190, 480, 278, "#0d1521", "#9a7848", 1)
         self.text(82, 216, "DÍVIDA CONTRATUAL", 10, "#d98b75", "nw")
         self.text(82, 247, "− R$ 1.000.000", 22, "#e58d83", "nw")
@@ -559,11 +559,12 @@ class TurnosZeroApp:
         self.text(78,204,"OBJETIVO: QUITAR A DÍVIDA CONTRATUAL",10,self.GOLD,"nw")
         self.text(78,222,f"DÍVIDA R$ {debt:,}  |  PAGAMENTO R$ {reward:,}  |  RISCO x{risk}".replace(",", "."),10,self.TEXT,"nw")
         self.rect(55,550,969,680,"#0d1521","#9a7848",1)
-        self.text(78,568,"ORDEM DE SERVIÇO",9,self.GOLD,"nw")
-        self.text(78,590,mission["brief"],9,self.TEXT,"nw",850)
+        self.text(78,566,"ORDEM DE SERVIÇO",9,self.GOLD,"nw")
+        self.text(78,586,mission["brief"],8,self.TEXT,"nw",570)
         rules="   •   ".join(mission["rules"][:3])
-        self.text(78,618,"PROTOCOLOS: "+rules,8,self.MUTED,"nw",850)
-        self.button(690,635,250,"ACEITAR CONTRATO  [ENTER]",self.start_shift,38)
+        self.text(78,615,"PROTOCOLOS: "+rules,7,self.MUTED,"nw",570)
+        self.text(78,651,"KIT DO AGENTE: LANTERNA  ·  RÁDIO  ·  CÂMERA",8,"#8bc9a0","nw")
+        self.button(690,625,250,"ACEITAR CONTRATO  [ENTER]",self.start_shift,42)
         self.bind_clicks()
     def start_shift(self):
         if self.game.state["status"]=="between_shifts":
