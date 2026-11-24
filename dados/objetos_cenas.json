@@ -35,7 +35,10 @@
           "w": 0.39,
           "h": 0.5,
           "z": 2,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "loja_balcao_aberto.png"
+          }
         },
         {
           "id": "porta_fria",
@@ -46,7 +49,10 @@
           "w": 0.2,
           "h": 0.78,
           "z": 3,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "loja_porta_tocada.png"
+          }
         },
         {
           "id": "geladeira",
@@ -155,7 +161,10 @@
           "w": 0.22,
           "h": 0.8,
           "z": 1,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "edificio_porta_tocada.png"
+          }
         },
         {
           "id": "elevador",
@@ -180,7 +189,10 @@
           "w": 0.17,
           "h": 0.65,
           "z": 3,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "edificio_presenca_observando.png"
+          }
         },
         {
           "id": "painel",
@@ -191,7 +203,10 @@
           "w": 0.12,
           "h": 0.55,
           "z": 4,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "edificio_painel_acionado.png"
+          }
         }
       ],
       "hotspots": [
@@ -324,7 +339,10 @@
           "w": 0.49,
           "h": 0.62,
           "z": 2,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "cinema_tela_tocada.png"
+          }
         },
         {
           "id": "poltrona",
@@ -335,7 +353,10 @@
           "w": 0.25,
           "h": 0.48,
           "z": 3,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "cinema_poltrona_movida.png"
+          }
         },
         {
           "id": "espectador",
@@ -346,7 +367,10 @@
           "w": 0.2,
           "h": 0.44,
           "z": 4,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "cinema_espectador_respondeu.png"
+          }
         }
       ],
       "hotspots": [
@@ -465,7 +489,10 @@
           "w": 0.25,
           "h": 0.88,
           "z": 1,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "lab_camara_vazia_acionada.png"
+          }
         },
         {
           "id": "camara_presenca",
@@ -476,7 +503,10 @@
           "w": 0.3,
           "h": 0.94,
           "z": 2,
-          "visible": true
+          "visible": true,
+          "asset_states": {
+            "1": "lab_camara_presenca_sincronizada.png"
+          }
         },
         {
           "id": "terminal",
