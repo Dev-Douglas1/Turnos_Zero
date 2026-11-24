@@ -60,7 +60,7 @@ A direção visual combina documentos e inspeção tátil (*Papers, Please*), fe
 ### Equipamentos
 - Lanterna com bateria e cone de iluminação; o cenário escurece quando fica sem carga.
 - Rádio com três transmissões contextualizadas por contrato.
-- Câmera com três exposições, modo CFTV de seis canais e fotografia de evidências.
+- Câmera com três exposições, modo CFTV de seis canais e fotografia de evidências. Um flash no canal correto interrompe a presença até a próxima decisão.
 - Ferramentas são repostas no início do próximo contrato.
 
 ### Horror e sobrevivência
@@ -109,6 +109,7 @@ Cada ambiente possui três ocorrências, protocolos, evidências e interações 
 - [x] Pressão anômala ligada às interações.
 - [x] Perseguição e ataque na próxima decisão, com dano escalado.
 - [x] Presença visual no ambiente e em um canal CCTV suspeito.
+- [x] Flash fotográfico no canal correto interrompe a perseguição por uma decisão.
 - [x] Abrigo específico por missão, com um uso por perseguição.
 - [x] Áudio ambiente próprio por missão.
 - [ ] Animações de entrada/saída da presença e variações visuais de perseguição.
