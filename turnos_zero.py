@@ -208,8 +208,9 @@ class ShiftGame:
         ):
             return False
         inventory = state.get("inventory", ["lanterna", "radio", "camera"])
-        if (not isinstance(inventory, list) or len(inventory) != len(set(inventory)) or
-            any(item not in {"lanterna", "radio", "camera"} for item in inventory)):
+        if (not isinstance(inventory, list) or
+            any(not isinstance(item, str) or item not in {"lanterna", "radio", "camera"} for item in inventory) or
+            len(inventory) != len(set(inventory))):
             return False
         if not inventory:
             return False
@@ -375,15 +376,17 @@ class ShiftGame:
             return False
         if tool not in self.state.get("inventory", ["lanterna", "radio", "camera"]):
             return False
-        return bool(self.state.setdefault("tool_states", {}).get(tool, False))
+        defaults = {"lanterna": True, "radio": False, "camera": False}
+        return bool(self.state.setdefault("tool_states", {}).get(tool, defaults.get(tool, False)))
 
     def toggle_tool(self, tool: str) -> bool:
         if self.state is None or self.state.get("status") != "on_shift":
             raise RuntimeError("Equipamentos só podem ser usados durante um turno.")
-        if tool not in self.state.get("inventory", []):
+        if tool not in self.state.get("inventory", ["lanterna", "radio", "camera"]):
             raise ValueError("Equipamento não encontrado no inventário.")
+        defaults = {"lanterna": True, "radio": False, "camera": False}
         states = self.state.setdefault("tool_states", {})
-        states[tool] = not bool(states.get(tool, False))
+        states[tool] = not bool(states.get(tool, defaults.get(tool, False)))
         self.state["selected_tool"] = tool
         self.save()
         return states[tool]
