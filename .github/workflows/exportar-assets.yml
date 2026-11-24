@@ -6,6 +6,7 @@ on:
       - "assets/ambientes/*.svg"
       - "assets/objetos/*.svg"
       - "tools/export_assets.py"
+      - "tools/generate_audio.py"
       - ".github/workflows/exportar-assets.yml"
   workflow_dispatch:
 
@@ -51,15 +52,33 @@ jobs:
                       raise SystemExit(f"Dimensão incorreta em {path}: {size}")
                   print(f"OK: {path} — {size[0]}x{size[1]}")
           PY
-      - name: Publicar PNGs no repositório
+      - name: Validar paisagens sonoras
+        run: |
+          python - <<'PY'
+          import wave
+          from pathlib import Path
+
+          folder = Path("assets/som")
+          expected = {"loja_24h", "edificio_9", "cinema_vazio", "laboratorio"}
+          files = {path.stem: path for path in folder.glob("*.wav")}
+          if set(files) != expected:
+              raise SystemExit(f"Paisagens sonoras incorretas: {sorted(files)}")
+          for name, path in files.items():
+              with wave.open(str(path), "rb") as audio:
+                  details = (audio.getnchannels(), audio.getsampwidth(), audio.getframerate(), audio.getnframes())
+                  if details[:3] != (1, 2, 22050) or details[3] < 22050 * 8:
+                      raise SystemExit(f"Formato de áudio inválido em {path}: {details}")
+                  print(f"OK: {path} — {details[3] / details[2]:.1f}s")
+          PY
+      - name: Publicar PNGs e áudios no repositório
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/ambientes/*.png assets/objetos/*.png
+          git add assets/ambientes/*.png assets/objetos/*.png assets/som/*.wav
           if git diff --cached --quiet; then
             echo "Os PNGs já estão atualizados."
           else
-            git commit -m "Exporta fundos e objetos do jogo para PNG"
+            git commit -m "Exporta fundos, objetos e áudio do jogo"
             git pull --rebase origin main
             git push
           fi
