@@ -78,6 +78,12 @@ class TurnosZeroApp:
             viewport = (95, 220, 929, 535)
             for hotspot in scene.get("hotspots", []):
                 bounds = SceneManager.map_bounds(hotspot["bounds"], viewport)
+                x1, y1, x2, y2 = bounds
+                # Marcadores discretos tornam os pontos interativos visíveis sem
+                # esconder a arte; as áreas clicáveis usam exatamente os mesmos limites.
+                self.canvas.create_rectangle(x1, y1, x2, y2, outline=self.GOLD, width=2, dash=(5, 3))
+                self.canvas.create_text(x1 + 6, y1 + 6, text=hotspot.get("label", hotspot["id"]).upper(),
+                                        fill=self.GOLD, font=("Consolas", 8, "bold"), anchor="nw")
                 self.targets.append((bounds, lambda h=hotspot:self.inspect_hotspot(h)))
         except (SceneError, tk.TclError, OSError):
             self.active_scene = None
@@ -246,6 +252,9 @@ class TurnosZeroApp:
             self.draw_scene(scene_id,512,377)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
         self.text(512,555,f"EVIDÊNCIAS COLETADAS NESTE LOCAL: {len(evidence)}",10,self.GOLD)
+        if evidence:
+            labels = "  |  ".join(item.get("description", item.get("id", "Pista"))[:58] for item in evidence[-3:])
+            self.text(512,578,labels,8,self.MUTED,width=850)
         self.button(690,600,260,"IR PARA A OCORRÊNCIA",self.show_task,44)
         self.bind_clicks()
 
