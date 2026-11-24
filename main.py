@@ -236,6 +236,14 @@ class TurnosZeroApp:
             self.rect(370,280,590,485,"#172833","#b39a66",5)
             self.rect(400,310,560,395,"#08141d","#5c8e89",3)
 
+    def toggle_field_tool(self, tool):
+        try:
+            self.game.toggle_tool(tool)
+            self.play_effect("acerto.wav")
+        except (RuntimeError, ValueError):
+            self.play_effect("erro.wav")
+        self.show_investigation()
+
     def inspect_hotspot(self, hotspot):
         """Abre a ficha de inspeção; não coleta evidência apenas por selecionar."""
         self.current_hotspot = hotspot
@@ -320,6 +328,8 @@ class TurnosZeroApp:
         self.text(485, 510, "RELATÓRIO DE CAMPO", 9, self.GOLD, "nw")
         if evidence_found:
             self.text(485, 535, "EVIDÊNCIA REGISTRADA", 10, "#83c4a8", "nw")
+        elif self.game.get_tool_state("camera"):
+            self.button(485, 526, 410, "FOTOGRAFAR E REGISTRAR", self.capture_current_evidence, 40)
         else:
             self.button(485, 526, 410, "EXAMINAR E REGISTRAR EVIDÊNCIA", self.collect_current_evidence, 40)
 
@@ -332,6 +342,19 @@ class TurnosZeroApp:
 
         self.button(485, 625, 410, "VOLTAR AO AMBIENTE", self.show_investigation, 34)
         self.bind_clicks()
+
+    def capture_current_evidence(self):
+        hotspot = self.current_hotspot
+        if not hotspot:
+            return
+        finding = hotspot.get("finding", "Registro fotográfico de anomalia.")
+        try:
+            self.game.record_evidence(hotspot["id"], "FOTO / " + finding)
+            self.game.toggle_tool("camera")
+            self.play_effect("acerto.wav")
+        except (RuntimeError, ValueError):
+            self.play_effect("erro.wav")
+        self.show_inspection()
 
     def collect_current_evidence(self):
         hotspot = self.current_hotspot
@@ -561,6 +584,22 @@ class TurnosZeroApp:
         self.text(512,207,"CLIQUE NOS MARCADORES SOBRE OS OBJETOS PARA INVESTIGAR",8,"#d6ad70")
         if scene_id:
             self.draw_scene(scene_id,512,377)
+        tool_states = state.setdefault("tool_states", {})
+        if tool_states.get("lanterna", True):
+            # Cone de lanterna em primeiro plano, leve e pontilhado para preservar a arte.
+            self.canvas.create_polygon(
+                512, 510, 428, 235, 596, 235,
+                fill="#dfc48c", outline="", stipple="gray75",
+                tags=("flashlight_overlay",)
+            )
+        if tool_states.get("camera", False):
+            # Modo de câmera: scanlines discretas, moldura e indicador REC.
+            for scan_y in range(238, 508, 7):
+                self.rect(96, scan_y, 928, scan_y + 1, "#06110d")
+            self.rect(108, 246, 280, 270, "#06140f", "#76c79b", 1)
+            self.canvas.create_oval(119, 253, 128, 262, fill="#e35d4d", outline="")
+            self.text(137, 258, "REC  /  CAM-01", 7, "#9ce2b5", "w")
+            self.rect(95, 235, 929, 510, "", "#70a98c", 1)
         evidence=[item for item in state.get("evidence",[]) if item.get("mission")==mission["id"]]
         scene_layers = self.object_scene_data.get(scene_id, {})
         total_hotspots = len(scene_layers.get("hotspots", self.scene_manager.get(scene_id).get("hotspots", []))) if scene_id else 0
@@ -568,6 +607,19 @@ class TurnosZeroApp:
         if evidence:
             labels = "  ·  ".join(item.get("description", item.get("id", "Pista"))[:48] for item in evidence[-2:])
             self.text(512,570,labels,8,self.MUTED,width=850)
+        if tool_states.get("radio", False):
+            radio_lines = {
+                "loja_24h": "CENTRAL: Não responda à chamada. Mantenha-se longe do corredor.",
+                "edificio_9": "CENTRAL: Se o painel mostrar 0, permaneça dentro do elevador.",
+                "cinema_vazio": "CENTRAL: Quando ouvir aplausos, não olhe para a tela.",
+                "laboratorio": "CENTRAL: Isole a alimentação externa. Não forneça credenciais.",
+            }
+            self.text(512,590,radio_lines.get(scene_id, "CENTRAL: Mantenha o protocolo."),8,"#8bc9a0")
+        else:
+            self.text(512,590,"CINTO DE EQUIPAMENTOS",7,self.MUTED)
+        self.button(70,610,155,f"LANTERNA {'ON' if tool_states.get('lanterna', True) else 'OFF'}",lambda:self.toggle_field_tool("lanterna"),40)
+        self.button(235,610,155,f"RÁDIO {'ON' if tool_states.get('radio', False) else 'OFF'}",lambda:self.toggle_field_tool("radio"),40)
+        self.button(400,610,155,f"CÂMERA {'ON' if tool_states.get('camera', False) else 'OFF'}",lambda:self.toggle_field_tool("camera"),40)
         self.button(690,610,260,"AVANÇAR PARA A OCORRÊNCIA",self.show_task,44)
         self.bind_clicks()
 

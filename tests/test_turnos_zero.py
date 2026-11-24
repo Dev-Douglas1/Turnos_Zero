@@ -257,6 +257,31 @@ class TurnosZeroTests(unittest.TestCase):
         self.assertEqual(self.game.state["last_payment"], 0)
         self.assertEqual(self.game.state["status"], "ended")
 
+    def test_inventario_inicial_contem_tres_equipamentos(self):
+        self.assertEqual(self.game.state["inventory"], ["lanterna", "radio", "camera"])
+        self.assertTrue(self.game.get_tool_state("lanterna"))
+        self.assertFalse(self.game.get_tool_state("radio"))
+        self.assertFalse(self.game.get_tool_state("camera"))
+
+    def test_equipamento_alterna_e_persiste(self):
+        self.game.start_shift()
+        self.assertTrue(self.game.toggle_tool("camera"))
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertTrue(reopened.get_tool_state("camera"))
+        self.assertFalse(reopened.get_tool_state("radio"))
+
+    def test_nao_permite_ativar_item_que_nao_esta_no_inventario(self):
+        self.game.start_shift()
+        self.game.state["inventory"] = ["lanterna"]
+        self.game.save()
+        with self.assertRaises(ValueError):
+            self.game.toggle_tool("camera")
+
+    def test_save_rejeita_estado_de_ferramenta_malformado(self):
+        state = fresh_state("Teste")
+        state["tool_states"] = {"camera": "ligada"}
+        self.assertFalse(ShiftGame._valid_state(state))
+
     def test_estado_de_objeto_persiste_apos_reabrir(self):
         self.game.start_shift()
         self.assertEqual(self.game.get_object_state("geladeira"), "0")

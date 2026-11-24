@@ -130,7 +130,10 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "difficulty": difficulty, "cash": -1_000_000, "initial_debt": 1_000_000,
         "reputation": 0, "shift_index": 0,
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
-        "completed": [], "evidence": [], "object_states": {}, "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
+        "completed": [], "evidence": [], "object_states": {},
+        "inventory": ["lanterna", "radio", "camera"],
+        "tool_states": {"lanterna": True, "radio": False, "camera": False},
+        "current_seed": None, "shift_token": None, "created_at": datetime.now().isoformat(timespec="seconds")
     }
 
 class ShiftGame:
@@ -203,6 +206,17 @@ class ShiftGame:
             not isinstance(key, str) or not isinstance(value, str) or value not in {"0", "1"}
             for key, value in object_states.items()
         ):
+            return False
+        inventory = state.get("inventory", ["lanterna", "radio", "camera"])
+        if (not isinstance(inventory, list) or len(inventory) != len(set(inventory)) or
+            any(item not in {"lanterna", "radio", "camera"} for item in inventory)):
+            return False
+        if not inventory:
+            return False
+        tool_states = state.get("tool_states", {})
+        if (not isinstance(tool_states, dict) or
+            any(key not in {"lanterna", "radio", "camera"} or type(value) is not bool
+                for key, value in tool_states.items())):
             return False
         for item in state.get("evidence", []):
             if (not isinstance(item, dict) or not isinstance(item.get("id"), str) or
@@ -355,6 +369,24 @@ class ShiftGame:
                          "mission": self.mission["id"], "task_index": self.state["task_index"]})
         self.save()
         return True
+
+    def get_tool_state(self, tool: str) -> bool:
+        if self.state is None:
+            return False
+        if tool not in self.state.get("inventory", ["lanterna", "radio", "camera"]):
+            return False
+        return bool(self.state.setdefault("tool_states", {}).get(tool, False))
+
+    def toggle_tool(self, tool: str) -> bool:
+        if self.state is None or self.state.get("status") != "on_shift":
+            raise RuntimeError("Equipamentos só podem ser usados durante um turno.")
+        if tool not in self.state.get("inventory", []):
+            raise ValueError("Equipamento não encontrado no inventário.")
+        states = self.state.setdefault("tool_states", {})
+        states[tool] = not bool(states.get(tool, False))
+        self.state["selected_tool"] = tool
+        self.save()
+        return states[tool]
 
     def _object_state_key(self, object_id: str) -> str:
         if not isinstance(object_id, str) or not object_id.strip():
