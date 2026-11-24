@@ -16,13 +16,13 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "dados" / "objetos_cenas.json"
 SCENE_CONFIG = ROOT / "dados" / "cenas.json"
 SPRITES = ROOT / "assets" / "objetos"
-W, H = 834, 315
+W, H = 834, 469
 
 class SceneEditor:
     def __init__(self, root):
         self.root = root
         self.root.title("TURNOS ZERO | Editor de cenários")
-        self.root.geometry("1180x650")
+        self.root.geometry("1180x790")
         self.data = json.loads(MANIFEST.read_text(encoding="utf-8"))
         self.scene_catalog = json.loads(SCENE_CONFIG.read_text(encoding="utf-8"))["scenes"]
         self.backgrounds = {item["id"]: ROOT / item["background"] for item in self.scene_catalog}
@@ -32,6 +32,7 @@ class SceneEditor:
         self.photos = {}
         self.tk_images = []
         self.background_photo = None
+        self.transform_vars = {key: tk.StringVar() for key in ("x", "y", "w", "h")}
         self._build()
         self.render()
 
@@ -58,6 +59,14 @@ class SceneEditor:
         self.scale_up_btn.pack(fill="x", pady=3)
         self.scale_down_btn = ttk.Button(left, text="Diminuir 10%", command=lambda: self.scale(.9))
         self.scale_down_btn.pack(fill="x", pady=3)
+        ttk.Button(left, text="Trocar imagem do objeto", command=self.replace_asset).pack(fill="x", pady=3)
+
+        transform = ttk.LabelFrame(left, text="Posição e tamanho (0 a 1)", padding=6)
+        transform.pack(fill="x", pady=(8, 3))
+        for row, key in enumerate(("x", "y", "w", "h")):
+            ttk.Label(transform, text=key.upper(), width=3).grid(row=row // 2, column=(row % 2) * 2, sticky="w")
+            ttk.Entry(transform, textvariable=self.transform_vars[key], width=8).grid(row=row // 2, column=(row % 2) * 2 + 1, padx=(0, 5), pady=2)
+        ttk.Button(transform, text="Aplicar valores", command=self.apply_transform).grid(row=2, column=0, columnspan=4, sticky="ew", pady=(5, 0))
         ttk.Button(left, text="Salvar alterações", command=self.save).pack(fill="x", pady=(12, 3))
         ttk.Label(left, text="Arraste objetos no cenário.\nSetas movem 1%; Shift+seta move 5%.",
                   justify="left").pack(anchor="w", pady=8)
@@ -90,6 +99,7 @@ class SceneEditor:
         if selection:
             self.selected = self.scene["objects"][selection[0]]["id"]
             self.render()
+            self._sync_transform_fields()
 
     def select_at(self, event):
         for obj in sorted(self.scene["objects"], key=lambda x: x.get("z", 0), reverse=True):
@@ -101,9 +111,36 @@ class SceneEditor:
                 self.selected = obj["id"]
                 self.drag_origin = (event.x, event.y, obj["x"], obj["y"])
                 self.render()
+                self._sync_transform_fields()
                 return
         self.selected = None
         self.render()
+        self._sync_transform_fields()
+
+    def _sync_transform_fields(self):
+        obj = self.get_selected()
+        for key, variable in self.transform_vars.items():
+            variable.set(f"{obj[key]:.3f}" if obj else "")
+
+    def apply_transform(self):
+        obj = self.get_selected()
+        if not obj:
+            messagebox.showwarning("Editor de cenários", "Selecione um objeto primeiro.")
+            return
+        try:
+            values = {key: float(variable.get().replace(",", ".")) for key, variable in self.transform_vars.items()}
+        except ValueError:
+            messagebox.showerror("Editor de cenários", "Use números entre 0 e 1.")
+            return
+        if (any(value < 0 or value > 1 for value in values.values())
+                or values["w"] <= 0 or values["h"] <= 0
+                or values["x"] + values["w"] > 1
+                or values["y"] + values["h"] > 1):
+            messagebox.showerror("Editor de cenários", "A caixa do objeto deve ficar dentro do cenário (0 a 1).")
+            return
+        obj.update(values)
+        self.render()
+        self._sync_transform_fields()
 
     def drag(self, event):
         if not self.selected or not self.drag_origin:
@@ -150,9 +187,12 @@ class SceneEditor:
         try:
             with Image.open(selected) as source:
                 image = source.convert("RGBA")
+                fitted = ImageOps.contain(image, (480, 480), method=Image.Resampling.LANCZOS)
+                canvas = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+                canvas.alpha_composite(fitted, ((512 - fitted.width) // 2, (512 - fitted.height) // 2))
                 filename = f"{obj['id']}_custom.png"
                 destination = SPRITES / filename
-                image.save(destination, format="PNG", optimize=True)
+                canvas.save(destination, format="PNG", optimize=True)
             obj["asset"] = filename
             self.render()
         except (OSError, ValueError) as exc:
@@ -161,9 +201,10 @@ class SceneEditor:
     def scale(self, factor):
         obj = self.get_selected()
         if obj:
-            obj["w"] = min(.95, max(.04, obj["w"]*factor))
-            obj["h"] = min(.98, max(.04, obj["h"]*factor))
+            obj["w"] = min(1 - obj["x"], .95, max(.04, obj["w"]*factor))
+            obj["h"] = min(1 - obj["y"], .98, max(.04, obj["h"]*factor))
             self.render()
+            self._sync_transform_fields()
 
     def render(self):
         self.canvas.delete("all")
@@ -212,7 +253,9 @@ class SceneEditor:
                 break
 
     def save(self):
-        MANIFEST.write_text(json.dumps(self.data, ensure_ascii=False, indent=2), encoding="utf-8")
+        temp = MANIFEST.with_suffix(".json.tmp")
+        temp.write_text(json.dumps(self.data, ensure_ascii=False, indent=2), encoding="utf-8")
+        temp.replace(MANIFEST)
         messagebox.showinfo("Turnos Zero", "Camadas salvas em dados/objetos_cenas.json")
 
 if __name__ == "__main__":
