@@ -2,146 +2,143 @@
 
 ## 1. Visão do produto
 
-Turnos Zero é um jogo 2D de horror sobrenatural e sobrevivência burocrática. O jogador é um funcionário de uma agência de serviços extraordinários, recebe contratos perigosos, lê protocolos, investiga locais anômalos e tenta quitar uma dívida de R$ 1.000.000.
+Turnos Zero é um jogo 2D de horror sobrenatural e sobrevivência burocrática. O jogador trabalha para uma agência de serviços extraordinários, recebe contratos em locais anômalos e precisa investigar, seguir protocolos, evitar a presença e quitar uma dívida inicial de R$ 1.000.000.
 
-A direção visual combina quatro princípios: documentos manipuláveis e decisões de inspeção (*Papers, Please*), ferramentas analógicas e terminais de sobrevivência (*Alien: Isolation*), equipamento diegético (*Dead Space*) e arquitetura institucional opressiva (*Control*). Essas obras são referências de linguagem e interação; os cenários, personagens, textos, objetos e acontecimentos de Turnos Zero são originais.
+A direção visual combina documentos e inspeção tátil (*Papers, Please*), ferramentas e terminais analógicos (*Alien: Isolation*), equipamento diegético (*Dead Space*) e arquitetura opressiva (*Control*). As referências orientam a linguagem de interação; agência, personagens, cenários, textos e eventos são originais.
 
 ## 2. Loop principal
 
-1. **Admissão:** informar o nome do crachá e escolher o vínculo.
-2. **Dossiê:** consultar dívida, remuneração, risco, local e protocolos.
-3. **Preparação:** conferir o cinto de equipamentos.
-4. **Investigação:** explorar o cenário, selecionar objetos e examinar anomalias.
-5. **Manipulação:** abrir, acionar, tocar ou desligar objetos; o estado permanece salvo no contrato.
-6. **Ocorrências:** resolver três situações e tomar decisões apoiadas pelas evidências.
-7. **Sobrevivência:** erros reduzem estabilidade conforme o multiplicador de risco do contrato.
-8. **Pagamento:** concluir o trabalho reduz a dívida e libera o próximo contrato.
+1. Admissão e escolha do vínculo.
+2. Dossiê: dívida, pagamento, risco, local e protocolos.
+3. Preparação de equipamentos.
+4. Investigação do ambiente e registro de pistas.
+5. Manipulação de objetos, com mudança visual e pressão anômala.
+6. Consulta ao rádio e à central de vigilância.
+7. Resolução de três ocorrências.
+8. Sobrevivência: decidir quando avançar, esconder-se ou usar equipamentos.
+9. Pagamento e progressão para o próximo contrato.
 
 ## 3. Economia e dificuldade
 
 - Dívida inicial: **R$ 1.000.000**.
 - Pagamento do primeiro contrato: **R$ 50**.
 - Pagamento dobra a cada contrato: **R$ 50, R$ 100, R$ 200, R$ 400, R$ 800...**.
-- Multiplicador de risco também dobra: **x1, x2, x4, x8, x16...**.
-- A estabilidade inicial depende do vínculo. O dano de uma falha é multiplicado pelo risco atual; contratos posteriores ficam progressivamente mais difíceis de sobreviver.
-- O progresso continua em ciclos de quatro ambientes, com os contratos e riscos escalando até o limite técnico da campanha.
+- Risco também dobra: **x1, x2, x4, x8, x16...**.
+- A estabilidade inicial depende do vínculo; violações e ataques da presença descontam estabilidade conforme o risco do contrato.
+- A campanha continua em ciclos dos quatro ambientes até o limite técnico de 60 contratos.
 
-## 4. Arquitetura atual
+## 4. Arquitetura
 
-- `main.py`: interface Tkinter Canvas, modo terminal, telas de investigação, inspeção e ocorrência.
-- `turnos_zero.py`: motor de missão, economia, dificuldade, equipamentos, evidências, estados de objetos e salvamento.
-- `scene_manager.py`: carregamento e validação de cenas, coordenadas e hotspots.
+- `main.py`: interface Tkinter Canvas, modo terminal, telas de briefing, investigação, inspeção, decisão, CFTV e rádio.
+- `turnos_zero.py`: motor, economia, dificuldade, evidências, equipamentos, estados de objetos, pressão anômala, abrigos e persistência.
+- `scene_manager.py`: catálogo, validação, hit testing e coordenadas.
 - `dados/cenas.json`: catálogo de fundos e hotspots de fallback.
-- `dados/objetos_cenas.json`: posição, dimensão, camada, visibilidade, hotspot e sprite alternativo de cada objeto.
-- `assets/ambientes/`: fundos das missões e fontes SVG editáveis.
-- `assets/objetos/`: 16 objetos PNG independentes e fontes SVG; cinco objetos possuem variações visuais quando manipulados.
-- `tools/editor_cenas.py`: editor visual de objetos, com arrastar, redimensionar, ordenar, ocultar e substituir PNG.
-- `tools/export_assets.py`: exporta fundos em 834×315 e objetos em 512×512.
-- `dados/turnos_zero_progresso.json`: campanha e estados persistidos.
-- `dados/turnos_zero_historico.json`: histórico de contratos.
-- `tests/`: testes de motor, cenas, objetos, economia e persistência.
-- GitHub Actions: exportação e testes em Python 3.10, 3.11 e 3.12.
+- `dados/objetos_cenas.json`: objetos, posições, dimensões, z-order, visibilidade, hotspots, ações e variantes.
+- `assets/ambientes/`: seis fundos SVG/PNG, exportados em 834×469.
+- `assets/objetos/`: 16 sprites independentes e 15 variantes SVG/PNG, exportados em 512×512.
+- `assets/som/`: quatro loops WAV de 10 segundos.
+- `tools/editor_cenas.py`: edição visual de camadas e hotspots.
+- `tools/export_assets.py`: exportação de SVGs e geração dos loops de áudio.
+- `tools/generate_audio.py`: síntese de ambientes com biblioteca padrão do Python.
+- `tests/`: testes do motor, campanha, cenas, objetos, equipamentos, ameaça e áudio.
 
 ## 5. Sistemas implementados
 
-### Ambientes e objetos
-- Fundos de missão carregados em viewport proporcional 834×315.
-- 16 sprites independentes para loja, edifício, cinema e laboratório.
-- Cada objeto usa `x/y/w/h/z/visible`; o renderizador respeita a escala configurada e preserva a proporção do sprite.
-- Hotspots acompanham os limites configurados do objeto.
-- Editor usa o mesmo viewport que o jogo.
-- Variações de sprite existem para geladeira, elevador, projetor, terminal e luz de emergência.
+### Renderização e edição
+- Fundo arquitetônico 16:9 e objetos como sprites independentes.
+- Objetos com coordenadas normalizadas `x/y/w/h`, ordem `z` e visibilidade.
+- Variantes de sprite para objetos manipulados.
+- Hotspots seguem o retângulo da camada editável.
+- Editor suporta arrastar, redimensionar, entrada numérica, ocultar, reordenar, substituir PNG e salvar.
 
-### Investigação e manipulação
-- Selecionar um hotspot abre ficha própria de inspeção.
-- Exame registra evidência explicitamente; a seleção do objeto não coleta pista automaticamente.
-- Interagir altera o estado do objeto e salva a mudança no contrato.
-- Dossiê de campo permite rever todas as pistas arquivadas antes da ocorrência.
-- Evidências e estados não vazam para o próximo contrato.
+### Investigação
+- Cada hotspot abre uma ficha de inspeção.
+- Evidência só é registrada por exame ou fotografia; selecionar o objeto não coleta automaticamente.
+- Estados de objetos e evidências são persistidos e isolados por contrato.
+- O dossiê permite revisar pistas antes das decisões.
 
 ### Equipamentos
-- **Lanterna:** ativa um cone de iluminação; começa com 100% e consome 35 pontos por decisão enquanto ligada.
-- **Rádio:** exibe orientação contextual da central; possui três transmissões por contrato.
-- **Câmera:** ativa visual de gravação/scanlines e permite fotografar evidências; possui três fotos por contrato.
-- Os recursos são repostos quando um novo contrato é iniciado; decisões e evidências não são apagadas.
-- Inventário e estados de equipamentos são persistidos; saves antigos recebem os padrões sem perder progresso.
+- Lanterna com bateria e cone de iluminação; o cenário escurece quando fica sem carga.
+- Rádio com três transmissões contextualizadas por contrato.
+- Câmera com três exposições, modo CFTV de seis canais e fotografia de evidências.
+- Ferramentas são repostas no início do próximo contrato.
 
-### Interface e áudio
-- Menu e documentos institucionais preservam a linguagem burocrática da agência.
-- Terminal do laboratório tem painel CRT com logs verdes e scanlines.
-- Sons de acerto e violação são executados de forma assíncrona no Windows, com fallback para beep do Tk em plataformas sem `winsound`.
-- Interface mantém proporção ao redimensionar a janela e converte cliques para o mesmo espaço lógico.
+### Horror e sobrevivência
+- Cada missão possui um perfil de pressão anômala associado a objetos interativos.
+- Interações aumentam pressão; no limite, a presença inicia uma perseguição.
+- A presença aparece no campo visual e pode ser identificada no feed CCTV correspondente.
+- Se o agente avançar exposto, a presença causa dano adicional escalado pelo risco.
+- Cada perseguição permite um único uso do abrigo específico do local. Sair do abrigo deixa o agente exposto até a ameaça ser resolvida.
+- Os estados de ameaça, perseguição e abrigo são persistidos; saves antigos recebem valores padrão.
 
-## 6. Missões atuais
+### Áudio
+- Quatro paisagens sonoras originais por missão: loja, edifício, cinema e laboratório.
+- Efeitos curtos para interação, evidência, acerto e violação.
+- WAV mono, 16-bit, 22.050 Hz; playback de loop e one-shot pelo Windows `winsound`, com fallback simples de som do Tk.
 
-1. **Loja 24 horas:** balcão, prateleiras, geladeira, porta de vidro e anomalia ligada ao telefone e ao corredor.
-2. **Edifício Residencial 9:** porta, elevador, presença e painel de andar 0.
-3. **Última Sessão:** projetor, tela com marcas, poltrona e espectador.
-4. **Protocolo de Contenção:** câmaras de contenção, terminal persistente e luz de emergência.
+## 6. Missões
 
-Cada ambiente possui pontos de investigação, evidências, objetos manipuláveis e três ocorrências narrativas.
+1. **Loja 24 horas:** caixa, geladeira e porta de vidro; abrigo atrás do balcão.
+2. **Edifício Residencial 9:** elevador, porta 503/504, painel e presença; abrigo na escadaria de serviço.
+3. **Última Sessão:** projetor, tela, poltrona e espectador; abrigo na cabine de projeção.
+4. **Protocolo de Contenção:** câmaras, terminal e iluminação; abrigo no armário de descontaminação.
 
-## 7. Próximas etapas
+Cada ambiente possui três ocorrências, protocolos, evidências e interações próprias. A campanha repete os ambientes com identificadores de contrato e dificuldade crescente.
 
-### Etapa 1 — Renderização e interação (base implementada)
-- [x] Corrigir proporção do viewport e dos sprites.
-- [x] Publicar os objetos independentes e o pipeline de exportação.
-- [x] Alinhar editor e jogo ao viewport 834×315.
-- [x] Inspeção e estados persistentes de objetos.
-- [x] Variantes visuais de objetos manipulados.
-- [ ] Melhorar qualidade e variedade dos fundos e das animações de ambiente.
-- [ ] Teste manual de escala, cliques e estados no Windows.
+## 7. Roadmap e aceite
 
-### Etapa 2 — Interface diegética e equipamentos (base implementada)
-- [x] Cinto com lanterna, rádio e câmera.
-- [x] Terminal CRT específico do laboratório.
-- [x] Feedback sonoro de decisão.
-- [ ] Dossiê da agência com documentos e carimbos realmente manipuláveis.
-- [ ] Relatório fotográfico de evidências e arquivo de gravações.
+### Fundação e conteúdo — concluído por CI
+- [x] Motor de campanha, dívida, pagamentos e risco exponencial.
+- [x] Quatro contratos originais com três ocorrências por contrato.
+- [x] Save/load, histórico e prevenção de duplicação de pagamento.
+- [x] Modo terminal para investigação, rádio e manipulação de objetos.
 
-### Etapa 3 — Terror e sobrevivência (em desenvolvimento)
-- [ ] Áudio ambiente por missão, ruídos posicionais e eventos de rádio.
-- [ ] Eventos dinâmicos que mudam o ambiente durante o turno.
-- [ ] Ameaças com padrões de aproximação, perseguição e esconderijos.
-- [ ] Recursos limitados de lanterna, câmera e rádio.
-- [ ] Consequências visuais e sonoras mais fortes para violações.
+### Renderização e interação — implementado
+- [x] Fundos 16:9 e objetos separados por camada.
+- [x] Editor de camadas e sincronização de áreas clicáveis.
+- [x] Ficha de inspeção e variantes visuais.
+- [x] Estados persistidos por objeto e contrato.
 
-### Etapa 4 — Campanha e progressão
-- [x] Dívida de R$ 1.000.000, pagamento e risco dobrando por contrato.
-- [ ] Mais contratos originais e variações de cada local.
-- [ ] Funcionários recorrentes, arquivos secretos e consequências entre contratos.
-- [ ] Finais alternativos e formas diferentes de quitar ou renegociar a dívida.
+### Interface diegética — implementada
+- [x] Dossiê/briefing com dívida, risco, remuneração e protocolos.
+- [x] Rádio com transmissões contextualizadas.
+- [x] Central CCTV de seis canais e fotografias.
+- [x] Terminal CRT e relatórios de evidência.
 
-### Etapa 5 — Qualidade e entrega
-- [x] Testes automatizados em três versões do Python.
-- [x] Validação de PNGs, JSON, hotspots e sprites alternativos.
-- [ ] Teste visual de todas as telas no Windows.
-- [ ] Teste de campanha longa, falhas, retomada e migração com saves reais.
-- [ ] Empacotamento executável e roteiro final de apresentação.
+### Horror e sobrevivência — implementado na base atual
+- [x] Pressão anômala ligada às interações.
+- [x] Perseguição e ataque na próxima decisão, com dano escalado.
+- [x] Presença visual no ambiente e em um canal CCTV suspeito.
+- [x] Abrigo específico por missão, com um uso por perseguição.
+- [x] Áudio ambiente próprio por missão.
+- [ ] Animações de entrada/saída da presença e variações visuais de perseguição.
+- [ ] Mais eventos dinâmicos independentes das ocorrências principais.
+- [ ] Efeitos de áudio por evento e posicionamento espacial.
 
-## 8. Fluxo de uma pista
+### Qualidade e entrega — parcial
+- [x] CI em Python 3.10, 3.11 e 3.12.
+- [x] Validação de cenas, hotspots, PNGs, variantes, estados e áudio.
+- [ ] Teste manual das quatro missões no Windows.
+- [ ] Validação de playback e balanceamento de áudio no Windows.
+- [ ] Teste de campanha longa e preparação de save de demonstração.
+- [ ] Empacotamento executável.
 
-```mermaid
-flowchart TD
-    A[Ambiente da missão] --> B[Selecionar objeto]
-    B --> C[Ficha de inspeção]
-    C --> D{Ação do agente}
-    D -->|Examinar| E[Registrar evidência]
-    D -->|Manipular| F[Atualizar estado visual do objeto]
-    E --> G[Salvar campanha]
-    F --> G
-    G --> H[Decisão na ocorrência]
-    H --> I[Motor verifica evidências compatíveis]
-    I --> J[Reputação, estabilidade e consequência]
-```
+## 8. Estados persistidos
 
-## 9. Estados persistidos e qualidade
-
-- `between_shifts`: contrato aguardando início ou próximo contrato disponível.
-- `on_shift`: expediente em andamento; investigação, inspeção e equipamento permitidos.
+- `between_shifts`: aguardando início do contrato.
+- `on_shift`: expediente em andamento.
 - `ended`: contrato encerrado por falha.
 - `campaign_completed`: limite técnico da campanha atingido.
 
-O motor valida posição da campanha, economia, evidências, estados de objetos e equipamentos. Saves antigos sem inventário recebem os equipamentos padrão. A gravação usa arquivo temporário e substituição.
+O motor valida posição da campanha, economia, evidências, estados de objetos, equipamentos, pressão anômala, perseguição e abrigo. Saves antigos são migrados para os novos campos padrão. A gravação usa arquivo temporário e substituição.
 
-GitHub Actions compila os módulos, exporta fundos e sprites, executa os testes e valida os JSONs em Python 3.10, 3.11 e 3.12. **O CI não substitui a validação manual da interface no Windows**, ainda pendente.
+## 9. Validação automatizada
+
+O GitHub Actions:
+1. instala Pillow e CairoSVG;
+2. exporta fundos, sprites e loops WAV;
+3. compila os módulos e ferramentas;
+4. executa a suíte unittest;
+5. valida JSONs e referências de cenas.
+
+A matriz atual usa Python 3.10, 3.11 e 3.12. O CI não substitui testes visuais e de áudio no Windows.
