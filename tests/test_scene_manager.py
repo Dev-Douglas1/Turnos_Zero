@@ -2,7 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from scene_manager import SceneManager, SceneError
+from scene_manager import SceneManager, SceneError, scene_for_mission
 
 class SceneManagerTests(unittest.TestCase):
     def write_config(self, root, scenes):
@@ -10,6 +10,18 @@ class SceneManagerTests(unittest.TestCase):
         path.write_text(json.dumps({"scenes": scenes}), encoding="utf-8")
         return path
 
+
+    def test_todos_os_contratos_possuem_cena_unificada(self):
+        expected = {
+            "loja_24h": "loja_24h",
+            "edificio_9": "edificio_9",
+            "cinema_vazio": "cinema_vazio",
+            "laboratorio": "laboratorio",
+        }
+        for mission_id, scene_id in expected.items():
+            with self.subTest(mission=mission_id):
+                self.assertEqual(scene_for_mission(mission_id), scene_id)
+        self.assertIsNone(scene_for_mission("missao_inexistente"))
 
     def test_converte_hotspot_para_area_da_cena(self):
         bounds = SceneManager.map_bounds([0.1, 0.2, 0.5, 0.8], (100, 200, 900, 600))
