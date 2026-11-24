@@ -180,7 +180,7 @@ class TurnosZeroApp:
         if ending=="survived":
             self.text(120,370,"TURNO CONCLUÍDO",18,self.GOLD,"nw")
             self.text(120,410,f"Pagamento recebido: R$ {self.game.state['last_payment']:,}".replace(",", "."),13,self.TEXT,"nw")
-            self.button(650,535,230,"PRÓXIMO CONTRATO",self.show_contract,44)
+            self.button(650,535,230,"PRÓXIMO CONTRATO",self.advance_contract,44)
         elif ending=="missing":
             self.text(120,370,"FUNCIONÁRIO NÃO LOCALIZADO",18,"#e58d83","nw")
             self.text(120,415,self.game.state.get("last_reveal",""),12,self.MUTED,"nw",720)
@@ -188,6 +188,10 @@ class TurnosZeroApp:
         else:
             self.button(650,535,230,"CONTINUAR",self.show_task,44)
         self.bind_clicks()
+
+    def advance_contract(self):
+        self.game.next_shift()
+        self.show_contract()
 
     def show_ending(self):
         self.screen="ending"
