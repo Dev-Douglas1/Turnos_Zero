@@ -178,7 +178,7 @@ def fresh_state(player: str, difficulty: str = "estagiario") -> dict:
         "sanity": DIFFICULTIES[difficulty]["sanity"], "mistakes": 0, "task_index": 0,
         "completed": [], "evidence": [], "object_states": {},
         "threat_level": 0, "threat_active": False, "is_hidden": False,
-        "threat_triggered": [],
+        "hide_used": False, "threat_triggered": [],
         "inventory": ["lanterna", "radio", "camera"],
         "tool_states": {"lanterna": True, "radio": False, "camera": False},
         "tool_resources": dict(TOOL_RESOURCES),
@@ -205,6 +205,7 @@ class ShiftGame:
                 ("threat_level", 0),
                 ("threat_active", False),
                 ("is_hidden", False),
+                ("hide_used", False),
                 ("threat_triggered", []),
             ):
                 if key not in self.state:
@@ -290,7 +291,9 @@ class ShiftGame:
         threat_level = state.get("threat_level", 0)
         if type(threat_level) is not int or not 0 <= threat_level <= 5:
             return False
-        if type(state.get("threat_active", False)) is not bool or type(state.get("is_hidden", False)) is not bool:
+        if (type(state.get("threat_active", False)) is not bool
+                or type(state.get("is_hidden", False)) is not bool
+                or type(state.get("hide_used", False)) is not bool):
             return False
         triggered = state.get("threat_triggered", [])
         if (not isinstance(triggered, list) or
@@ -355,7 +358,7 @@ class ShiftGame:
                           sanity=DIFFICULTIES[self.state["difficulty"]]["sanity"],
                           tool_resources=dict(TOOL_RESOURCES),
                           tool_states={"lanterna": True, "radio": False, "camera": False},
-                          threat_level=0, threat_active=False, is_hidden=False, threat_triggered=[],
+                          threat_level=0, threat_active=False, is_hidden=False, hide_used=False, threat_triggered=[],
                           current_seed=random.randrange(1, 2**31), shift_token=uuid.uuid4().hex)
         self.save()
         return self.mission
@@ -397,6 +400,7 @@ class ShiftGame:
                 result["threat_message"] = profile.get("caught", "A presença encontrou você.")
             self.state["threat_active"] = False
             self.state["is_hidden"] = False
+            self.state["hide_used"] = False
             self.state["threat_level"] = max(0, self.state.get("threat_level", 0) - 2)
             result["message"] += "\n\n" + result["threat_message"]
 
@@ -611,10 +615,13 @@ class ShiftGame:
             raise RuntimeError("Nenhuma presença está procurando você neste momento.")
         if self.state.get("is_hidden", False):
             raise RuntimeError("Você já está escondido.")
+        if self.state.get("hide_used", False):
+            raise RuntimeError("Você já usou o abrigo nesta perseguição.")
         spot = ANOMALY_PROFILES.get(self.mission["id"], {}).get("hiding_spot")
         if not spot:
             raise RuntimeError("Este local não possui um abrigo conhecido.")
         self.state["is_hidden"] = True
+        self.state["hide_used"] = True
         self.save()
         return spot
 
