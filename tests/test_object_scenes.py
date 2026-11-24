@@ -12,6 +12,9 @@ class EditableSceneManifestTests(unittest.TestCase):
     def setUpClass(cls):
         cls.data = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
+    def test_manifest_viewport_matches_runtime_scene(self):
+        self.assertEqual(self.data["viewport"], [834, 315])
+
     def test_all_four_missions_have_independent_objects(self):
         scenes = self.data["scenes"]
         self.assertEqual(set(scenes), {"loja_24h", "edificio_9", "cinema_vazio", "laboratorio"})

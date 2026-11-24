@@ -427,7 +427,7 @@ class TurnosZeroApp:
 
         # A mesa/ambiente da agência fica à direita; os documentos ocupam uma
         # coluna à esquerda e deixam a arte visível, em vez de cobri-la inteira.
-        self.draw_backdrop("cidade_noturna.png", y=420, x=755, width=520, height=310)
+        self.draw_backdrop("cidade_noturna.png", y=410, x=755, width=520, height=196)
         self.rect(58, 190, 480, 278, "#0d1521", "#9a7848", 1)
         self.text(82, 216, "DÍVIDA CONTRATUAL", 10, "#d98b75", "nw")
         self.text(82, 247, "− R$ 1.000.000", 22, "#e58d83", "nw")

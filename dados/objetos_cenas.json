@@ -3,7 +3,7 @@
   "coordinate_system": "normalized_0_1",
   "viewport": [
     834,
-    275
+    315
   ],
   "description": "Camadas editáveis: cada PNG é um objeto independente. Edite x/y/w/h/z/visible e troque asset sem redesenhar a missão.",
   "scenes": {

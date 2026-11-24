@@ -53,6 +53,7 @@ Dependência gráfica para redimensionar os objetos PNG: instale com `python -m 
 - dados/turnos_zero_progresso.json — campanha nova.
 - dados/turnos_zero_historico.json — histórico dos expedientes.
 - tests/test_turnos_zero.py — testes automatizados do novo motor.
+- tools/editor_cenas.py — editor visual de objetos: arrastar, redimensionar, ordenar, ocultar e substituir sprites.
 - docs/PLANO_TECNICO_TURNOS_ZERO.md — arquitetura, etapas e roadmap.
 - docs/ROTEIRO_APRESENTACAO.md — roteiro de demonstração e checklist para apresentação.
 
@@ -62,7 +63,7 @@ Os saves antigos da Mansão continuam preservados em seus arquivos originais. A 
 
 A fundação jogável está implementada: menu, criação de contrato, quatro missões com escolhas, estabilidade, falhas, reputação, pagamentos, progressão, persistência e modo terminal. A interface gráfica e o modo terminal separam a fase de investigação da fase de decisão. O histórico usa identificador único por expediente para evitar duplicação em retomadas, e o carregamento valida a estrutura do progresso antes de aceitar um save. Os seis cenários são exportados para PNG em `assets/ambientes/` e carregados pelo Tkinter; os SVGs originais permanecem versionados como fontes editáveis. `tools/export_assets.py` gera fundos em 834×315 e objetos em 512×512. O renderizador redimensiona cada sprite conforme x/y/w/h, preserva a proporção do objeto e mantém hotspots ligados aos mesmos limites. Hotspots usam coordenadas normalizadas de 0 a 1. Evidências ficam associadas à missão e só influenciam decisões compatíveis com a pista coletada.
 
-Ainda estão planejados: interação manipulável por objeto (abrir, fechar, mover e usar), zoom de inspeção, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. A interface gráfica precisa de teste manual no Windows.
+Ainda estão planejados: interação manipulável por objeto (abrir, fechar, mover e usar), zoom de inspeção, animações, áudio ambiente e rádio, inventário de ferramentas, entidades com padrões de comportamento, economia expandida, funcionários recorrentes, mais missões e finais. O editor visual e o jogo usam a mesma área normalizada de 834×315. A interface gráfica ainda precisa de teste manual no Windows.
 
 ## Identidade original
 

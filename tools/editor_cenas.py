@@ -7,14 +7,16 @@ O jogo continua sem depender de Pillow.
 from __future__ import annotations
 import json
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from pathlib import Path
-from PIL import Image, ImageTk
+import shutil
+from PIL import Image, ImageOps, ImageTk
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "dados" / "objetos_cenas.json"
+SCENE_CONFIG = ROOT / "dados" / "cenas.json"
 SPRITES = ROOT / "assets" / "objetos"
-W, H = 834, 275
+W, H = 834, 315
 
 class SceneEditor:
     def __init__(self, root):
@@ -22,11 +24,14 @@ class SceneEditor:
         self.root.title("TURNOS ZERO | Editor de cenários")
         self.root.geometry("1180x650")
         self.data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        self.scene_catalog = json.loads(SCENE_CONFIG.read_text(encoding="utf-8"))["scenes"]
+        self.backgrounds = {item["id"]: ROOT / item["background"] for item in self.scene_catalog}
         self.scene_id = next(iter(self.data["scenes"]))
         self.selected = None
         self.drag_origin = None
         self.photos = {}
         self.tk_images = []
+        self.background_photo = None
         self._build()
         self.render()
 
@@ -131,6 +136,28 @@ class SceneEditor:
             obj["z"] = obj.get("z", 0) + delta
             self.render()
 
+    def replace_asset(self):
+        obj = self.get_selected()
+        if not obj:
+            messagebox.showwarning("Editor de cenários", "Selecione um objeto antes de trocar a imagem.")
+            return
+        selected = filedialog.askopenfilename(
+            title="Selecionar imagem do objeto",
+            filetypes=[("Imagens", "*.png *.jpg *.jpeg *.webp *.bmp"), ("Todos os arquivos", "*.*")]
+        )
+        if not selected:
+            return
+        try:
+            with Image.open(selected) as source:
+                image = source.convert("RGBA")
+                filename = f"{obj['id']}_custom.png"
+                destination = SPRITES / filename
+                image.save(destination, format="PNG", optimize=True)
+            obj["asset"] = filename
+            self.render()
+        except (OSError, ValueError) as exc:
+            messagebox.showerror("Editor de cenários", f"Não foi possível importar a imagem: {exc}")
+
     def scale(self, factor):
         obj = self.get_selected()
         if obj:
@@ -140,9 +167,20 @@ class SceneEditor:
 
     def render(self):
         self.canvas.delete("all")
-        bg = self.scene.get("backdrop", {})
-        self.canvas.create_rectangle(0, 0, W, H, fill=bg.get("wall", "#101923"), outline="")
-        self.canvas.create_rectangle(0, H*.72, W, H, fill=bg.get("floor", "#070b12"), outline="")
+        background_path = self.backgrounds.get(self.scene_id)
+        self.background_photo = None
+        if background_path and background_path.is_file():
+            with Image.open(background_path) as source:
+                background = source.convert("RGBA").resize(
+                    (W, H), Image.Resampling.LANCZOS
+                )
+            self.background_photo = ImageTk.PhotoImage(background)
+            self.canvas.create_image(W/2, H/2, image=self.background_photo)
+        else:
+            bg = self.scene.get("backdrop", {})
+            self.canvas.create_rectangle(0, 0, W, H, fill=bg.get("wall", "#101923"), outline="")
+            self.canvas.create_rectangle(0, H*.72, W, H, fill=bg.get("floor", "#070b12"), outline="")
+
         self.object_list.delete(0, "end")
         self.tk_images = []
         for obj in sorted(self.scene["objects"], key=lambda x: x.get("z", 0)):
@@ -153,14 +191,16 @@ class SceneEditor:
             path = SPRITES / obj["asset"]
             if not path.is_file():
                 continue
-            image = Image.open(path).convert("RGBA")
-            size = (max(1, int(obj["w"]*W)), max(1, int(obj["h"]*H)))
-            image = image.resize(size, Image.Resampling.LANCZOS)
+            box = (max(1, int(obj["w"]*W)), max(1, int(obj["h"]*H)))
+            with Image.open(path) as source:
+                image = ImageOps.contain(
+                    source.convert("RGBA"), box, method=Image.Resampling.LANCZOS
+                )
             photo = ImageTk.PhotoImage(image)
             self.tk_images.append(photo)
             x = (obj["x"]+obj["w"]/2)*W
             y = (obj["y"]+obj["h"]/2)*H
-            self.canvas.create_image(x, y, image=photo)
+            self.canvas.create_image(x, y, image=photo, tags=("object", obj["id"]))
             if obj["id"] == self.selected:
                 self.canvas.create_rectangle(obj["x"]*W, obj["y"]*H,
                     (obj["x"]+obj["w"])*W, (obj["y"]+obj["h"])*H,
