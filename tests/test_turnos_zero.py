@@ -71,6 +71,27 @@ class TurnosZeroTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.game.start_shift()
 
+    def test_save_entre_contratos_e_valido_apos_turno_concluido(self):
+        self.game.start_shift()
+        for task in self.game.mission["tasks"]:
+            self.game.act(task["correct"])
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertIsNotNone(reopened.state)
+        self.assertEqual(reopened.state["status"], "between_shifts")
+        self.assertEqual(reopened.state["task_index"], 3)
+
+    def test_campanha_concluida_persiste_apos_reabrir(self):
+        for index, mission in enumerate(MISSIONS):
+            self.game.start_shift()
+            for task in mission["tasks"]:
+                self.game.act(task["correct"])
+            if index < len(MISSIONS) - 1:
+                self.game.next_shift()
+        self.game.next_shift()
+        reopened = ShiftGame(self.game.save_path, self.game.history_path)
+        self.assertIsNotNone(reopened.state)
+        self.assertEqual(reopened.state["status"], "campaign_completed")
+
     def test_save_corrompido_nao_quebra_abertura(self):
         self.game.save_path.write_text("{json inválido", encoding="utf-8")
         reopened = ShiftGame(self.game.save_path, self.game.history_path)
