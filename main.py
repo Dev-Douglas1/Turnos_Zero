@@ -158,44 +158,47 @@ class TurnosZeroApp:
             self.text(56,132,subtitle,12,self.MUTED,"nw")
 
     def menu(self):
-        """Menu principal com hierarquia clara e sem sobrepor o texto da arte."""
+        """Menu principal simétrico, com hierarquia tipográfica sem duplicação."""
         self.screen = "menu"
         self.clear()
-        self.rect(0, 0, self.W, self.H, self.BG)
+        self.rect(0, 0, self.W, self.H, "#080e18")
 
-        # Cidade noturna como arte de fundo: a ilustração da agência já contém
-        # lettering próprio e, por isso, não deve ser reutilizada atrás do título.
-        for x in range(0, self.W, 64):
-            self.rect(x, 0, x + 1, self.H, "#111a28")
-        self.rect(0, 560, self.W, self.H, "#080d15")
-        self.draw_scene("cidade", 470, 360)
+        # Grade arquitetônica discreta e volumes laterais; sem lettering na arte.
+        for x in range(32, self.W, 80):
+            self.rect(x, 0, x + 1, self.H, "#101b29")
+        self.rect(0, 555, self.W, 145, "#070c14")
+        for x, top, width in ((25, 250, 95), (150, 190, 72), (802, 205, 88), (920, 270, 80)):
+            self.rect(x, top, x + width, 555, "#0d1724")
+            for wy in range(top + 28, 520, 58):
+                self.rect(x + 14, wy, x + 22, wy + 15, "#29384a")
 
-        # Vinheta lateral e painel de operações separados da área de arte.
-        self.rect(0, 0, 250, self.H, "#090e17")
-        self.rect(50, 95, 585, 590, "#0d1622", "#4d4639", 1)
-        self.rect(62, 107, 573, 578, "#0d1622", "#263648", 1)
+        # Moldura principal e filetes internos, todos ancorados no centro.
+        self.rect(72, 92, 952, 610, "#0d1725", "#9a7848", 2)
+        self.rect(84, 104, 940, 598, "#0d1725", "#35465a", 1)
+        self.rect(100, 120, 924, 582, "#0d1725", "#1e2c3d", 1)
 
-        self.text(92, 145, "AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS", 10, self.GOLD, "nw")
-        self.text(90, 235, "TURNOS", 42, self.TEXT, "nw")
-        self.text(90, 285, "ZERO", 58, self.GOLD, "nw")
-        self.rect(92, 365, 210, 368, self.GOLD)
-        self.text(92, 405, "O EXPEDIENTE TERMINA.", 12, self.TEXT, "nw")
-        self.text(92, 432, "NEM TODOS VOLTAM PARA CASA.", 10, self.MUTED, "nw")
-        self.text(92, 535, "ARQUIVO INTERNO  /  ACESSO RESTRITO", 8, self.MUTED, "nw")
+        cx = self.W // 2
+        self.text(cx, 180, "AGÊNCIA DE SERVIÇOS EXTRAORDINÁRIOS", 11, self.MUTED)
+        self.text(cx, 224, "DIRETORIA DE OPERAÇÕES ANÔMALAS", 8, self.GOLD)
 
-        self.rect(650, 175, 955, 545, "#0b121d", "#8b6b42", 2)
-        self.rect(660, 185, 945, 535, "#0b121d", "#2b3a4b", 1)
-        self.text(690, 220, "TERMINAL DE OPERAÇÕES", 10, self.GOLD, "nw")
-        self.text(690, 258, "SELECIONE UMA AÇÃO", 17, self.TEXT, "nw")
-        self.text(690, 295, "NOVOS contratos exigem leitura dos protocolos.", 9, self.MUTED, "nw", 245)
-        self.button(690, 355, 225, "NOVO CONTRATO", self.new_campaign, 48)
+        # Linhas laterais não atravessam o título.
+        self.rect(220, 293, 355, 295, "#b18a50")
+        self.rect(669, 293, 804, 295, "#b18a50")
+        self.text(cx, 292, "TURNOS ZERO", 38, self.GOLD)
+
+        self.rect(380, 342, 664, 343, "#536174")
+        self.text(cx, 376, "O EXPEDIENTE TERMINA. NEM TODOS VOLTAM PARA CASA.", 11, self.TEXT)
+
+        # Ação principal e continuação têm dimensões idênticas e alinhamento comum.
+        self.button(365, 425, 294, "NOVO CONTRATO", self.new_campaign, 50)
         if self.game.state:
-            self.button(690, 420, 225, "CONTINUAR CAMPANHA", self.continue_campaign, 48)
+            self.button(365, 492, 294, "CONTINUAR CAMPANHA", self.continue_campaign, 46)
             status = self.game.state.get("status", "—").replace("_", " ").upper()
-            self.text(690, 495, f"ARQUIVO: {status}", 9, self.GOLD, "nw")
+            self.text(cx, 560, f"ARQUIVO ATUAL: {status}", 9, self.GOLD)
         else:
-            self.text(690, 445, "NENHUM CONTRATO ATIVO", 9, self.MUTED, "nw")
-        self.text(512, 660, "TURNOS ZERO  ·  SISTEMA DE CONTROLE  ·  V. 1.1", 9, self.MUTED)
+            self.text(cx, 515, "NENHUM CONTRATO ATIVO", 9, self.MUTED)
+
+        self.text(cx, 660, "ARQUIVO INTERNO  ·  ACESSO RESTRITO  ·  V. 1.2", 9, self.MUTED)
         self.bind_clicks()
 
     def new_campaign(self):
