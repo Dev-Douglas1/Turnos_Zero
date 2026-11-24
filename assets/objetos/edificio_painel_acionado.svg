@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="plate" x2="1"><stop stop-color="#11181d"/><stop offset=".45" stop-color="#695e4d"/><stop offset="1" stop-color="#151c21"/></linearGradient><radialGradient id="glow"><stop stop-color="#f8c46d"/><stop offset=".55" stop-color="#dd7a35"/><stop offset="1" stop-color="#702e1d"/></radialGradient></defs>
+<ellipse cx="256" cy="484" rx="120" ry="14" fill="#000" opacity=".5"/>
+<rect x="112" y="22" width="288" height="468" rx="12" fill="url(#plate)" stroke="#9e8054" stroke-width="9"/>
+<rect x="140" y="50" width="232" height="412" rx="7" fill="#171d21" stroke="#3d4548" stroke-width="5"/>
+<path d="M256 90L315 168H197Z" fill="#0a1015" stroke="#887658" stroke-width="7"/>
+<circle cx="256" cy="285" r="83" fill="#080d11" stroke="#b98d50" stroke-width="12"/>
+<circle cx="256" cy="285" r="63" fill="url(#glow)" stroke="#45261b" stroke-width="5"/>
+<text x="256" y="313" fill="#fff0c8" font-family="monospace" font-size="86" font-weight="bold" text-anchor="middle">0</text>
+<path d="M256 380L196 448H316Z" fill="#0c1115" stroke="#8c7755" stroke-width="7"/>
+<circle cx="150" cy="65" r="5" fill="#d7b47d"/><circle cx="360" cy="65" r="5" fill="#d7b47d"/>
+<!-- estado interativo: edificio_painel_acionado -->
+<circle cx="256" cy="285" r="104" fill="#e14b3d" opacity=".18"/><circle cx="256" cy="285" r="80" fill="none" stroke="#ef5546" stroke-width="12"/><circle cx="256" cy="285" r="63" fill="#a52f26" opacity=".5"/><text x="256" y="313" fill="#fff0c8" font-family="monospace" font-size="86" font-weight="bold" text-anchor="middle">0</text><path d="M150 285H180M332 285H362" stroke="#ff8a66" stroke-width="9"/>
+</svg>
