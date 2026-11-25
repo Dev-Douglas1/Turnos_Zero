@@ -34,7 +34,7 @@ async function boot() {
     $('intro').innerHTML = '<p>ARQUIVO INDISPONÍVEL</p><h2>Não foi possível carregar o jogo.</h2><p>Verifique sua conexão e recarregue a página. Se o problema continuar, os arquivos de dados precisam ser corrigidos.</p><button onclick="location.reload()">TENTAR NOVAMENTE</button>';
   }
 }
-$('start').onclick = () => { if (ready) screen('contract'); };
+$('start').onclick = () => { if (ready) screen('tutorial'); };\n$('tutorialNext').onclick = () => screen('contract');
 document.querySelectorAll('[data-d]').forEach(button => {
   button.onclick = () => { if (!ready) return; diff = button.dataset.d; start(); };
 });
@@ -46,7 +46,7 @@ function start() {
     radio:3, camera:3, battery:100, shelter:false, fail:0, cash:diffs[diff][3]
   };
   $('tag').textContent = 'CONTRATO ' + (idx + 1);
-  $('mission').textContent = mission[1];
+  $('mission').textContent = mission[1];\n  $('objectiveText').textContent = 'Toque nos objetos, leia as pistas e reúna pelo menos ' + mission[3] + ' evidências antes de encerrar.';\n  $('objectiveProgress').textContent = '0 / ' + mission[3] + ' evidências';
   $('sceneCode').textContent = mission[2];
   $('reportTitle').textContent = 'Aguardando inspeção';
   $('reportText').textContent = 'Clique nos objetos do ambiente para examinar. ' + mission[1] + ' — ocorrência anômala registrada.';
@@ -80,13 +80,13 @@ function draw() {
     const button = document.createElement('button');
     const [x,y,right,bottom] = hotspot.bounds;
     button.className = 'hotspot' + (s.seen.includes(hotspot.id) ? ' seen' : '');
-    button.title = hotspot.label;
+    button.title = 'Toque para investigar: ' + hotspot.label;
     button.setAttribute('aria-label','Examinar ' + hotspot.label);
     button.style.cssText = 'left:'+(x*100)+'%;top:'+(y*100)+'%;width:'+((right-x)*100)+'%;height:'+((bottom-y)*100)+'%';
     button.onclick = () => inspect(hotspot);
     el.append(button);
   });
-  $('count').textContent = s.proof.length + ' EVIDÊNCIAS';
+  $('count').textContent = s.proof.length + ' EVIDÊNCIAS';\n  $('objectiveProgress').textContent = Math.min(s.proof.length, missions[idx][3]) + ' / ' + missions[idx][3] + ' evidências';
 }
 function inspect(hotspot) {
   const done = !!s.changed[hotspot.object];
